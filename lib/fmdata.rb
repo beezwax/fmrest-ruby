@@ -2,8 +2,7 @@ require "faraday"
 require "faraday_middleware"
 
 require "fmdata/version"
-require "fmdata/fm16"
-require "fmdata/fm17"
+require "fmdata/v1"
 
 module FmData
   class << self
