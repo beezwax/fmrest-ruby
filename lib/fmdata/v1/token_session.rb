@@ -16,12 +16,12 @@ module FmData
         env.request_headers[HEADER_KEY] = "Bearer #{token}"
 
         @app.call(env).on_complete do |response_env|
-          break if response_env[:status] == 200
-
-          # Get new token and retry
-          token_store.clear
-          token
-          @app.call(env)
+          if response_env[:status] != 200
+            # Get new token and retry
+            token_store.clear
+            token
+            return @app.call(env)
+          end
         end
       end
 

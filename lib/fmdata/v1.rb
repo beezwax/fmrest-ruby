@@ -6,13 +6,21 @@ module FmData
     BASE_PATH = "/fmi/data/v1/databases/".freeze
 
     class << self
-      def build_connection(options = FmData.config)
+      def build_connection(options = FmData.config, &block)
         base_connection(options) do |conn|
           conn.use      TokenSession, options
           conn.request  :json
+
           # TODO: Make logger optional
           conn.response :logger, nil, bodies: true
-          conn.response :json
+
+          # Allow overriding the default response middleware
+          if block_given?
+            yield conn
+          else
+            conn.response :json
+          end
+
           conn.adapter  Faraday.default_adapter
         end
       end
