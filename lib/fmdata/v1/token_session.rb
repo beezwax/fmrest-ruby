@@ -56,11 +56,15 @@ module FmData
       end
 
       def token_store
-        @options[:token_store] ||=
+        @token_store ||= token_store_class.new(@options.fetch(:host), @options.fetch(:database))
+      end
+
+      def token_store_class
+        FmData.token_store ||
           begin
             # TODO: Make this less ugly
             require "fmdata/v1/token_store/memory"
-            TokenStore::Memory.new(@options.fetch(:database))
+            TokenStore::Memory
           end
       end
 

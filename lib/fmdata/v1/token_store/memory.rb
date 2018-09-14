@@ -4,21 +4,21 @@ module FmData
   module V1
     module TokenStore
       class Memory < Base
-        def initialize(database)
+        def initialize(host, database, options = {})
           super
           @tokens = {}
         end
 
         def clear
-          @tokens.delete(database)
+          @tokens.delete(scope)
         end
 
         def fetch
-          @tokens[database]
+          @tokens[scope]
         end
 
         def store(token)
-          @tokens[database] = token
+          @tokens[scope] = token
         end
       end
     end
