@@ -16,7 +16,7 @@ module FmData
         env.request_headers[HEADER_KEY] = "Bearer #{token}"
 
         @app.call(env).on_complete do |response_env|
-          if response_env[:status] != 200
+          if response_env[:status] == 401 # Unauthorized
             # Get new token and retry
             token_store.clear
             token
