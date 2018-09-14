@@ -6,14 +6,29 @@ module FmData
       def on_complete(env)
         json = parse_json(env.body)
 
-        env.body = if single_record_url?(env.url)
-                     prepare_single_record(json)
-                   else
-                     prepare_collection(json)
-                   end
+        env.body =
+          if env.method == :get
+            if single_record_url?(env.url)
+              prepare_single_record(json)
+            else
+              prepare_collection(json)
+            end
+          else
+            prepare_save_response(json)
+          end
       end
 
       private
+
+      def prepare_save_response(json)
+        response = json[:response]
+
+        data = {}
+        data[:mod_id] = response[:modId].to_i if response[:modId]
+        data[:id]     = response[:recordId].to_i if response[:recordId]
+
+        base_hash(json).merge!(data: data)
+      end
 
       def prepare_single_record(json)
         data =
@@ -39,7 +54,7 @@ module FmData
       end
 
       def prepare_record_data(json_data)
-        { id: json_data[:recordId].to_i }.merge!(json_data[:fieldData])
+        { id: json_data[:recordId].to_i, mod_id: json_data[:modId].to_i }.merge!(json_data[:fieldData])
       end
 
       def single_record_url?(url)
