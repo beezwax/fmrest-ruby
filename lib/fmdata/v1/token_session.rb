@@ -5,9 +5,9 @@ module FmData
     class TokenSession < Faraday::Middleware
       HEADER_KEY = "Authorization".freeze
 
-      def initialize(app, options = {})
+      def initialize(app, options = FmData.config)
         super(app)
-        @options = (FmData.config || {}).merge(options)
+        @options = options
       end
 
       # Entry point for the middleware when sending a request
