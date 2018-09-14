@@ -13,19 +13,23 @@ module FmData
       # Entry point for the middleware when sending a request
       #
       def call(env)
-        env.request_headers[HEADER_KEY] = "Bearer #{token}"
+        set_auth_header(env)
 
         @app.call(env).on_complete do |response_env|
           if response_env[:status] == 401 # Unauthorized
             # Get new token and retry
             token_store.clear
-            token
+            set_auth_header(env)
             return @app.call(env)
           end
         end
       end
 
       private
+
+      def set_auth_header(env)
+        env.request_headers[HEADER_KEY] = "Bearer #{token}"
+      end
 
       # Tries to get an existing token from the token store,
       # otherwise requests one through basic auth,
