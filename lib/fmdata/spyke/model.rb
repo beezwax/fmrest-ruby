@@ -28,7 +28,7 @@ module FmData
         #
         def uri(uri_template = nil)
           if @uri.nil? && uri_template.nil?
-            return FmData::V1.record_path(fmdata_config.fetch(:database), layout) + "(/:id)"
+            return FmData::V1.record_path(layout) + "(/:id)"
           end
 
           super
