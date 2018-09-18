@@ -33,8 +33,8 @@ connection = FmData::V1.build_connection(
 ```
 
 The returned connection will prefix any non-absolute paths with
-"/fmi/data/v1/databases/:database/", so you only need to supply the meaningful
-part of the path.
+`"/fmi/data/v1/databases/:database/"`, so you only need to supply the
+meaningful part of the path.
 
 To send a request to the Data API use Faraday's standard methods, e.g.:
 
