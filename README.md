@@ -68,7 +68,6 @@ dead simple:
 
 ```ruby
 # config/initializers/fmdata.rb
-
 require "fmdata/v1/token_store/active_record"
 
 FmData.token_store = FmData::V1::TokenStore::ActiveRecord
@@ -91,7 +90,6 @@ Then require FmData's Spyke support:
 
 ```ruby
 # config/initializers/fmdata.rb
-
 require "fmdata/spyke"
 ```
 
@@ -209,7 +207,7 @@ kitty.attributes # => { "First Name": "Dr.", "Last Name": "Fluffers" }
 
 ## TODO
 
-[ ] Write specs
+[ ] Specs
 [ ] Support for portal data
 [ ] Better/simpler-to-use core Ruby API
 [ ] Oauth support
