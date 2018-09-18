@@ -207,10 +207,10 @@ kitty.attributes # => { "First Name": "Dr.", "Last Name": "Fluffers" }
 
 ## TODO
 
-[ ] Specs
-[ ] Support for portal data
-[ ] Better/simpler-to-use core Ruby API
-[ ] Oauth support
+- [ ] Specs
+- [ ] Support for portal data
+- [ ] Better/simpler-to-use core Ruby API
+- [ ] Oauth support
 
 ## Development
 
