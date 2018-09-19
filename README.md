@@ -226,10 +226,10 @@ git commits and tags, and push the `.gem` file to
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at
-https://github.com/[USERNAME]/fmdata. This project is intended to be a safe,
-welcoming space for collaboration, and contributors are expected to adhere to
-the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome. This project is intended to be a
+safe, welcoming space for collaboration, and contributors are expected to
+adhere to the [Contributor Covenant](http://contributor-covenant.org) code of
+conduct.
 
 ## License
 
@@ -238,6 +238,6 @@ License](https://opensource.org/licenses/MIT).
 
 ## Code of Conduct
 
-Everyone interacting in the Fmdata project’s codebases, issue trackers, chat
+Everyone interacting in the FmData project’s codebases, issue trackers, chat
 rooms and mailing lists is expected to follow the [code of
-conduct](https://github.com/[USERNAME]/fmdata/blob/master/CODE_OF_CONDUCT.md).
+conduct](CODE_OF_CONDUCT.md).
