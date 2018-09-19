@@ -117,7 +117,7 @@ class Kitty < Spyke::Base
 end
 ```
 
-FmData simplfiies the process of setting up your Spyke model with a Farday
+FmData simplfies the process of setting up your Spyke model with a Faraday
 connection by allowing you to just set your Data API connection settings:
 
 ```ruby
