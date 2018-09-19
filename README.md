@@ -153,7 +153,7 @@ class KittyDbModel < Spyke::Base
 end
 
 class Kitty < KittyDbModel
-   # This will use the same connection as KittyDbModel
+  # This will use the same connection as KittyDbModel
 end
 ```
 
@@ -165,7 +165,7 @@ Use `layout` to set the `:layout` part of API URLs, e.g.:
 class Kitty
   include FmData::Spyke::Model
 
-  layout "FluffyKitty" # API path will begin with layouts/FluffyKitty/records
+  layout "FluffyKitty" # uri path will be layouts/FluffyKitty/records(/:id)
 end
 ```
 
