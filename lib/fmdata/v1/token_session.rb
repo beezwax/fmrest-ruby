@@ -17,7 +17,6 @@ module FmData
 
         @app.call(env).on_complete do |response_env|
           if response_env[:status] == 401 # Unauthorized
-            # Get new token and retry
             token_store.clear
             set_auth_header(env)
             return @app.call(env)
@@ -52,7 +51,7 @@ module FmData
       #
       def request_token
         resp = auth_connection.post do |req|
-          req.url V1.session_path(@options.fetch(:database))
+          req.url V1.session_path
           req.headers["Content-Type"] = "application/json"
         end
         return resp.body["response"]["token"] if resp.success?
