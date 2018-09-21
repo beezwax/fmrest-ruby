@@ -2,6 +2,7 @@ module FmData
   module Spyke
     module Model
       extend ::ActiveSupport::Concern
+      CLASS_FIND_RE = %r(`find').freeze
 
       included do
         attr_accessor :mod_id
@@ -17,15 +18,19 @@ module FmData
           super || fmdata_connection
         end
 
+        # Can find single record through record_path with id
+        # If finding by conditions, need to use find_path with query and limit
+        #
         def where(condition)
-          @uri = FmData::V1.find_path(layout)
+          is_find = caller.first.match(CLASS_FIND_RE)
+          return super(condition) if is_find
 
           # Want unlimited, but limit must be an int greater than 0
           params = {
             query: [condition],
             limit: '9999999'
           }
-
+          @uri = FmData::V1.find_path(layout)
           super(params).post
         end
 
