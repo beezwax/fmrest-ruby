@@ -2,12 +2,13 @@ module FmData
   module Spyke
     class JsonParser < ::Faraday::Response::Middleware
       SINGLE_RECORD_RE = %r(/records/\d+\Z).freeze
+      FIND_RECORDS_RE = %r(/_find\b).freeze
 
       def on_complete(env)
         json = parse_json(env.body)
 
         env.body =
-          if env.method == :get
+          if env.method == :get || find_results?(env.url)
             if single_record_url?(env.url)
               prepare_single_record(json)
             else
@@ -55,6 +56,10 @@ module FmData
 
       def prepare_record_data(json_data)
         { id: json_data[:recordId].to_i, mod_id: json_data[:modId].to_i }.merge!(json_data[:fieldData])
+      end
+
+      def find_results?(url)
+        url.path.match(FIND_RECORDS_RE)
       end
 
       def single_record_url?(url)

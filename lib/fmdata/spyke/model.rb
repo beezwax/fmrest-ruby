@@ -17,6 +17,18 @@ module FmData
           super || fmdata_connection
         end
 
+        def where(condition)
+          @uri = FmData::V1.find_path(layout)
+
+          # Want unlimited, but limit must be an int greater than 0
+          params = {
+            query: [condition],
+            limit: '9999999'
+          }
+
+          super(params).post
+        end
+
         # Accessor for FM layout
         #
         def layout(layout = nil)

@@ -42,8 +42,9 @@ module FmData
         url
       end
 
-      #def find_path
-      #end
+      def find_path(layout)
+        "layouts/#{URI.escape(layout)}/_find"
+      end
 
       #def globals_path
       #end
