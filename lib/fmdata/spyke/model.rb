@@ -23,6 +23,7 @@ module FmData
         #
         def where(condition)
           is_find = caller.first.match(CLASS_FIND_RE)
+          @uri = FmData::V1.record_path(layout) + "(/:id)"
           return super(condition) if is_find
 
           # Want unlimited, but limit must be an int greater than 0
