@@ -15,8 +15,11 @@ module FmData
       def call(env)
         set_auth_header(env)
 
+        request_body = env[:body] # After failure env[:body] is set to the response body
+
         @app.call(env).on_complete do |response_env|
           if response_env[:status] == 401 # Unauthorized
+            env[:body] = request_body
             token_store.clear
             set_auth_header(env)
             return @app.call(env)
