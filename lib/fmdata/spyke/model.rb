@@ -23,16 +23,22 @@ module FmData
         #
         def where(condition)
           is_find = caller.first.match(CLASS_FIND_RE)
-          @uri = FmData::V1.record_path(layout) + "(/:id)"
-          return super(condition) if is_find
 
-          # Want unlimited, but limit must be an int greater than 0
-          params = {
-            query: [condition],
-            limit: '9999999'
-          }
-          @uri = FmData::V1.find_path(layout)
-          super(params).post
+          if is_find
+            @uri = FmData::V1.record_path(layout) + "(/:id)"
+            results = super(condition)
+          else
+            # Want unlimited, but limit must be an int greater than 0
+            params = {
+              query: [condition],
+              limit: '9999999'
+            }
+            @uri = FmData::V1.find_path(layout)
+            results = super(params).post
+          end
+
+          @uri = nil
+          results
         end
 
         # Accessor for FM layout
