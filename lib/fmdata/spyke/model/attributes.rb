@@ -85,7 +85,7 @@ module FmData
         #
         def to_params(include_unchanged = false)
           params = {
-            fieldData: include_unchanged ? params_not_embedded_in_url : unchanged_params_not_embedded_in_url
+            fieldData: include_unchanged ? params_not_embedded_in_url : changed_params_not_embedded_in_url
           }
           params[:modId] = mod_id if mod_id
           params
@@ -108,7 +108,7 @@ module FmData
 
         private
 
-        def unchanged_params_not_embedded_in_url
+        def changed_params_not_embedded_in_url
           params_not_embedded_in_url.slice(*mapped_changed)
         end
 
