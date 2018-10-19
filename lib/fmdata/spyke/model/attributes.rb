@@ -8,10 +8,13 @@ module FmData
 
         included do
           # Prevent the creation of plain (no prefix/suffix) attribute methods
-          # when calling ActiveModels' define_attribute_method
+          # when calling ActiveModels' define_attribute_method, otherwise it
+          # will define an `attribute` method which overrides the one provided
+          # by Spyke
           self.attribute_method_matchers.shift
 
-          # Keep track of attribute mappings
+          # Keep track of attribute mappings so we can get the FM field names
+          # for changed attributes
           class_attribute :mapped_attributes, instance_writer: false, default: ::ActiveSupport::HashWithIndifferentAccess.new
         end
 
