@@ -115,6 +115,14 @@ module FmData
         def mapped_changed
           mapped_attributes.values_at(*changed)
         end
+
+        # Use known mapped_attributes for inspect
+        #
+        def inspect_attributes
+          mapped_attributes.except(primary_key).map do |k, v|
+            "#{k}: #{attribute(v).inspect}"
+          end.join(', ')
+        end
       end
     end
   end
