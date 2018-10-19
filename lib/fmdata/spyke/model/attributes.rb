@@ -68,6 +68,10 @@ module FmData
           end
         end
 
+        def initialize(*args)
+          super.tap { clear_changes_information }
+        end
+
         def save
           super.tap { |r| changes_applied if r }
         end
