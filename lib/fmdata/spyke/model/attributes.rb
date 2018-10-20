@@ -45,6 +45,16 @@ module FmData
 
           private
 
+          # Override Spyke::Base.new_or_return (private), called whenever
+          # loading records from the HTTP API, so we can reset dirty info on
+          # freshly loaded records
+          #
+          # See: https://github.com/balvig/spyke/blob/master/lib/spyke/http.rb
+          #
+          def new_or_return(*args)
+            super.tap { |record| record.clear_changes_information }
+          end
+
           def _fmdata_attribute_methods_container
             @fmdata_attribute_methods_container ||= Module.new.tap { |mod| include mod }
           end
@@ -66,10 +76,6 @@ module FmData
             # Define ActiveModel::Dirty's methods
             define_attribute_method(from)
           end
-        end
-
-        def initialize(*args)
-          super.tap { clear_changes_information }
         end
 
         def save
