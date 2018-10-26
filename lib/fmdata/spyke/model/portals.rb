@@ -7,6 +7,8 @@ module FmData
         extend ::ActiveSupport::Concern
 
         class_methods do
+          # Based on has_many, but creates a special Portal association instead
+          #
           def portal(name, options = {})
             create_association(name, Portal, options)
 
