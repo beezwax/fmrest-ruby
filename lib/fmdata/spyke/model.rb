@@ -17,6 +17,16 @@ module FmData
         attr_accessor :mod_id
       end
 
+      # Ensure save returns true/false, following Rails convention
+      def save
+        if valid?
+          response = super
+          response.present? # Failed save returns empty hash
+        else
+          false
+        end
+      end
+
       class_methods do
         # Can find single record through record_path with id
         # If finding by conditions, need to use find_path with query and limit
