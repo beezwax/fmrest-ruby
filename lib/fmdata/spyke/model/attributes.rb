@@ -16,11 +16,13 @@ module FmData
 
           # Keep track of attribute mappings so we can get the FM field names
           # for changed attributes
-          class_attribute :mapped_attributes, instance_writer: false, default: ::ActiveSupport::HashWithIndifferentAccess.new
+          class_attribute :mapped_attributes, instance_writer: false,
+                                              default:         ::ActiveSupport::HashWithIndifferentAccess.new.freeze
+
+          class << self; private :mapped_attributes=; end
         end
 
         class_methods do
-
           # Similar to Spyke::Base.attributes, but allows defining attribute
           # methods that map to FM attributes with different names.
           #
@@ -61,7 +63,11 @@ module FmData
           end
 
           def _fmdata_define_attribute(from, to)
-            mapped_attributes[from] = to
+            # We use a setter here instead of injecting the hash key/value pair
+            # directly with #[]= so that we don't change the mapped_attributes
+            # hash on the parent class. The resulting hash is frozen for the
+            # same reason.
+            self.mapped_attributes = mapped_attributes.merge(from => to).freeze
 
             _fmdata_attribute_methods_container.module_eval do
               define_method(from) do
