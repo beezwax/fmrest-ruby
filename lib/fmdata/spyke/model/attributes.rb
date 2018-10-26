@@ -5,6 +5,7 @@ module FmData
         extend ::ActiveSupport::Concern
 
         include ::ActiveModel::Dirty
+        include ::ActiveModel::ForbiddenAttributesProtection
 
         included do
           # Prevent the creation of plain (no prefix/suffix) attribute methods
@@ -107,9 +108,12 @@ module FmData
           @_spyke_attributes
         end
 
+        # In addition to the comments above on `attributes`, this also adds
+        # support for forbidden attributes
+        #
         def attributes=(new_attributes)
           @_spyke_attributes ||= ::Spyke::Attributes.new(scope.params)
-          use_setters(new_attributes) if new_attributes
+          use_setters(sanitize_for_mass_assignment(new_attributes)) if new_attributes && !new_attributes.empty?
         end
 
         private
