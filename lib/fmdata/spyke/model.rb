@@ -18,10 +18,9 @@ module FmData
       end
 
       # Ensure save returns true/false, following Rails convention
-      def save
-        if valid?
-          response = super
-          response.present? # Failed save returns empty hash
+      def save(options = {})
+        if options[:validate] == false || valid?
+          super().present? # Failed save returns empty hash
         else
           false
         end
