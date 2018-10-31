@@ -1,4 +1,4 @@
-require "spyke/fixtures/base"
+require_relative "base"
 
 class Pirate < FixtureBase
   layout :Pirates
@@ -11,5 +11,5 @@ class Ship < FixtureBase
 
   attributes :name
 
-  portal :crew, portal_key: "Pirates", class_name: "Pirate"
+  portal :crew, portal_key: "PiratesTable", attribute_prefix: "Pirate", class_name: "Pirate"
 end

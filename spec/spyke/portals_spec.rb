@@ -25,16 +25,16 @@ RSpec.describe FmData::Spyke::Model::Portals do
             },
 
             portalData: {
-              Pirates: [
+              PiratesTable: [
                 {
-                  "Pirates::name": "Hendrick van der Decken",
-                  "Pirates::rank": "Captain",
+                  "Pirate::name": "Hendrick van der Decken",
+                  "Pirate::rank": "Captain",
                   recordId: 1
                 },
 
                 {
-                  "Pirates::name": "Marthijn van het Vriesendijks",
-                  "Pirates::rank": "First Officer",
+                  "Pirate::name": "Marthijn van het Vriesendijks",
+                  "Pirate::rank": "First Officer",
                   recordId: 2
                 }
               ]

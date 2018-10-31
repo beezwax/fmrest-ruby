@@ -20,7 +20,11 @@ module FmData
 
           def fmdata_connection
             @fmdata_connection ||= FmData::V1.build_connection(fmdata_config) do |conn|
-              conn.use FmData::Spyke::JsonParser
+              # Pass the class to JsonParser's initializer so it can have
+              # access to extra context defined in the model, e.g. a portal
+              # where name of the portal and the attributes prefix don't match
+              # and need to be specified as options to `portal`
+              conn.use FmData::Spyke::JsonParser, self
             end
           end
         end

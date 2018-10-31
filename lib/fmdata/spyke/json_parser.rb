@@ -4,6 +4,11 @@ module FmData
       SINGLE_RECORD_RE = %r(/records/\d+\Z).freeze
       FIND_RECORDS_RE = %r(/_find\b).freeze
 
+      def initialize(app, model)
+        super(app)
+        @model = model
+      end
+
       def on_complete(env)
         json = parse_json(env.body)
 
@@ -98,11 +103,14 @@ module FmData
       #
       def prepare_portal_data(json_portal_data)
         json_portal_data.each_with_object({}) do |(portal_name, portal_records), out|
+          portal_options = @model.portal_options[portal_name.to_s] || {}
+
           out[portal_name] =
             portal_records.map do |portal_fields|
               attributes = { id: portal_fields[:recordId].to_i }
 
-              prefix_matcher = /\A#{portal_name}::/
+              prefix = portal_options[:attribute_prefix] || portal_name
+              prefix_matcher = /\A#{prefix}::/
 
               portal_fields.each do |k, v|
                 next if :recordId == k
