@@ -97,13 +97,9 @@ module FmData
       #     }
       #
       def prepare_portal_data(json_portal_data)
-        out = {}
-
-        p json_portal_data
-
-        json_portal_data.each do |portal_name, portal_records|
+        json_portal_data.each_with_object({}) do |(portal_name, portal_records), out|
           out[portal_name] =
-            portal_records.map do |fields|
+            portal_records.map do |portal_fields|
               attributes = { id: portal_fields[:recordId].to_i }
 
               prefix_matcher = /\A#{portal_name}::/
@@ -112,10 +108,10 @@ module FmData
                 next if :recordId == k
                 attributes[k.to_s.gsub(prefix_matcher, "")] = v
               end
+
+              attributes
             end
         end
-
-        out
       end
 
       def find_results?(url)
