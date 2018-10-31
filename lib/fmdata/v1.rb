@@ -37,13 +37,13 @@ module FmData
       end
 
       def record_path(layout, id = nil)
-        url = "layouts/#{URI.escape(layout)}/records"
+        url = "layouts/#{URI.escape(layout.to_s)}/records"
         url += "/#{id}" if id
         url
       end
 
       def find_path(layout)
-        "layouts/#{URI.escape(layout)}/_find"
+        "layouts/#{URI.escape(layout.to_s)}/_find"
       end
 
       #def globals_path
