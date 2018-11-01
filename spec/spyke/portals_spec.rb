@@ -29,19 +29,21 @@ RSpec.describe FmData::Spyke::Model::Portals do
                 {
                   "Pirate::name": "Hendrick van der Decken",
                   "Pirate::rank": "Captain",
-                  recordId: 1
+                  recordId: 1,
+                  modId: 0
                 },
 
                 {
                   "Pirate::name": "Marthijn van het Vriesendijks",
                   "Pirate::rank": "First Officer",
-                  recordId: 2
+                  recordId: 2,
+                  modId: 0
                 }
               ]
             },
 
-            modId: 1,
-            recordId: 1
+            recordId: 1,
+            modId: 0
           }
         ]
       )
@@ -50,10 +52,13 @@ RSpec.describe FmData::Spyke::Model::Portals do
     it "initializes the portal's associated records" do
       ship = Ship.find(1)
 
-      expect(ship.crew.count).to eq(2)
+      expect(ship.crew.size).to eq(2)
       expect(ship.crew.first).to be_a(Pirate)
       expect(ship.crew.first.name).to eq("Hendrick van der Decken")
       expect(ship.crew.first.rank).to eq("Captain")
+      expect(ship.crew.first.id).to eq(1)
+      expect(ship.crew.first.mod_id).to eq(0)
+      expect(ship.crew.first).to_not be_changed
     end
   end
 end

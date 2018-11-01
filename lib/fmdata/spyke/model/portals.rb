@@ -16,7 +16,6 @@ module FmData
         end
 
         class_methods do
-
           # Based on +has_many+, but creates a special Portal association
           # instead.
           #
@@ -44,6 +43,14 @@ module FmData
             define_method "#{name.to_s.singularize}_ids" do
               association(name).map(&:id)
             end
+          end
+        end
+
+        def portals
+          self.class.associations.each_with_object([]) do |(key, _), portals|
+            candidate = association(key)
+            next unless candidate.kind_of?(FmData::Spyke::Portal)
+            portals << candidate
           end
         end
       end

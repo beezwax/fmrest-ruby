@@ -15,10 +15,6 @@ module FmData
 
       CLASS_FIND_RE = %r(`find').freeze
 
-      included do
-        attr_accessor :mod_id
-      end
-
       class_methods do
         # Can find single record through record_path with id
         # If finding by conditions, need to use find_path with query and limit

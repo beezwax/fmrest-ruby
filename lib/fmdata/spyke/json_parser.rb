@@ -108,12 +108,13 @@ module FmData
           out[portal_name] =
             portal_records.map do |portal_fields|
               attributes = { id: portal_fields[:recordId].to_i }
+              attributes[:mod_id] = portal_fields[:modId].to_i if portal_fields[:modId]
 
               prefix = portal_options[:attribute_prefix] || portal_name
               prefix_matcher = /\A#{prefix}::/
 
               portal_fields.each do |k, v|
-                next if :recordId == k
+                next if :recordId == k || :modId == k
                 attributes[k.to_s.gsub(prefix_matcher, "")] = v
               end
 

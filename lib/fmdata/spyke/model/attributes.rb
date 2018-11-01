@@ -8,6 +8,9 @@ module FmData
         include ::ActiveModel::ForbiddenAttributesProtection
 
         included do
+          # Keep mod_id as a separate, custom accessor
+          attr_accessor :mod_id
+
           # Prevent the creation of plain (no prefix/suffix) attribute methods
           # when calling ActiveModels' define_attribute_method, otherwise it
           # will define an `attribute` method which overrides the one provided
@@ -17,7 +20,7 @@ module FmData
           # Keep track of attribute mappings so we can get the FM field names
           # for changed attributes
           class_attribute :mapped_attributes, instance_writer: false,
-                                              default:         ::ActiveSupport::HashWithIndifferentAccess.new.freeze
+                                              default: ::ActiveSupport::HashWithIndifferentAccess.new.freeze
 
           class << self; private :mapped_attributes=; end
         end
@@ -54,7 +57,10 @@ module FmData
           #
           # See: https://github.com/balvig/spyke/blob/master/lib/spyke/http.rb
           #
-          def new_or_return(*args)
+          def new_or_return(attributes_or_object, *_)
+            # In case of an existing Spyke object return it as is so that we
+            # don't accidentally remove dirty data from associations
+            return super if attributes_or_object.is_a?(::Spyke::Base)
             super.tap { |record| record.clear_changes_information }
           end
 
@@ -94,13 +100,24 @@ module FmData
         end
 
         # Override to_params to return FM Data API's expected JSON format, and
-        # including only modified fields by default
+        # including only modified fields
         #
-        def to_params(include_unchanged = false)
-          params = {
-            fieldData: include_unchanged ? params_not_embedded_in_url : changed_params_not_embedded_in_url
-          }
+        def to_params
+          params = { fieldData: changed_params_not_embedded_in_url }
           params[:modId] = mod_id if mod_id
+
+          portal_data = {}
+
+          portals.each do |portal|
+            portal.each do |portal_record|
+              next unless portal_record.changed?
+              portal_params = portal_data[portal.portal_key] ||= []
+              portal_params << portal_record.to_params_for_portal(portal)
+            end
+          end
+
+          params[:portalData] = portal_data unless portal_data.empty?
+
           params
         end
 
@@ -122,7 +139,23 @@ module FmData
           use_setters(sanitize_for_mass_assignment(new_attributes)) if new_attributes && !new_attributes.empty?
         end
 
-        private
+        protected
+
+        def to_params_for_portal(portal)
+          params =
+            changed_params.except(:id).transform_keys do |key|
+              "#{portal.attribute_prefix}::#{key}"
+            end
+
+          params[:recordId] = id if id
+          params[:modId] = mod_id if mod_id
+
+          params
+        end
+
+        def changed_params
+          attributes.to_params.slice(*mapped_changed)
+        end
 
         def changed_params_not_embedded_in_url
           params_not_embedded_in_url.slice(*mapped_changed)

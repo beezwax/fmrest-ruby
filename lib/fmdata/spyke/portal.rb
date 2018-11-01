@@ -6,8 +6,17 @@ module FmData
       def initialize(*args)
         super
 
-        # Portals are always embedded
-        @options[:uri] = nil
+        # Portals are always embedded, so no special URI
+        @options[:uri] = ""
+      end
+
+      def portal_key
+        return @options[:portal_key] if @options[:portal_key]
+        name
+      end
+
+      def attribute_prefix
+        @options[:attribute_prefix] || portal_key
       end
 
       private
@@ -24,9 +33,10 @@ module FmData
         parent.attributes[portal_key]
       end
 
-      def portal_key
-        return @options[:portal_key] if @options[:portal_key]
-        name
+      def add_to_parent(record)
+        parent.attributes[portal_key] ||= []
+        parent.attributes[portal_key] << record
+        record
       end
     end
   end
