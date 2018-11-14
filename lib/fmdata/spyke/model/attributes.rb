@@ -92,11 +92,15 @@ module FmData
         end
 
         def save
-          super.tap { |r| changes_applied if r }
+          super.tap do |r|
+            next unless r
+            changes_applied
+            portals.each(&:parent_changes_applied)
+          end
         end
 
         def reload
-          super.tap { |r| clear_changes_information if r }
+          super.tap { |r| clear_changes_information }
         end
 
         # Override to_params to return FM Data API's expected JSON format, and
@@ -104,6 +108,7 @@ module FmData
         #
         def to_params
           params = { fieldData: changed_params_not_embedded_in_url }
+          params.delete(:fieldData) if params[:fieldData].empty?
           params[:modId] = mod_id if mod_id
 
           portal_data = {}
