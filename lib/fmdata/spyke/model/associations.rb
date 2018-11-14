@@ -3,7 +3,7 @@ require "fmdata/spyke/portal"
 module FmData
   module Spyke
     module Model
-      module Portals
+      module Associations
         extend ::ActiveSupport::Concern
 
         included do
@@ -44,6 +44,19 @@ module FmData
               association(name).map(&:id)
             end
           end
+        end
+
+        # Override Spyke's association reader to keep a cache of loaded
+        # associations. Spyke's default behavior is to reload the association
+        # each time.
+        #
+        def association(name)
+          @loaded_associations ||= {}
+          @loaded_associations[name.to_sym] ||= super
+        end
+
+        def reload
+          super.tap { @loaded_associations = nil }
         end
 
         def portals

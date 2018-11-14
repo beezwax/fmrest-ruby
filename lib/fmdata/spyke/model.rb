@@ -1,7 +1,7 @@
 require "fmdata/spyke/model/connection"
 require "fmdata/spyke/model/uri"
 require "fmdata/spyke/model/attributes"
-require "fmdata/spyke/model/portals"
+require "fmdata/spyke/model/associations"
 
 module FmData
   module Spyke
@@ -11,7 +11,7 @@ module FmData
       include Connection
       include Uri
       include Attributes
-      include Portals
+      include Associations
 
       CLASS_FIND_RE = %r(`find').freeze
 
