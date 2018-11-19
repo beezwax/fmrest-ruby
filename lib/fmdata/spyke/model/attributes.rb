@@ -108,7 +108,6 @@ module FmData
         #
         def to_params
           params = { fieldData: changed_params_not_embedded_in_url }
-          params.delete(:fieldData) if params[:fieldData].empty?
           params[:modId] = mod_id if mod_id
 
           portal_data = {}
