@@ -45,8 +45,7 @@ module FmData
       end
 
       def add_to_parent(record)
-        parent.attributes[portal_key] ||= []
-        parent.attributes[portal_key] << record
+        find_some << record
         record
       end
     end

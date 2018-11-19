@@ -35,11 +35,6 @@ module FmData
             portal_key = options[:portal_key] || name
             self.portal_options = portal_options.merge(portal_key.to_s => options.dup).freeze
 
-            define_method "#{name.to_s.singularize}_ids=" do |ids|
-              attributes[name] = []
-              ids.reject(&:blank?).each { |id| association(name).build(id: id) }
-            end
-
             define_method "#{name.to_s.singularize}_ids" do
               association(name).map(&:id)
             end
@@ -47,16 +42,24 @@ module FmData
         end
 
         # Override Spyke's association reader to keep a cache of loaded
-        # associations. Spyke's default behavior is to reload the association
+        # portals. Spyke's default behavior is to reload the association
         # each time.
         #
         def association(name)
-          @loaded_associations ||= {}
-          @loaded_associations[name.to_sym] ||= super
+          @loaded_portals ||= {}
+
+          if @loaded_portals.has_key?(name.to_sym)
+            return @loaded_portals[name.to_sym]
+          end
+
+          super.tap do |assoc|
+            next unless assoc.kind_of?(FmData::Spyke::Portal)
+            @loaded_portals[name.to_sym] = assoc
+          end
         end
 
         def reload
-          super.tap { @loaded_associations = nil }
+          super.tap { @loaded_portals = nil }
         end
 
         def portals
