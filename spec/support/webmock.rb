@@ -1,12 +1,12 @@
 require "webmock/rspec"
 
 class WebMock::RequestStub
-  def to_return_json(hash, options = {})
+  def to_return_json(hash = {}, options = {})
     options[:body] = MultiJson.dump(hash)
     to_return(options)
   end
 
-  def to_return_fm(hash, options = {})
+  def to_return_fm(hash = {}, options = {})
     wrapped_hash = {
       response: hash,
       messages: [{ code: "0", message: "OK" }]

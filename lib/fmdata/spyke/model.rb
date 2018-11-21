@@ -44,7 +44,8 @@ module FmData
         end
       end
 
-      # Ensure save returns true/false, following Rails convention
+      # Ensure save returns true/false, following ActiveRecord's convention
+      #
       def save(options = {})
         if options[:validate] == false || valid?
           super().present? # Failed save returns empty hash

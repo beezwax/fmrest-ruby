@@ -1,6 +1,6 @@
 require "spec_helper"
 
-require "spyke/fixtures/pirates"
+require "fixtures/pirates"
 
 RSpec.describe FmData::Spyke::Model::Associations do
   describe ".portal" do

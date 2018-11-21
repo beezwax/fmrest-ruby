@@ -1,6 +1,6 @@
 require "spec_helper"
 
-require "spyke/fixtures/base"
+require "fixtures/base"
 
 RSpec.describe FmData::Spyke::Model::Connection do
   describe ".connection" do
