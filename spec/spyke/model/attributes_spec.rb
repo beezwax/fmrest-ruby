@@ -10,7 +10,7 @@ RSpec.describe FmData::Spyke::Model::Attributes do
       # Needed by ActiveModel::Name
       def self.name; "TestClass"; end
 
-      attributes foo: "Bar"
+      attributes foo: "Foo", bar: "Bar"
     end
   end
 
@@ -22,13 +22,13 @@ RSpec.describe FmData::Spyke::Model::Attributes do
 
   describe ".attributes" do
     it "allows setting mapped attributes" do
-      expect(test_class.new(foo: "Boo").attributes).to eq("Bar" => "Boo")
+      expect(test_class.new(foo: "Boo").attributes).to eq("Foo" => "Boo")
     end
   end
 
   describe ".mapped_attributes" do
     it "returns a hash of the class' mapped attributes" do
-      expect(test_class.mapped_attributes).to eq("foo" => "Bar")
+      expect(test_class.mapped_attributes).to eq("foo" => "Foo", "bar" => "Bar")
     end
   end
 
@@ -89,8 +89,43 @@ RSpec.describe FmData::Spyke::Model::Attributes do
   end
 
   describe "#to_params" do
-    xit "only includes changed fields"
-    xit "includes portal data"
+    context "with a new record with no changed fields" do
+      subject { test_class.new }
+
+      it "returns an empty fieldData" do
+        expect(subject.to_params).to eq(fieldData: {})
+      end
+    end
+
+    context "with a new record with some changed fields" do
+      subject { test_class.new(foo: "👍") }
+
+      it "includes only the changed fields in fieldData" do
+        expect(subject.to_params).to eq(fieldData: { "Foo" => "👍" })
+      end
+    end
+
+    context "with a record with portal data" do
+      subject do
+        ship = Ship.new
+        ship.crew.build name: "Mortimer"
+        ship.crew.build name: "Jojo"
+        ship.crew.build
+        ship
+      end
+
+      it "includes the portal data for all portal records with changed attributes" do
+        expect(subject.to_params).to eq(
+          fieldData: {},
+          portalData: {
+            "PiratesTable" => [
+              { "Pirate::name" => "Mortimer" },
+              { "Pirate::name" => "Jojo" }
+            ]
+          }
+        )
+      end
+    end
   end
 
   describe "#attributes=" do

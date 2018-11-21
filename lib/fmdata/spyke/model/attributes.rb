@@ -110,16 +110,7 @@ module FmData
           params = { fieldData: changed_params_not_embedded_in_url }
           params[:modId] = mod_id if mod_id
 
-          portal_data = {}
-
-          portals.each do |portal|
-            portal.each do |portal_record|
-              next unless portal_record.changed?
-              portal_params = portal_data[portal.portal_key] ||= []
-              portal_params << portal_record.to_params_for_portal(portal)
-            end
-          end
-
+          portal_data = serialize_portals
           params[:portalData] = portal_data unless portal_data.empty?
 
           params
@@ -145,7 +136,7 @@ module FmData
 
         protected
 
-        def to_params_for_portal(portal)
+        def serialize_portal(portal)
           params =
             changed_params.except(:id).transform_keys do |key|
               "#{portal.attribute_prefix}::#{key}"
@@ -155,6 +146,22 @@ module FmData
           params[:modId] = mod_id if mod_id
 
           params
+        end
+
+        private
+
+        def serialize_portals
+          portal_data = {}
+
+          portals.each do |portal|
+            portal.each do |portal_record|
+              next unless portal_record.changed?
+              portal_params = portal_data[portal.portal_key] ||= []
+              portal_params << portal_record.serialize_portal(portal)
+            end
+          end
+
+          portal_data
         end
 
         def changed_params
