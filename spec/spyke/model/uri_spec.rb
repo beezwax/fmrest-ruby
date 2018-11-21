@@ -1,13 +1,35 @@
 require "spec_helper"
 
+require "fixtures/pirates"
+
 RSpec.describe FmData::Spyke::Model::Uri do
+  let :test_class do
+    Class.new(Spyke::Base) do
+      include FmData::Spyke
+
+      def self.name; "TestClass"; end
+    end
+  end
+
   describe ".layout" do
-    xit "when called with no args returns the current layout"
-    xit "when called with an arg sets the layout"
+    it "when called with no args for first time on the class returns the class name" do
+      expect(test_class.layout).to eq("TestClass")
+    end
+
+    it "when called with an arg sets the layout" do
+      test_class.layout :DifferentLayout
+      expect(test_class.layout).to eq(:DifferentLayout)
+    end
   end
 
   describe ".uri" do
-    xit "when called without args and a set layout it returns the FM Data URI"
-    xit "when called with an arg it sets the URI"
+    it "when called without args and a set layout it returns the FM Data URI" do
+      expect(test_class.uri).to eq("layouts/TestClass/records(/:id)")
+    end
+
+    it "when called with an arg it sets the URI" do
+      test_class.uri "foo/bar"
+      expect(test_class.uri).to eq("foo/bar")
+    end
   end
 end
