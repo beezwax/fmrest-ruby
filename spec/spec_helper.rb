@@ -1,5 +1,10 @@
 require "bundler/setup"
+
+require "spyke"
+require "multi_json"
 require "fmdata"
+require "fmdata/spyke"
+require "pry-byebug"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -12,3 +17,6 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 end
+
+# Require support files
+Dir[File.expand_path('../support/**/*.rb', __FILE__)].each { |f| require f }

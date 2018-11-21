@@ -1,6 +1,7 @@
 require "fmdata/spyke/model/connection"
 require "fmdata/spyke/model/uri"
 require "fmdata/spyke/model/attributes"
+require "fmdata/spyke/model/associations"
 
 module FmData
   module Spyke
@@ -10,20 +11,12 @@ module FmData
       include Connection
       include Uri
       include Attributes
+      include Associations
 
       CLASS_FIND_RE = %r(`find').freeze
 
       included do
         attr_accessor :mod_id
-      end
-
-      # Ensure save returns true/false, following Rails convention
-      def save(options = {})
-        if options[:validate] == false || valid?
-          super().present? # Failed save returns empty hash
-        else
-          false
-        end
       end
 
       class_methods do
@@ -48,6 +41,15 @@ module FmData
 
           @uri = nil
           results
+        end
+      end
+
+      # Ensure save returns true/false, following Rails convention
+      def save(options = {})
+        if options[:validate] == false || valid?
+          super().present? # Failed save returns empty hash
+        else
+          false
         end
       end
     end

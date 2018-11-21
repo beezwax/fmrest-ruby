@@ -4,6 +4,11 @@ module FmData
       SINGLE_RECORD_RE = %r(/records/\d+\Z).freeze
       FIND_RECORDS_RE = %r(/_find\b).freeze
 
+      def initialize(app, model)
+        super(app)
+        @model = model
+      end
+
       def on_complete(env)
         json = parse_json(env.body)
 
@@ -54,8 +59,68 @@ module FmData
         }
       end
 
+      # json_data is expected in this format:
+      #
+      #     {
+      #       "fieldData": {
+      #         "fieldName1" : "fieldValue1",
+      #         "fieldName2" : "fieldValue2",
+      #         ...
+      #       },
+      #       "portalData": {
+      #         "portal1" : [
+      #           { <portalRecord1> },
+      #           { <portalRecord2> },
+      #           ...
+      #         ],
+      #         "portal2" : [
+      #           { <portalRecord1> },
+      #           { <portalRecord2> },
+      #           ...
+      #         ]
+      #       },
+      #       "modId": <Id_for_last_modification>,
+      #       "recordId": <Unique_internal_ID_for_this_record>
+      #     }
+      #
       def prepare_record_data(json_data)
-        { id: json_data[:recordId].to_i, mod_id: json_data[:modId].to_i }.merge!(json_data[:fieldData])
+        out = { id: json_data[:recordId].to_i, mod_id: json_data[:modId].to_i }
+        out.merge!(json_data[:fieldData])
+        out.merge!(prepare_portal_data(json_data[:portalData])) if json_data[:portalData]
+        out
+      end
+
+      # Extracts recordId and strips the PortalName:: field prefix for each
+      # portal
+      #
+      # Sample json_portal_data:
+      #
+      #     "portalData": {
+      #       "Orders":[
+      #         { "Orders::DeliveryDate":"3/7/2017", "recordId":"23" }
+      #       ]
+      #     }
+      #
+      def prepare_portal_data(json_portal_data)
+        json_portal_data.each_with_object({}) do |(portal_name, portal_records), out|
+          portal_options = @model.portal_options[portal_name.to_s] || {}
+
+          out[portal_name] =
+            portal_records.map do |portal_fields|
+              attributes = { id: portal_fields[:recordId].to_i }
+              attributes[:mod_id] = portal_fields[:modId].to_i if portal_fields[:modId]
+
+              prefix = portal_options[:attribute_prefix] || portal_name
+              prefix_matcher = /\A#{prefix}::/
+
+              portal_fields.each do |k, v|
+                next if :recordId == k || :modId == k
+                attributes[k.to_s.gsub(prefix_matcher, "")] = v
+              end
+
+              attributes
+            end
+        end
       end
 
       def find_results?(url)
