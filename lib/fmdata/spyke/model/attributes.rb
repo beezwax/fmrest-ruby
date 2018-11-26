@@ -17,6 +17,9 @@ module FmData
           # by Spyke
           self.attribute_method_matchers.shift
 
+          # ActiveModel::Dirty methods for id
+          define_attribute_method(:id)
+
           # Keep track of attribute mappings so we can get the FM field names
           # for changed attributes
           class_attribute :mapped_attributes, instance_writer: false,
@@ -91,6 +94,11 @@ module FmData
           end
         end
 
+        def id=(value)
+          id_will_change! unless value == id
+          super
+        end
+
         def save
           super.tap do |r|
             next unless r
@@ -136,7 +144,7 @@ module FmData
 
         protected
 
-        def serialize_portal(portal)
+        def serialize_for_portal(portal)
           params =
             changed_params.except(:id).transform_keys do |key|
               "#{portal.attribute_prefix}::#{key}"
@@ -157,7 +165,7 @@ module FmData
             portal.each do |portal_record|
               next unless portal_record.changed?
               portal_params = portal_data[portal.portal_key] ||= []
-              portal_params << portal_record.serialize_portal(portal)
+              portal_params << portal_record.serialize_for_portal(portal)
             end
           end
 

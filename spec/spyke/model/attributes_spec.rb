@@ -14,6 +14,14 @@ RSpec.describe FmData::Spyke::Model::Attributes do
     end
   end
 
+  it "includes ActiveModel::Dirty" do
+    expect(test_class.included_modules).to include(::ActiveModel::Dirty)
+  end
+
+  it "includes ActiveModel::ForbiddenAttributesProtection" do
+    expect(test_class.included_modules).to include(::ActiveModel::ForbiddenAttributesProtection)
+  end
+
   describe ".attribute_method_matchers" do
     it "doesn't include a plain entry" do
       expect(test_class.attribute_method_matchers.first.method_missing_target).to_not eq("attribute")
@@ -24,11 +32,32 @@ RSpec.describe FmData::Spyke::Model::Attributes do
     it "allows setting mapped attributes" do
       expect(test_class.new(foo: "Boo").attributes).to eq("Foo" => "Boo")
     end
+
+    it "creates dirty methods for the given attributes" do
+      instance = test_class.new(foo: "Bar")
+
+      expect(instance).to respond_to(:foo_will_change!)
+      expect(instance.foo_changed?).to be(true)
+    end
   end
 
   describe ".mapped_attributes" do
     it "returns a hash of the class' mapped attributes" do
       expect(test_class.mapped_attributes).to eq("foo" => "Foo", "bar" => "Bar")
+    end
+  end
+
+  describe "#id_will_change!" do
+    it "is defined" do
+      expect(test_class.new).to respond_to(:id_will_change!)
+    end
+  end
+
+  describe "#id=" do
+    it "calls id_will_change!" do
+      instance = test_class.new
+      expect(instance).to receive(:id_will_change!)
+      instance.id = 1
     end
   end
 
