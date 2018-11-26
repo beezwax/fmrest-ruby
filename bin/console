@@ -5,7 +5,7 @@ require "fmdata"
 require "spyke"
 require "fmdata/spyke"
 
-require_relative "../spec/spyke/fixtures/pirates"
+require_relative "../spec/fixtures/pirates"
 
 require "pry"
 
