@@ -1,12 +1,24 @@
 module FmData
   module Spyke
     class Relation < ::Spyke::Relation
-      def limit(limit)
-        where(_limit: limit)
+      attr_accessor :limit_value
+      attr_accessor :offset_value
+
+      def initialize(*_args)
+        super
+        @limit_value = klass.default_limit
       end
 
-      def offset(offset)
-        where(_offset: offset)
+      def limit(value)
+        relation = clone
+        relation.limit_value = value
+        relation
+      end
+
+      def offset(value)
+        relation = clone
+        relation.offset_value = value
+        relation
       end
 
       def sort(*sort)
