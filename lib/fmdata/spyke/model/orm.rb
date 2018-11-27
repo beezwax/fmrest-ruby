@@ -7,8 +7,10 @@ module FmData
         extend ::ActiveSupport::Concern
 
         included do
-          # Allow overriding FM's default limit of 100
+          # Allow overriding FM's default limit (by default it's 100)
           class_attribute :default_limit, instance_accessor: false
+
+          class_attribute :default_sort, instance_accessor: false
         end
 
         class_methods do
@@ -24,9 +26,31 @@ module FmData
           #
           def search(*conditions)
             scope = conditions.empty? ? all : query(*conditions)
-            scope = scope.where(limit: scope.limit_value) if scope.limit_value
-            scope = scope.where(offset: scope.offset_value) if scope.offset_value
+            scope = extend_scope_with_fm_params(scope)
             scope.with(FmData::V1::find_path(layout)).post
+          end
+
+          # Extend fetch to allow properly setting limit, offset and other
+          # options
+          #
+          def fetch
+            scope = extend_scope_with_fm_params(current_scope, "_")
+
+            begin
+              previous, self.current_scope = current_scope, scope
+              super
+            ensure
+              self.current_scope = previous
+            end
+          end
+
+          private
+
+          def extend_scope_with_fm_params(scope, prefix = "")
+            scope = scope.where("#{prefix}limit": scope.limit_value) if current_scope.limit_value
+            scope = scope.where("#{prefix}offset": scope.offset_value) if current_scope.offset_value
+            scope = scope.where("#{prefix}sort": scope.sort_value) if current_scope.sort_value
+            scope
           end
         end
 

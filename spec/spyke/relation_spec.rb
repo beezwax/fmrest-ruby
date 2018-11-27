@@ -15,6 +15,11 @@ RSpec.describe FmData::Spyke::Relation do
     xit "creates a new scope with the given sort params"
   end
 
+  describe "#portal" do
+    xit "creates a new scope with the given portal params"
+    xit "accepts a list of arguments, a single string or an array"
+  end
+
   describe "#query" do
     xit "creates a new scope with the given query params merged with previous ones"
   end

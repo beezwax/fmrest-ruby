@@ -59,8 +59,13 @@ RSpec.describe FmData::Spyke::Model::Orm do
 
   describe ".search" do
     xit "performs a search"
-    xit "includes limit"
-    xit "includes offset"
+    xit "includes limit JSON param"
+    xit "includes offset JSON param"
+  end
+
+  describe ".fetch" do
+    xit "applies _limit URI param"
+    xit "applies _offset URI param"
   end
 end
 
