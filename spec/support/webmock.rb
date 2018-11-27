@@ -6,13 +6,20 @@ class WebMock::RequestStub
     to_return(options)
   end
 
-  def to_return_fm(hash = {}, options = {})
-    wrapped_hash = {
-      response: hash,
-      messages: [{ code: "0", message: "OK" }]
-    }
+  def to_return_fm(hash_or_status = {}, options = {})
+    if hash_or_status == false
+      wrapped_hash =
+        { response: {},
+          messages: [{ code: "500", message: "Error" }] }
 
-    to_return_json(wrapped_hash, options = {})
+      options[:status] = 500
+    else
+      wrapped_hash =
+        { response: hash_or_status,
+          messages: [{ code: "0", message: "OK" }] }
+    end
+
+    to_return_json(wrapped_hash, options)
   end
 end
 

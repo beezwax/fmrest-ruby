@@ -99,9 +99,9 @@ module FmData
           super
         end
 
-        def save
+        def save(*_args)
           super.tap do |r|
-            next unless r
+            next unless r.present?
             changes_applied
             portals.each(&:parent_changes_applied)
           end

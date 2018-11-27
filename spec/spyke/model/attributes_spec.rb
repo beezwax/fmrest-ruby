@@ -86,34 +86,66 @@ RSpec.describe FmData::Spyke::Model::Attributes do
   end
 
   describe "#save" do
-    before do
-      stub_session_login
-      stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_fm({})
+    let(:ship) { Ship.new name: "Mary Celeste" }
+
+    before { stub_session_login }
+
+    context "with a successful save" do
+      before do
+        stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_fm(
+          recordId: 1,
+          modId: 0
+        )
+      end
+
+      it "resets changes information for self and portal records" do
+        expect { ship.save }.to change { ship.changed? }.from(true).to(false)
+      end
     end
 
-    it "resets changes information for self and portal records" do
-      ship = Ship.new name: "Mary Celeste"
-      expect { ship.save }.to change { ship.changed? }.from(true).to(false)
+    context "with an unsuccessful save" do
+      before do
+        stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_fm(false)
+      end
+
+      it "doesn't resets changes information" do
+        expect { ship.save }.to_not change { ship.changed? }.from(true)
+      end
     end
   end
 
   describe "#reload" do
-    before do
-      stub_session_login
-      stub_request(:get, fm_url(layout: "Ships", id: 1)).to_return_fm(
-        data: [
-          {
-            fieldData: { name: "Obra Djinn" },
-            recordId: 1,
-            modId: 0
-          }
-        ]
-      )
+    let(:ship) { Ship.new id: 1, name: "Obra Djinn" }
+
+    before { stub_session_login }
+
+    context "when successful" do
+      before do
+        stub_request(:get, fm_url(layout: "Ships", id: 1)).to_return_fm(
+          data: [
+            {
+              fieldData: { name: "Obra Djinn" },
+              recordId: 1,
+              modId: 0
+            }
+          ]
+        )
+      end
+
+      it "resets changes information" do
+        ship = Ship.new id: 1, name: "Obra Djinn"
+        expect { ship.reload }.to change { ship.changed? }.from(true).to(false)
+      end
     end
 
-    it "resets changes information" do
-      ship = Ship.new id: 1, name: "Obra Djinn"
-      expect { ship.reload }.to change { ship.changed? }.from(true).to(false)
+    context "when unsuccesful" do
+      before do
+        stub_request(:get, fm_url(layout: "Ships", id: 1)).to_return_fm(false)
+      end
+
+      it "raises an error" do
+        expect { ship.reload }.to raise_error(Spyke::ResourceNotFound)
+      end
     end
   end
 

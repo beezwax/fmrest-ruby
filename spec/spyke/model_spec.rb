@@ -43,10 +43,7 @@ RSpec.describe FmData::Spyke::Model do
 
       context "when the server responds with failure" do
         before do
-          stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_json(
-            { messages: [], response: {} },
-            status: 500
-          )
+          stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_fm(false)
         end
 
         it "returns false" do
