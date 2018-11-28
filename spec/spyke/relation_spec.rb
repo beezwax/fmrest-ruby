@@ -23,4 +23,8 @@ RSpec.describe FmData::Spyke::Relation do
   describe "#query" do
     xit "creates a new scope with the given query params merged with previous ones"
   end
+
+  describe "#omit" do
+    xit "creates a new scope with the given omitted query params merged with previous ones"
+  end
 end

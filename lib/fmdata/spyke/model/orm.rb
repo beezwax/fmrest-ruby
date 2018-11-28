@@ -27,6 +27,7 @@ module FmData
           def search(*conditions)
             scope = conditions.empty? ? all : query(*conditions)
             scope = extend_scope_with_fm_params(scope)
+            scope = scope.where(query: scope.query_params) if scope.query_params.present?
             scope.with(FmData::V1::find_path(layout)).post
           end
 
@@ -49,7 +50,7 @@ module FmData
           def extend_scope_with_fm_params(scope, prefix = "")
             scope = scope.where("#{prefix}limit": scope.limit_value) if current_scope.limit_value
             scope = scope.where("#{prefix}offset": scope.offset_value) if current_scope.offset_value
-            scope = scope.where("#{prefix}sort": scope.sort_value) if current_scope.sort_value
+            scope = scope.where("#{prefix}sort": scope.sort_params) if current_scope.sort_params
             scope
           end
         end
