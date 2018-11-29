@@ -11,9 +11,18 @@ module FmData
 
       def initialize(*_args)
         super
+
         @limit_value = klass.default_limit
-        @sort_params = klass.default_sort
+
+        if klass.default_sort.present?
+          @sort_params = Array.wrap(klass.default_sort).map { |s| normalize_sort_param(s) }
+        end
+
         @query_params = []
+      end
+
+      def has_query?
+        query_params.present?
       end
 
       def limit(value)
@@ -24,9 +33,22 @@ module FmData
         with_clone { |r| r.offset_value = value }
       end
 
+      # Allows sort params given in either hash format (using FM Data API's
+      # format), or as a symbol, in which case the of the attribute must match
+      # a known mapped attribute, optionally suffixed with ! or __desc[end] to
+      # signify it should use descending order.
+      #
+      # E.g.
+      #
+      #     Person.sort(:first_name, :age!)
+      #     Person.sort(:first_name, :age__desc)
+      #     Person.sort(:first_name, :age__descend)
+      #     Person.sort({ fieldName: "FirstName" }, { fieldName: "Age", sortOrder: "descend" })
+      #
       def sort(*args)
-        # TODO: Provide a nicer API for sort
-        with_clone { |r| r.sort_params = Array.wrap(args) }
+        with_clone do |r|
+          r.sort_params = args.flatten.map { |s| normalize_sort_param(s) }
+        end
       end
       alias :order :sort
 
@@ -48,6 +70,23 @@ module FmData
 
       private
 
+      def normalize_sort_param(param)
+        if param.kind_of?(Symbol) || param.kind_of?(String)
+          _, attr, descend = param.to_s.match(/(.*?)(!|__desc(?:end))?\Z/).to_a
+
+          unless field_name = klass.mapped_attributes[attr]
+            raise "Unknown attribute `#{attr}` given to sort as :#{param}"
+          end
+
+          hash = { fieldName: field_name }
+          hash[:sortOrder] = "descend" if descend
+          return hash
+        end
+
+        # TODO: Sanitize sort hash param?
+        param
+      end
+
       def normalize_query_params(params)
         params.each_with_object({}) do |(k, v), normalized|
           if k == :omit || k == "omit"
@@ -57,8 +96,8 @@ module FmData
             next
           end
 
-          if k.kind_of?(Symbol) && mapped_attributes.has_key?(k)
-            normalized[mapped_attributes[k].to_s] = v
+          if k.kind_of?(Symbol) && klass.mapped_attributes.has_key?(k)
+            normalized[klass.mapped_attributes[k].to_s] = v
           else
             normalized[k.to_s] = v
           end

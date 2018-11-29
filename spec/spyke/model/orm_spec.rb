@@ -57,15 +57,19 @@ RSpec.describe FmData::Spyke::Model::Orm do
     xit "returns a FmData::Spyke::Relation"
   end
 
-  describe ".search" do
-    xit "performs a search"
-    xit "includes limit JSON param"
-    xit "includes offset JSON param"
-  end
-
   describe ".fetch" do
-    xit "applies _limit URI param"
-    xit "applies _offset URI param"
+    context "when a query is present in current scope" do
+      xit "applies limit JSON param"
+      xit "applies offset JSON param"
+      xit "applies sort JSON param"
+      xit "applies query JSON param"
+    end
+
+    context "when no query is present in current scope" do
+      xit "applies _limit URI param"
+      xit "applies _offset URI param"
+      xit "applies _sort URI param"
+    end
   end
 end
 
