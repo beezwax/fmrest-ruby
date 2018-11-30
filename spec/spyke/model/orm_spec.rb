@@ -3,6 +3,119 @@ require "spec_helper"
 require "fixtures/pirates"
 
 RSpec.describe FmData::Spyke::Model::Orm do
+  let :test_class do
+    Class.new(Spyke::Base) do
+      include FmData::Spyke
+
+      # Needed by ActiveModel::Name
+      def self.name; "TestClass"; end
+
+      attributes foo: "Foo", bar: "Bar"
+    end
+  end
+
+  describe "class attributes" do
+    [:default_limit, :default_sort].each do |attr|
+      describe attr do
+        it "creates the class methods" do
+          expect(test_class).to respond_to(attr)
+          expect(test_class).to respond_to("#{attr}=")
+        end
+
+        it "doesn't create the instance methods" do
+          instance = test_class.new
+          expect(instance).to_not respond_to(attr)
+          expect(instance).to_not respond_to("#{attr}=")
+        end
+
+        it "doesn't create the predicate method" do
+          expect(test_class).to_not respond_to("#{attr}?")
+        end
+      end
+    end
+  end
+
+  describe ".all" do
+    it "returns a FmData::Spyke::Relation" do
+      expect(Ship.all).to be_a(::FmData::Spyke::Relation)
+    end
+  end
+
+  [:limit, :offset, :sort, :query, :portal].each do |delegator|
+    describe ".#{delegator}" do
+      let(:scope) { double("Relation") }
+
+      it "delegates to all" do
+        allow(test_class).to receive(:all).and_return(scope)
+        expect(scope).to receive(delegator)
+        test_class.send(delegator)
+      end
+    end
+  end
+
+  describe ".fetch" do
+    before { stub_session_login }
+
+    context "when a query is present in current scope" do
+      let(:request) { stub_request(:post, fm_url(layout: "Pirates") + "/_find").to_return_fm }
+
+      it "applies limit JSON param" do
+        request.with(body: { limit: 42, query: [{ name: "foo" }] })
+        Pirate.query(name: "foo").limit(42).fetch
+        expect(request).to have_been_requested
+      end
+
+      it "applies offset JSON param" do
+        request.with(body: { offset: 10, query: [{ name: "foo" }] })
+        Pirate.query(name: "foo").offset(10).fetch
+        expect(request).to have_been_requested
+      end
+
+      it "applies sort JSON param" do
+        request.with(body: { sort: [{fieldName: "name"}, {fieldName: "rank", sortOrder: "descend"}], query: [{ name: "foo" }] })
+        Pirate.query(name: "foo").sort(:name, :rank!).fetch
+        expect(request).to have_been_requested
+      end
+
+      it "applies all combined JSON params" do
+        request.with(body: {
+          limit:  42,
+          offset: 10,
+          sort:   [{fieldName: "name"}, {fieldName: "rank", sortOrder: "descend"}],
+          query:  [{ name: "foo" }]
+        })
+        Pirate.limit(42).offset(10).sort(:name, :rank!).query(name: "foo").fetch
+        expect(request).to have_been_requested
+      end
+    end
+
+    context "when no query is present in current scope" do
+      let(:request) { stub_request(:get, fm_url(layout: "Pirates") + "/records").to_return_fm }
+
+      it "applies _limit URI param" do
+        request.with(query: { _limit: 42 })
+        Pirate.limit(42).fetch
+        expect(request).to have_been_requested
+      end
+
+      it "applies _offset URI param" do
+        request.with(query: { _offset: 10 })
+        Pirate.offset(10).fetch
+        expect(request).to have_been_requested
+      end
+
+      it "applies _sort URI param" do
+        request.with(query: { _sort: [{fieldName: "name"}, {fieldName: "rank", sortOrder: "descend"}].to_json })
+        Pirate.sort(:name, :rank!).fetch
+        expect(request).to have_been_requested
+      end
+
+      xit "applies all combined URI params"
+    end
+
+    xit "preserves current_scope"
+  end
+
   describe "#save" do
     let(:ship) { Ship.new }
 
@@ -50,25 +163,6 @@ RSpec.describe FmData::Spyke::Model::Orm do
           expect(ship.save).to eq(false)
         end
       end
-    end
-  end
-
-  describe ".all" do
-    xit "returns a FmData::Spyke::Relation"
-  end
-
-  describe ".fetch" do
-    context "when a query is present in current scope" do
-      xit "applies limit JSON param"
-      xit "applies offset JSON param"
-      xit "applies sort JSON param"
-      xit "applies query JSON param"
-    end
-
-    context "when no query is present in current scope" do
-      xit "applies _limit URI param"
-      xit "applies _offset URI param"
-      xit "applies _sort URI param"
     end
   end
 end

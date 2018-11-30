@@ -8,13 +8,13 @@ module FmData
 
         included do
           # Allow overriding FM's default limit (by default it's 100)
-          class_attribute :default_limit, instance_accessor: false
+          class_attribute :default_limit, instance_accessor: false, instance_predicate: false
 
-          class_attribute :default_sort, instance_accessor: false
+          class_attribute :default_sort, instance_accessor: false, instance_predicate: false
         end
 
         class_methods do
-          delegate :limit, :offset, :sort, :query, to: :all
+          delegate :limit, :offset, :sort, :query, :portal, to: :all
 
           def all
             # Use FmData's Relation insdead of Spyke's vanilla one
