@@ -26,9 +26,9 @@ module FmData
           #
           # Example:
           #
-          #   portal :jobs, portal_key: "JobsTable", attribute_prefix: "Job"
+          #   has_portal :jobs, portal_key: "JobsTable", attribute_prefix: "Job"
           #
-          def portal(name, options = {})
+          def has_portal(name, options = {})
             create_association(name, Portal, options)
 
             # Store options for JsonParser to use if needed
