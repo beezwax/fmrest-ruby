@@ -10,6 +10,7 @@ module FmData
           # Keep track of portal options by their FM keys as we could need it
           # to parse the portalData JSON in JsonParser
           class_attribute :portal_options, instance_accessor: false,
+                                           instance_predicate: false,
                                            default:           {}.freeze
 
           class << self; private :portal_options=; end

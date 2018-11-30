@@ -23,6 +23,7 @@ module FmData
           # Keep track of attribute mappings so we can get the FM field names
           # for changed attributes
           class_attribute :mapped_attributes, instance_writer: false,
+                                              instance_predicate: false,
                                               default: ::ActiveSupport::HashWithIndifferentAccess.new.freeze
 
           class << self; private :mapped_attributes=; end
