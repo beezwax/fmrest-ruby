@@ -4,12 +4,7 @@ require "fixtures/pirates"
 
 RSpec.describe FmData::Spyke::Model::Orm do
   let :test_class do
-    Class.new(Spyke::Base) do
-      include FmData::Spyke
-
-      # Needed by ActiveModel::Name
-      def self.name; "TestClass"; end
-
+    fmdata_spyke_class do
       attributes foo: "Foo", bar: "Bar"
     end
   end
@@ -110,10 +105,22 @@ RSpec.describe FmData::Spyke::Model::Orm do
         expect(request).to have_been_requested
       end
 
-      xit "applies all combined URI params"
+      it "applies all combined URI params" do
+        request.with(query: {
+          _limit:  42,
+          _offset: 10,
+          _sort:   [{fieldName: "name"}, {fieldName: "rank", sortOrder: "descend"}].to_json,
+        })
+        Pirate.limit(42).offset(10).sort(:name, :rank!).fetch
+        expect(request).to have_been_requested
+      end
     end
 
-    xit "preserves current_scope"
+    it "preserves current_scope" do
+      stub_request(:get, fm_url(layout: "Pirates") + "/records").with(query: hash_including({})).to_return_fm
+      scope = Pirate.limit(42).offset(10).sort(:name, :rank!)
+      expect { scope.fetch }.to_not change { Pirate.current_scope }
+    end
   end
 
   describe "#save" do

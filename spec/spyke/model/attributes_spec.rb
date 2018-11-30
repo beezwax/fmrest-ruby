@@ -4,12 +4,7 @@ require "fixtures/pirates"
 
 RSpec.describe FmData::Spyke::Model::Attributes do
   let :test_class do
-    Class.new(Spyke::Base) do
-      include FmData::Spyke
-
-      # Needed by ActiveModel::Name
-      def self.name; "TestClass"; end
-
+    fmdata_spyke_class do
       attributes foo: "Foo", bar: "Bar"
     end
   end
