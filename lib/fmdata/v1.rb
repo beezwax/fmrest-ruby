@@ -27,7 +27,7 @@ module FmData
 
       def base_connection(options = FmData.config, &block)
         # TODO: Make HTTPS optional
-        Faraday.new("https://#{options.fetch(:host)}#{BASE_PATH}/#{URI.escape(options.fetch(:database))}/", &block)
+        Faraday.new("https://#{options.fetch(:host)}#{BASE_PATH}/#{URI.escape(options.fetch(:database))}/".freeze, &block)
       end
 
       def session_path(token = nil)
