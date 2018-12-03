@@ -2,12 +2,10 @@ module FmData
   module Spyke
     class Relation < ::Spyke::Relation
       # We need to keep these separate from regular params because FM Data API
-      # uses either limit or _limit (or _offset, etc.) depending on the type of
-      # request, so we can't set the params until the last moment
-      attr_accessor :limit_value
-      attr_accessor :offset_value
-      attr_accessor :sort_params
-      attr_accessor :query_params
+      # uses either "limit" or "_limit" (or "_offset", etc.) as param keys
+      # depending on the type of request, so we can't set the params until the
+      # last moment
+      attr_accessor :limit_value, :offset_value, :sort_params, :query_params
 
       def initialize(*_args)
         super
@@ -19,10 +17,6 @@ module FmData
         end
 
         @query_params = []
-      end
-
-      def has_query?
-        query_params.present?
       end
 
       def limit(value)
@@ -68,6 +62,10 @@ module FmData
         query(params.merge(omit: true))
       end
 
+      def has_query?
+        query_params.present?
+      end
+
       private
 
       def normalize_sort_param(param)
@@ -83,7 +81,7 @@ module FmData
           return hash
         end
 
-        # TODO: Sanitize sort hash param?
+        # TODO: Sanitize sort hash param for FM Data API conformity?
         param
       end
 
