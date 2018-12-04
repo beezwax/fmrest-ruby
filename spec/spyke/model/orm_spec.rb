@@ -72,6 +72,14 @@ RSpec.describe FmData::Spyke::Model::Orm do
         expect(request).to have_been_requested
       end
 
+      it "applies portal URI param" do
+        request = stub_request(:post, fm_url(layout: "Ships") + "/_find")
+          .with(body: hash_including(portal: ["PiratesTable", "Flags"]))
+          .to_return_fm
+        Ship.query(name: "Mary Celeste").portal(:crew, "Flags").fetch
+        expect(request).to have_been_requested
+      end
+
       it "applies all combined JSON params" do
         request.with(body: {
           limit:  42,
@@ -102,6 +110,14 @@ RSpec.describe FmData::Spyke::Model::Orm do
       it "applies _sort URI param" do
         request.with(query: { _sort: [{fieldName: "name"}, {fieldName: "rank", sortOrder: "descend"}].to_json })
         Pirate.sort(:name, :rank!).fetch
+        expect(request).to have_been_requested
+      end
+
+      it "applies portal URI param" do
+        request = stub_request(:get, fm_url(layout: "Ships") + "/records")
+          .with(query: { portal: ["PiratesTable", "Flags"].to_json })
+          .to_return_fm
+        Ship.portal(:crew, "Flags").fetch
         expect(request).to have_been_requested
       end
 

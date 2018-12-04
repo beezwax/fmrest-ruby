@@ -1,7 +1,12 @@
+require "fixtures/pirates"
+
 RSpec.describe FmData::Spyke::Relation do
   let(:test_class) do
     fmdata_spyke_class do
       attributes :foo, :bar
+
+      has_portal :bridges, portal_key: "Bridges"
+      has_portal :tunnels, portal_key: "Tunnels"
     end
   end
 
@@ -38,11 +43,24 @@ RSpec.describe FmData::Spyke::Relation do
   end
 
   describe "#sort" do
-    it "creates a new scope with the given sort params" do
-      sort_scope = relation.sort(:foo, :bar!)
-      expect(sort_scope).to_not eq(relation)
-      expect(sort_scope).to be_a(FmData::Spyke::Relation)
-      expect(sort_scope.sort_params).to eq([{ fieldName: :foo }, { fieldName: :bar, sortOrder: "descend" }])
+    context "when given defined attributes as symbols or strings" do
+      it "creates a new scope with the given sort params" do
+        sort_scope = relation.sort(:foo, [:bar!, :bar__desc], :bar__descend)
+        expect(sort_scope).to_not eq(relation)
+        expect(sort_scope).to be_a(FmData::Spyke::Relation)
+        expect(sort_scope.sort_params).to \
+          eq([{ fieldName: :foo },
+              { fieldName: :bar, sortOrder: "descend" },
+              { fieldName: :bar, sortOrder: "descend" },
+              { fieldName: :bar, sortOrder: "descend" }])
+      end
+    end
+
+    context "when given undefined attributes as symbols or strings" do
+      it do
+        expect { relation.sort(:not_an_attribute) }.to raise_error(ArgumentError)
+        expect { relation.sort("NotAnAttribute") }.to raise_error(ArgumentError)
+      end
     end
   end
 
@@ -53,8 +71,20 @@ RSpec.describe FmData::Spyke::Relation do
   end
 
   describe "#portal" do
-    xit "creates a new scope with the given portal params"
-    xit "accepts a list of arguments, a single string or an array"
+    context "when given defined portals as symbols or undefined portals as strings" do
+      it "creates a new scope with the given portal params" do
+        portal_scope = relation.portal(:bridges, [:tunnels, :tunnels]).portal("SirNotAppearingInThisClass")
+        expect(portal_scope).to_not eq(relation)
+        expect(portal_scope).to be_a(FmData::Spyke::Relation)
+        expect(portal_scope.portal_params).to eq(["Bridges", "Tunnels", "SirNotAppearingInThisClass"])
+      end
+    end
+
+    context "when given undefined portals as symbols" do
+      it do
+        expect { relation.portal(:not_a_portal) }.to raise_error(ArgumentError)
+      end
+    end
   end
 
   describe "#includes" do
@@ -74,8 +104,8 @@ RSpec.describe FmData::Spyke::Relation do
 
   describe "#omit" do
     it "forwards params to #query with omit: true" do
-      expect(relation).to receive(:query).with(foo: "Coffee", omit: true).and_return("Yipee")
-      expect(relation.omit(foo: "Coffee")).to eq("Yipee")
+      expect(relation).to receive(:query).with(foo: "Coffee", omit: true).and_return("Yipee!")
+      expect(relation.omit(foo: "Coffee")).to eq("Yipee!")
     end
   end
 

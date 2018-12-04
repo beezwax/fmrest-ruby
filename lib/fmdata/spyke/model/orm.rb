@@ -57,6 +57,11 @@ module FmData
                 prefixed ? scope.sort_params.to_json : scope.sort_params
             end
 
+            if scope.portal_params.present?
+              where_options["portal"] =
+                prefixed ? scope.portal_params.to_json : scope.portal_params
+            end
+
             scope.where(where_options)
           end
         end

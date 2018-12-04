@@ -34,7 +34,7 @@ module FmData
 
             # Store options for JsonParser to use if needed
             portal_key = options[:portal_key] || name
-            self.portal_options = portal_options.merge(portal_key.to_s => options.dup).freeze
+            self.portal_options = portal_options.merge(portal_key.to_s => options.dup.merge(name: name.to_s)).freeze
 
             define_method "#{name.to_s.singularize}_ids" do
               association(name).map(&:id)

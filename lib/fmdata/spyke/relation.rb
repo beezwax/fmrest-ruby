@@ -1,11 +1,14 @@
 module FmData
   module Spyke
     class Relation < ::Spyke::Relation
+      SORT_PARAM_MATCHER = /(.*?)(!|__desc(?:end)?)?\Z/.freeze
+
       # We need to keep these separate from regular params because FM Data API
       # uses either "limit" or "_limit" (or "_offset", etc.) as param keys
       # depending on the type of request, so we can't set the params until the
       # last moment
-      attr_accessor :limit_value, :offset_value, :sort_params, :query_params
+      attr_accessor :limit_value, :offset_value, :sort_params, :query_params,
+                    :portal_params
 
       def initialize(*_args)
         super
@@ -17,6 +20,7 @@ module FmData
         end
 
         @query_params = []
+        @portal_params = []
       end
 
       def limit(value)
@@ -47,8 +51,10 @@ module FmData
       alias :order :sort
 
       def portal(*args)
-        # TODO: Allow passing portal names as defined in the class
-        where(portal: args.flatten)
+        with_clone do |r|
+          r.portal_params += args.flatten.map { |p| normalize_portal_param(p) }
+          r.portal_params.uniq!
+        end
       end
       alias :includes :portal
 
@@ -70,10 +76,10 @@ module FmData
 
       def normalize_sort_param(param)
         if param.kind_of?(Symbol) || param.kind_of?(String)
-          _, attr, descend = param.to_s.match(/(.*?)(!|__desc(?:end))?\Z/).to_a
+          _, attr, descend = param.to_s.match(SORT_PARAM_MATCHER).to_a
 
           unless field_name = klass.mapped_attributes[attr]
-            raise "Unknown attribute `#{attr}` given to sort as :#{param}"
+            raise ArgumentError, "Unknown attribute `#{attr}' given to sort as #{param.inspect}. If you want to use a custom sort pass a hash in the Data API format"
           end
 
           hash = { fieldName: field_name }
@@ -82,6 +88,20 @@ module FmData
         end
 
         # TODO: Sanitize sort hash param for FM Data API conformity?
+        param
+      end
+
+      def normalize_portal_param(param)
+        if param.kind_of?(Symbol)
+          portal_key, = klass.portal_options.find { |_, opts| opts[:name].to_s == param.to_s }
+
+          unless portal_key
+            raise ArgumentError, "Unknown portal #{param.inspect}. If you want to include a portal not defined in the model pass it as a string instead"
+          end
+
+          return portal_key
+        end
+
         param
       end
 
@@ -94,6 +114,7 @@ module FmData
             next
           end
 
+          # TODO: Raise ArgumentError if an attribute given as symbol isn't defiend
           if k.kind_of?(Symbol) && klass.mapped_attributes.has_key?(k)
             normalized[klass.mapped_attributes[k].to_s] = v
           else
