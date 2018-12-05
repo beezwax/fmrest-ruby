@@ -72,6 +72,13 @@ module FmData
         query_params.present?
       end
 
+      def find_one
+        return super if params[klass.primary_key].present?
+        @find_one ||= klass.new_collection_from_result(limit(1).fetch).first
+      rescue ::Spyke::ConnectionError => error
+        fallback_or_reraise(error, default: nil)
+      end
+
       private
 
       def normalize_sort_param(param)

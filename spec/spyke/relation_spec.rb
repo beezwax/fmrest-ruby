@@ -119,4 +119,37 @@ RSpec.describe FmData::Spyke::Relation do
       expect(new_relation.has_query?).to eq(true)
     end
   end
+
+  describe "#find_one" do
+    # TODO: Make these specs less attached to the implementation
+    context "when the id is not set" do
+      it "runs a fetch with limit 1 and returns the first element" do
+        other_relation = FmData::Spyke::Relation.new(test_class)
+        fetch_result, record = double, double
+        expect(relation).to receive(:limit).with(1).and_return(other_relation)
+        expect(other_relation).to receive(:fetch).and_return(fetch_result)
+        expect(test_class).to receive(:new_collection_from_result).with(fetch_result).and_return([record])
+        expect(relation.find_one).to eq(record)
+      end
+
+      it "memoizes the result" do
+        other_relation, fetch_result, record = double, double, double
+        allow(relation).to receive(:limit).and_return(other_relation)
+        allow(other_relation).to receive(:fetch)
+        allow(test_class).to receive(:new_collection_from_result).and_return([record])
+        expect { relation.find_one }.to change { relation.instance_variable_get(:@find_one) }.from(nil).to(record)
+        expect(relation.find_one).to equal(relation.instance_variable_get(:@find_one))
+      end
+    end
+
+    context "when the id is set" do
+      it "doesn't call limit" do
+        id_relation = relation.where(id: 1)
+        fetch_result = double(data: nil)
+        expect(id_relation).to receive(:fetch).and_return(fetch_result)
+        expect(id_relation).to_not receive(:limit)
+        id_relation.find_one
+      end
+    end
+  end
 end
