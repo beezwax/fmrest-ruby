@@ -93,11 +93,11 @@ Then require FmData's Spyke support:
 require "fmdata/spyke"
 ```
 
-And finally extend your Spyke models with `FmData::Spyke::Model`:
+And finally extend your Spyke models with `FmData::Spyke`:
 
 ```ruby
-class Kitty
-  include FmData::Spyke::Model
+class Kitty < Spyke::Base
+  include FmData::Spyke
 end
 ```
 
@@ -122,7 +122,7 @@ connection by allowing you to just set your Data API connection settings:
 
 ```ruby
 class Kitty < Spyke::Base
-  include FmData::Spyke::Model
+  include FmData::Spyke
 
   self.fmdata_config = {
     host:     "example.com",
@@ -142,7 +142,7 @@ same connection. E.g.:
 
 ```ruby
 class KittyDbModel < Spyke::Base
-  include FmData::Spyke::Model
+  include FmData::Spyke
 
   self.fmdata_config = {
     host:     "example.com",
@@ -163,7 +163,7 @@ Use `layout` to set the `:layout` part of API URLs, e.g.:
 
 ```ruby
 class Kitty
-  include FmData::Spyke::Model
+  include FmData::Spyke
 
   layout "FluffyKitty" # uri path will be layouts/FluffyKitty/records(/:id)
 end
@@ -185,7 +185,7 @@ names to FileMaker field names. E.g.:
 
 ```ruby
 class Kitty
-  include FmData::Spyke::Model
+  include FmData::Spyke
 
   attributes first_name: "First Name", last_name: "Last Name"
 end
@@ -207,16 +207,18 @@ kitty.attributes # => { "First Name": "Dr.", "Last Name": "Fluffers" }
 
 ## TODO
 
-- [ ] Specs
-- [ ] Support for portal data
 - [ ] Better/simpler-to-use core Ruby API
+- [ ] Better API documentation and README
 - [ ] Oauth support
+- [x] Specs
+- [x] Support for portal data
 
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run
 `rake spec` to run the tests. You can also run `bin/console` for an interactive
-prompt that will allow you to experiment.
+prompt that will allow you to experiment (it will auto-load all fixtures in
+spec/fixtures).
 
 To install this gem onto your local machine, run `bundle exec rake install`. To
 release a new version, update the version number in `version.rb`, and then run
