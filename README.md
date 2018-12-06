@@ -2,22 +2,18 @@
 
 A Ruby client for FileMaker 17's Data API using
 [Faraday](https://github.com/lostisland/faraday) and with additional (optional)
-[Spyke](https://github.com/balvig/spyke) support.
+[Spyke](https://github.com/balvig/spyke) support (ActiveRecord-ish models).
 
 FileMaker 16's Data API is not supported (but you shouldn't be using it
 anyway).
 
 ## Installation
 
-Add this line to your application's Gemfile:
+Add this line to your Gemfile:
 
 ```ruby
 gem 'fmdata', git: 'https://gitlab.beezwax.net/pedro_c/fmdata'
 ```
-
-And then execute:
-
-    $ bundle
 
 ## Basic usage
 
@@ -336,6 +332,7 @@ Kitty.find(89) # => <Kitty...>
 - [ ] Better API documentation and README
 - [ ] FmData::Spyke::Base class for single inheritance (as alternative for mixin)
 - [ ] Oauth support
+- [ ] More options for token storage
 - [x] Specs
 - [x] Support for portal data
 
