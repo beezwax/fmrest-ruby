@@ -57,8 +57,8 @@ username and password) if it doesn't yet have one in store.
 ## Session token store
 
 By default FmData will use a memory-based store for the session tokens. This is
-generally good enough for development, but not good enough for production, as in-memory
-tokens aren't shared across threads/processes.
+generally good enough for development, but not good enough for production, as
+in-memory tokens aren't shared across threads/processes.
 
 Besides the default memory token store an ActiveRecord-based token store is
 included with the gem (maybe more to come later).
@@ -209,6 +209,7 @@ kitty.attributes # => { "First Name": "Dr.", "Last Name": "Fluffers" }
 
 - [ ] Better/simpler-to-use core Ruby API
 - [ ] Better API documentation and README
+- [ ] FmData::Spyke::Base class for single inheritance (as alternative for mixin)
 - [ ] Oauth support
 - [x] Specs
 - [x] Support for portal data
