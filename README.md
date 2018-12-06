@@ -265,7 +265,7 @@ Passing multiple attributes to `.query` will group them in the same JSON object:
 
 ```ruby
 Kitty.query(name: "Mr. Fluffers", age: 4)
-# JSON -> {"query": [{"CatName": "Foo", "CatAge": 22}]}
+# JSON -> {"query": [{"CatName": "Foo", "CatAge": 4}]}
 ```
 
 Calling `.query` multiple times or passing it multiple hashes creates separate
