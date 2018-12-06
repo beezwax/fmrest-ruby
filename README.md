@@ -284,6 +284,13 @@ Kitty.omit(name: "Captain Whiskers")
 # JSON -> {"query": [{"CatName": "Captain Whiskers", "omit": "true"}]}
 ```
 
+You can get the same effect by passing `omit: true` to `.query`:
+
+```ruby
+Kitty.query(name: "Captain Whiskers", omit: true)
+# JSON -> {"query": [{"CatName": "Captain Whiskers", "omit": "true"}]}
+```
+
 You can chain all query methods together:
 
 ```ruby
