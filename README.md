@@ -285,7 +285,7 @@ Kitty.query({ name: "Mr. Fluffers" }, { name: "Coronel Chai Latte" })
 
 ```ruby
 Kitty.omit(name: "Captain Whiskers")
-# JSON -> {"query": [{"CatName": "Captain Whiskers", omit: "true"}]}
+# JSON -> {"query": [{"CatName": "Captain Whiskers", "omit": "true"}]}
 ```
 
 You can chain all query methods together:
@@ -297,11 +297,8 @@ Kitty.limit(10).offset(20).sort(:name, :age!).portal(:toys).query(name: "Mr. Flu
 You can also set default values for limit and sort on the class:
 
 ```ruby
-class Kitty < ...
-  self.default_limit = 1000
-
-  self.default_sort = [:name, :age!]
-end
+Kitty.default_limit = 1000
+Kitty.default_sort = [:name, :age!]
 ```
 
 Calling any `Enumerable` method on the resulting scope object will trigger a
@@ -318,15 +315,16 @@ the scope object:
 Kitty.limit(10).sort(:name).find_some # => [<Kitty...>, ...]
 ```
 
-If you want just a single result you can use `.find_one` instead:
+If you want just a single result you can use `.find_one` instead (this will
+force `.limit(1)`):
 
 ```ruby
 Kitty.query(name: "Mr. Fluffers").find_one # => <Kitty...>
 ```
 
 NOTE: If you know the id of the record you should use `.find(id)` instead of
-`.query(id: id).find_one` (so that the request is sent as `GET .../:layout/records/:id`
-instead of `POST .../:layout/_find`).
+`.query(id: id).find_one` (so that the request is sent as `GET ../:layout/records/:id`
+instead of `POST ../:layout/_find`).
 
 ```ruby
 Kitty.find(89) # => <Kitty...>
