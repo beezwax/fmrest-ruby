@@ -10,6 +10,7 @@ module FmData
           # Keep track of portal options by their FM keys as we could need it
           # to parse the portalData JSON in JsonParser
           class_attribute :portal_options, instance_accessor: false,
+                                           instance_predicate: false,
                                            default:           {}.freeze
 
           class << self; private :portal_options=; end
@@ -26,14 +27,14 @@ module FmData
           #
           # Example:
           #
-          #   portal :jobs, portal_key: "JobsTable", attribute_prefix: "Job"
+          #   has_portal :jobs, portal_key: "JobsTable", attribute_prefix: "Job"
           #
-          def portal(name, options = {})
+          def has_portal(name, options = {})
             create_association(name, Portal, options)
 
             # Store options for JsonParser to use if needed
             portal_key = options[:portal_key] || name
-            self.portal_options = portal_options.merge(portal_key.to_s => options.dup).freeze
+            self.portal_options = portal_options.merge(portal_key.to_s => options.dup.merge(name: name.to_s)).freeze
 
             define_method "#{name.to_s.singularize}_ids" do
               association(name).map(&:id)

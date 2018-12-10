@@ -2,22 +2,18 @@
 
 A Ruby client for FileMaker 17's Data API using
 [Faraday](https://github.com/lostisland/faraday) and with additional (optional)
-[Spyke](https://github.com/balvig/spyke) support.
+[Spyke](https://github.com/balvig/spyke) support (ActiveRecord-ish models).
 
 FileMaker 16's Data API is not supported (but you shouldn't be using it
 anyway).
 
 ## Installation
 
-Add this line to your application's Gemfile:
+Add this line to your Gemfile:
 
 ```ruby
 gem 'fmdata', git: 'https://gitlab.beezwax.net/pedro_c/fmdata'
 ```
-
-And then execute:
-
-    $ bundle
 
 ## Basic usage
 
@@ -57,8 +53,8 @@ username and password) if it doesn't yet have one in store.
 ## Session token store
 
 By default FmData will use a memory-based store for the session tokens. This is
-generally good enough for development, but not good enough for production, as in-memory
-tokens aren't shared across threads/processes.
+generally good enough for development, but not good enough for production, as
+in-memory tokens aren't shared across threads/processes.
 
 Besides the default memory token store an ActiveRecord-based token store is
 included with the gem (maybe more to come later).
@@ -93,11 +89,11 @@ Then require FmData's Spyke support:
 require "fmdata/spyke"
 ```
 
-And finally extend your Spyke models with `FmData::Spyke::Model`:
+And finally extend your Spyke models with `FmData::Spyke`:
 
 ```ruby
-class Kitty
-  include FmData::Spyke::Model
+class Kitty < Spyke::Base
+  include FmData::Spyke
 end
 ```
 
@@ -122,7 +118,7 @@ connection by allowing you to just set your Data API connection settings:
 
 ```ruby
 class Kitty < Spyke::Base
-  include FmData::Spyke::Model
+  include FmData::Spyke
 
   self.fmdata_config = {
     host:     "example.com",
@@ -142,7 +138,7 @@ same connection. E.g.:
 
 ```ruby
 class KittyDbModel < Spyke::Base
-  include FmData::Spyke::Model
+  include FmData::Spyke
 
   self.fmdata_config = {
     host:     "example.com",
@@ -163,7 +159,7 @@ Use `layout` to set the `:layout` part of API URLs, e.g.:
 
 ```ruby
 class Kitty
-  include FmData::Spyke::Model
+  include FmData::Spyke
 
   layout "FluffyKitty" # uri path will be layouts/FluffyKitty/records(/:id)
 end
@@ -185,7 +181,7 @@ names to FileMaker field names. E.g.:
 
 ```ruby
 class Kitty
-  include FmData::Spyke::Model
+  include FmData::Spyke
 
   attributes first_name: "First Name", last_name: "Last Name"
 end
@@ -205,18 +201,154 @@ kitty.first_name = "Dr."
 kitty.attributes # => { "First Name": "Dr.", "Last Name": "Fluffers" }
 ```
 
+### Query API
+
+Since Spyke is API-agnostic it only provides a wide-purpose `.where` method for
+passing arbitrary parameters to the REST backend. FmData however is well aware
+of its backend API, so it extends Spkye models with a bunch of useful querying
+methods.
+
+```ruby
+class Kitty < Spyke::Base
+  include FmData::Spyke
+
+  attributes name: "CatName", age: "CatAge"
+
+  has_portal :toys, portal_key: "CatToys"
+end
+```
+
+`.limit` sets the limit for get and find request:
+
+```ruby
+Kitty.limit(10)
+```
+
+`.offset` sets the offset for get and find requests:
+
+```ruby
+Kitty.offset(10)
+```
+
+`.sort` (or `.order`) sets sorting options for get and find requests:
+
+```ruby
+Kitty.sort(:name, :age)
+Kitty.order(:name, :age) # alias method
+```
+
+You can set descending sort order by appending either `!` or `__desc` to a sort
+attribute (defaults to ascending order):
+
+```ruby
+Kitty.sort(:name, :age!)
+Kitty.sort(:name, :age__desc)
+```
+
+`.portal` (or `.includes`) sets the portals to fetch for get and find requests
+(this recognizes portals defined with `has_portal`):
+
+```ruby
+Kitty.portal(:toys)
+Kitty.includes(:toys) # alias method
+```
+
+`.query` sets query conditions for a find request (and supports attributes as
+defined with `attributes`):
+
+```ruby
+Kitty.query(name: "Mr. Fluffers")
+# JSON -> {"query": [{"CatName": "Mr. Fluffers"}]}
+```
+
+Passing multiple attributes to `.query` will group them in the same JSON object:
+
+```ruby
+Kitty.query(name: "Mr. Fluffers", age: 4)
+# JSON -> {"query": [{"CatName": "Foo", "CatAge": 4}]}
+```
+
+Calling `.query` multiple times or passing it multiple hashes creates separate
+JSON objects (so you can define OR queries):
+
+```ruby
+Kitty.query(name: "Mr. Fluffers").query(name: "Coronel Chai Latte")
+Kitty.query({ name: "Mr. Fluffers" }, { name: "Coronel Chai Latte" })
+# JSON -> {"query": [{"CatName": "Mr. Fluffers"}, {"CatName": "Coronel Chai Latte"}]}
+```
+
+`.omit` works like `.query` but excludes matches:
+
+```ruby
+Kitty.omit(name: "Captain Whiskers")
+# JSON -> {"query": [{"CatName": "Captain Whiskers", "omit": "true"}]}
+```
+
+You can get the same effect by passing `omit: true` to `.query`:
+
+```ruby
+Kitty.query(name: "Captain Whiskers", omit: true)
+# JSON -> {"query": [{"CatName": "Captain Whiskers", "omit": "true"}]}
+```
+
+You can chain all query methods together:
+
+```ruby
+Kitty.limit(10).offset(20).sort(:name, :age!).portal(:toys).query(name: "Mr. Fluffers")
+```
+
+You can also set default values for limit and sort on the class:
+
+```ruby
+Kitty.default_limit = 1000
+Kitty.default_sort = [:name, :age!]
+```
+
+Calling any `Enumerable` method on the resulting scope object will trigger a
+server request, so you can treat the scope as a collection:
+
+```ruby
+Kitty.limit(10).sort(:name).each { |kitty| ... }
+```
+
+If you want to explicitly run the request instead you can use `.find_some` on
+the scope object:
+
+```ruby
+Kitty.limit(10).sort(:name).find_some # => [<Kitty...>, ...]
+```
+
+If you want just a single result you can use `.find_one` instead (this will
+force `.limit(1)`):
+
+```ruby
+Kitty.query(name: "Mr. Fluffers").find_one # => <Kitty...>
+```
+
+NOTE: If you know the id of the record you should use `.find(id)` instead of
+`.query(id: id).find_one` (so that the request is sent as `GET ../:layout/records/:id`
+instead of `POST ../:layout/_find`).
+
+```ruby
+Kitty.find(89) # => <Kitty...>
+```
+
 ## TODO
 
-- [ ] Specs
-- [ ] Support for portal data
 - [ ] Better/simpler-to-use core Ruby API
+- [ ] Better API documentation and README
+- [ ] FmData::Spyke::Base class for single inheritance (as alternative for mixin)
 - [ ] Oauth support
+- [ ] More options for token storage
+- [x] Specs
+- [x] Support for portal data
 
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run
 `rake spec` to run the tests. You can also run `bin/console` for an interactive
-prompt that will allow you to experiment.
+prompt that will allow you to experiment (it will auto-load all fixtures in
+spec/fixtures).
 
 To install this gem onto your local machine, run `bundle exec rake install`. To
 release a new version, update the version number in `version.rb`, and then run

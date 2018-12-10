@@ -11,5 +11,5 @@ class Ship < FixtureBase
 
   attributes :name
 
-  portal :crew, portal_key: "PiratesTable", attribute_prefix: "Pirate", class_name: "Pirate"
+  has_portal :crew, portal_key: "PiratesTable", attribute_prefix: "Pirate", class_name: "Pirate"
 end

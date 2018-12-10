@@ -3,7 +3,7 @@ require "spec_helper"
 require "fixtures/pirates"
 
 RSpec.describe FmData::Spyke::Model::Associations do
-  describe ".portal" do
+  describe ".has_portal" do
     it "creates a Portal instance association" do
       expect(Ship.new.crew).to be_a(FmData::Spyke::Portal)
     end

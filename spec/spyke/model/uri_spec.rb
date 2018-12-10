@@ -4,11 +4,7 @@ require "fixtures/pirates"
 
 RSpec.describe FmData::Spyke::Model::Uri do
   let :test_class do
-    Class.new(Spyke::Base) do
-      include FmData::Spyke
-
-      def self.name; "TestClass"; end
-    end
+    fmdata_spyke_class
   end
 
   describe ".layout" do
