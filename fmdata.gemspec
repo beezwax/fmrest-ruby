@@ -1,4 +1,3 @@
-
 lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "fmdata/version"
@@ -6,11 +5,11 @@ require "fmdata/version"
 Gem::Specification.new do |spec|
   spec.name          = "fmdata"
   spec.version       = FmData::VERSION
-  spec.authors       = ["Pedro Carbajal"]
+  spec.authors       = ["Pedro Carbajal", "Hannah Yiu"]
   spec.email         = ["pedro_c@beezwax.net"]
 
   spec.summary       = %q{FileMaker Data API REST client using Faraday}
-  spec.description   = %q{FileMaker Data API REST client using Faraday}
+  spec.description   = %q{FileMaker Data API REST client using Faraday, with optional ActiveRecord-like ORM based on Spyke}
   spec.homepage      = "https://www.beezwax.net/"
   spec.license       = "MIT"
 
@@ -24,7 +23,7 @@ Gem::Specification.new do |spec|
   end
 
   spec.files         = `git ls-files -z`.split("\x0").reject do |f|
-    f.match(%r{^(test|spec|features)/})
+    f.match(%r{^(test|spec|features|bin)/})
   end
   spec.bindir        = "exe"
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
