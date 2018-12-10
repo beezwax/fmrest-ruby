@@ -74,9 +74,9 @@ when needed, defaulting to the table name "fmdata_session_tokens".
 
 ## Spyke support
 
-Spyke is an ActiveRecord-like gem for building REST models. FmData has Spyke
-support out of the box, although Spyke itself is not a dependency of FmData, so
-you'll need to install it yourself:
+[Spyke](https://github.com/balvig/spyke) is an ActiveRecord-like gem for
+building REST models. FmData has Spyke support out of the box, although Spyke
+itself is not a dependency of FmData, so you'll need to install it yourself:
 
 ```ruby
 gem 'spyke'
@@ -101,7 +101,25 @@ This will make your Spyke model send all its requests in Data API format, with
 token session auth. Find, create, update and destroy actions should all work
 as expected.
 
-Additionally this extends `Spyke::Base` subclasses with the following features:
+Alternatively you can inherit directly from the shorthand
+`FmData::Spyke::Base`, which is in itself a subclass of `Spyke::Base` with
+`FmData::Spyke` already included:
+
+```ruby
+class Kitty < FmData::Spyke::Base
+end
+```
+
+In this case you can pass the `fmdata_config` hash as an argument to `Base()`:
+
+```ruby
+class Kitty < FmData::Spyke::Base(host: "...", database: "...", username: "...", password: "...")
+end
+
+Kitty.fmdata_config # => { host: "...", database: "...", username: "...", password: "..." }
+```
+
+`FmData::Spyke` extends `Spyke::Base` subclasses with the following features:
 
 ### Model.fmdata_config=
 
@@ -137,19 +155,19 @@ does the initial connection setup and then inherit from it in models using that
 same connection. E.g.:
 
 ```ruby
-class KittyDbModel < Spyke::Base
+class KittyBase < Spyke::Base
   include FmData::Spyke
 
   self.fmdata_config = {
     host:     "example.com",
-    database: "database name",
+    database: "My Database",
     username: "username",
     password: "password"
   }
 end
 
-class Kitty < KittyDbModel
-  # This will use the same connection as KittyDbModel
+class Kitty < KittyBase
+  # This model will use the same connection as KittyBase
 end
 ```
 
@@ -158,9 +176,7 @@ end
 Use `layout` to set the `:layout` part of API URLs, e.g.:
 
 ```ruby
-class Kitty
-  include FmData::Spyke
-
+class Kitty < FmData::Spyke::Base
   layout "FluffyKitty" # uri path will be layouts/FluffyKitty/records(/:id)
 end
 ```
@@ -180,9 +196,7 @@ extends `attributes`' functionality to allow you to map Ruby-friendly attribute
 names to FileMaker field names. E.g.:
 
 ```ruby
-class Kitty
-  include FmData::Spyke
-
+class Kitty < FmData::Spyke::Base
   attributes first_name: "First Name", last_name: "Last Name"
 end
 ```
@@ -200,6 +214,91 @@ kitty.first_name = "Dr."
 
 kitty.attributes # => { "First Name": "Dr.", "Last Name": "Fluffers" }
 ```
+
+### Model.has_portal
+
+You can define portal associations on your model as such:
+
+```ruby
+class Kitty < FmData::Spyke::Base
+  has_portal :woolyarns
+end
+
+class Woolyarn < FmData::Spyke::Base
+  attributes :color, :thickness
+end
+```
+
+In this case FmData will expect the portal table name and portal object name to
+be both "woolyarns". E.g., the expected portal JSON portion should be look like
+this:
+
+```json
+...
+"portalData": {
+  "woolyarns": [
+    {
+      "woolyarns:color": "yellow",
+      "woolyarns:thickness": "thick",
+    }
+  ]
+}
+```
+
+If you need to specify different values for them you can do so with
+`portal_key` for the portal table name, and `attribute_prefix` for the portal
+object name, e.g.:
+
+```ruby
+class Kitty < FmData::Spyke::Base
+  has_portal :woolyarns, portal_key: "Woolyarn Table", attribute_prefix: "Woolyarn"
+end
+```
+
+The above expects the following portal JSON portion:
+
+```json
+...
+"portalData": {
+  "Woolyarn Table": [
+    {
+      "Woolyarn:color": "yellow",
+      "Woolyarn:thickness": "thick",
+    }
+  ]
+}
+```
+
+You can also specify a different class name with the `class_name` option:
+
+```ruby
+class Kitty < FmData::Spyke::Base
+  has_portal :woolyarns, class_name: "FancyWoolyarn"
+end
+```
+
+### Dirty attributes
+
+FmData includes support for ActiveModel's Dirty mixin out of the box, providing
+methods like:
+
+```ruby
+kitty = Kitty.new
+
+kitty.changed? # => false
+
+kitty.name = "Mr. Fluffers"
+
+kitty.changed? # => true
+
+kitty.name_changed? # => true
+```
+
+FmData uses the Dirty functionality to only send changed attributes back to the
+server on save.
+
+You can read more about [ActiveModel's Dirty in Rails
+Guides](https://guides.rubyonrails.org/active_model_basics.html#dirty).
 
 ### Query API
 
@@ -335,11 +434,12 @@ Kitty.find(89) # => <Kitty...>
 
 ## TODO
 
+- [ ] Optional logging
 - [ ] Better/simpler-to-use core Ruby API
 - [ ] Better API documentation and README
-- [ ] FmData::Spyke::Base class for single inheritance (as alternative for mixin)
 - [ ] Oauth support
 - [ ] More options for token storage
+- [x] FmData::Spyke::Base class for single inheritance (as alternative for mixin)
 - [x] Specs
 - [x] Support for portal data
 
