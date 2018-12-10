@@ -1,11 +1,2 @@
-class FixtureBase < Spyke::Base
-  include FmData::Spyke
-
-  self.fmdata_config =
-    {
-      host:     "example.com",
-      database: "TestDB",
-      username: "test",
-      password: "test"
-    }.freeze
+class FixtureBase < FmData::Spyke::Base(FMDATA_DUMMY_CONFIG)
 end

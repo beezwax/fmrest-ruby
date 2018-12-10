@@ -1,5 +1,6 @@
 require "fmdata/spyke/json_parser"
 require "fmdata/spyke/model"
+require "fmdata/spyke/base"
 
 module FmData
   module Spyke

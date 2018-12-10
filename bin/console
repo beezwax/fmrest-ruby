@@ -5,6 +5,7 @@ require "fmdata"
 require "spyke"
 require "fmdata/spyke"
 
+require_relative "../spec/support/fmdata_dummy_config"
 require_relative "../spec/fixtures/pirates"
 
 require "pry"
