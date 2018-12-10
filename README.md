@@ -238,8 +238,8 @@ this:
 "portalData": {
   "woolyarns": [
     {
-      "woolyarns:color": "yellow",
-      "woolyarns:thickness": "thick",
+      "woolyarns::color": "yellow",
+      "woolyarns::thickness": "thick",
     }
   ]
 }
@@ -262,8 +262,8 @@ The above expects the following portal JSON portion:
 "portalData": {
   "Woolyarn Table": [
     {
-      "Woolyarn:color": "yellow",
-      "Woolyarn:thickness": "thick",
+      "Woolyarn::color": "yellow",
+      "Woolyarn::thickness": "thick",
     }
   ]
 }
