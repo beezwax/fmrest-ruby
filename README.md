@@ -7,6 +7,9 @@ A Ruby client for FileMaker 17's Data API using
 FileMaker 16's Data API is not supported (but you shouldn't be using it
 anyway).
 
+If you're looking for a Ruby client for the legacy XML/Custom Web Publishing
+try the fabulous [ginjo-rfm gem](https://github.com/ginjo/rfm) instead.
+
 ## Installation
 
 Add this line to your Gemfile:
@@ -177,7 +180,7 @@ Use `layout` to set the `:layout` part of API URLs, e.g.:
 
 ```ruby
 class Kitty < FmData::Spyke::Base
-  layout "FluffyKitty" # uri path will be layouts/FluffyKitty/records(/:id)
+  layout "FluffyKitty" # uri path will be "layouts/FluffyKitty/records(/:id)"
 end
 ```
 
@@ -432,13 +435,59 @@ instead of `POST ../:layout/_find`).
 Kitty.find(89) # => <Kitty...>
 ```
 
+## Logging
+
+If using FmData + Spyke in a Rails app pretty log output will be set up for you
+automatically by Spyke
+(see [their README](https://github.com/balvig/spyke#log-output)).
+
+You can also enable simple STDOUT logging (useful for debugging) by passing
+`log: true` in the options hash for either `FmData.config=` or your models'
+`fmdata_config=`, e.g.:
+
+```ruby
+FmData.config = {
+  host:     "example.com",
+  database: "My Database",
+  username: "z3r0c00l",
+  password: "abc123",
+  log:      true
+}
+
+# Or in your model
+class LoggyKitty < FmData::Spyke::Base
+  self.fmdata_config = {
+    host:     "example.com",
+    database: "My Database",
+    username: "z3r0c00l",
+    password: "abc123",
+    log:      true
+  }
+end
+```
+
+Note that the log option set in `FmData.config` is ignored by models.
+
+If you need to set up more complex logging for your models can use the
+`faraday` block inside your class to inject your own logger middleware into the
+Faraday connection, e.g.:
+
+```ruby
+class LoggyKitty < FmData::Spyke::Base
+  faraday do |conn|
+    conn.response :logger, MyApp.logger, bodies: true
+  end
+end
+```
+
 ## TODO
 
-- [ ] Optional logging
 - [ ] Better/simpler-to-use core Ruby API
 - [ ] Better API documentation and README
 - [ ] Oauth support
+- [ ] Support for portal limit and offset
 - [ ] More options for token storage
+- [x] Optional logging
 - [x] FmData::Spyke::Base class for single inheritance (as alternative for mixin)
 - [x] Specs
 - [x] Support for portal data
