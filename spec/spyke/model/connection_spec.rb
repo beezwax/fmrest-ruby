@@ -26,4 +26,18 @@ RSpec.describe FmData::Spyke::Model::Connection do
       expect(subject.builder.handlers).to include(FmData::Spyke::JsonParser)
     end
   end
+
+  describe ".faraday" do
+    it "sets a block to be injected into the Faraday connection" do
+      rspec = self
+
+      klass = fmdata_spyke_class do
+        faraday do |conn|
+          rspec.expect(conn).to rspec.be_a(Faraday::Connection)
+        end
+      end
+
+      klass.connection
+    end
+  end
 end

@@ -1,5 +1,7 @@
+require "spec_helper"
+
 RSpec.describe FmData::V1 do
-  describe ".build_connection" do
+  describe ".base_connection" do
     context "when not given proper :host or :database options" do
       it "raises a KeyError" do
         expect { FmData::V1.base_connection(host: "example.com") }.to raise_error(KeyError)
@@ -22,9 +24,13 @@ RSpec.describe FmData::V1 do
     end
   end
 
-  describe ".base_connection" do
+  describe ".build_connection" do
+    let :conn_options do
+      { host: "example.com", database: "Test DB" }
+    end
+
     let :connection do
-      FmData::V1.build_connection(host: "example.com", database: "Test DB")
+      FmData::V1.build_connection(conn_options)
     end
 
     it "returns a Faraday::Connection that uses TokenSession" do
@@ -43,8 +49,24 @@ RSpec.describe FmData::V1 do
 
     context "with a block given" do
       it "doesn't return a Faraday::Connection that parses responses as JSON" do
-        connection = FmData::V1.build_connection(host: "example.com", database: "Test DB") {}
+        connection = FmData::V1.build_connection(conn_options) {}
         expect(connection.builder.handlers).to_not include(FaradayMiddleware::ParseJson)
+      end
+    end
+
+    context "with log: true" do
+      let :conn_options do
+        { host: "example.com", database: "Test DB", log: true }
+      end
+
+      it "uses the logger Faraday middleware" do
+        expect(connection.builder.handlers).to include(Faraday::Response::Logger)
+      end
+    end
+
+    context "without log: true" do
+      it "doesn't use the logger Faraday middleware" do
+        expect(connection.builder.handlers).to_not include(Faraday::Response::Logger)
       end
     end
   end

@@ -77,8 +77,11 @@ module FmData
       def auth_connection
         @auth_connection ||= V1.base_connection(@options) do |conn|
           conn.basic_auth @options.fetch(:username), @options.fetch(:password)
-          # TODO: Make logger optional
-          conn.response   :logger, nil, bodies: true
+
+          if @options[:log]
+            conn.response :logger, nil, bodies: true, headers: true
+          end
+
           conn.response   :json
           conn.adapter    Faraday.default_adapter
         end

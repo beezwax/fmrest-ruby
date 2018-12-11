@@ -11,8 +11,9 @@ module FmData
           conn.use      TokenSession, options
           conn.request  :json
 
-          # TODO: Make logger optional
-          conn.response :logger, nil, bodies: true
+          if options[:log]
+            conn.response :logger, nil, bodies: true, headers: true
+          end
 
           # Allow overriding the default response middleware
           if block_given?
