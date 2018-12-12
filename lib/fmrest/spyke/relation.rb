@@ -1,4 +1,4 @@
-module FmData
+module FmRest
   module Spyke
     class Relation < ::Spyke::Relation
       SORT_PARAM_MATCHER = /(.*?)(!|__desc(?:end)?)?\Z/.freeze

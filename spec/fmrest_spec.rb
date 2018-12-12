@@ -1,6 +1,6 @@
-RSpec.describe FmData do
+RSpec.describe FmRest do
   it "has a version number" do
-    expect(FmData::VERSION).not_to be nil
+    expect(FmRest::VERSION).not_to be nil
   end
 
   describe ".token_store" do

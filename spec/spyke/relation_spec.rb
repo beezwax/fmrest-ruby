@@ -1,8 +1,8 @@
 require "fixtures/pirates"
 
-RSpec.describe FmData::Spyke::Relation do
+RSpec.describe FmRest::Spyke::Relation do
   let(:test_class) do
-    fmdata_spyke_class do
+    fmrest_spyke_class do
       attributes :foo, :bar
 
       has_portal :bridges, portal_key: "Bridges"
@@ -10,7 +10,7 @@ RSpec.describe FmData::Spyke::Relation do
     end
   end
 
-  let(:relation) { FmData::Spyke::Relation.new(test_class) }
+  let(:relation) { FmRest::Spyke::Relation.new(test_class) }
 
   describe "#initialize" do
     it "sets the default limit if any" do
@@ -28,7 +28,7 @@ RSpec.describe FmData::Spyke::Relation do
     it "creates a new scope with the given limit" do
       limit_scope = relation.limit(1010)
       expect(limit_scope).to_not eq(relation)
-      expect(limit_scope).to be_a(FmData::Spyke::Relation)
+      expect(limit_scope).to be_a(FmRest::Spyke::Relation)
       expect(limit_scope.limit_value).to eq(1010)
     end
   end
@@ -37,7 +37,7 @@ RSpec.describe FmData::Spyke::Relation do
     it "creates a new scope with the given offset" do
       offset_scope = relation.offset(22)
       expect(offset_scope).to_not eq(relation)
-      expect(offset_scope).to be_a(FmData::Spyke::Relation)
+      expect(offset_scope).to be_a(FmRest::Spyke::Relation)
       expect(offset_scope.offset_value).to eq(22)
     end
   end
@@ -47,7 +47,7 @@ RSpec.describe FmData::Spyke::Relation do
       it "creates a new scope with the given sort params" do
         sort_scope = relation.sort(:foo, [:bar!, :bar__desc], :bar__descend)
         expect(sort_scope).to_not eq(relation)
-        expect(sort_scope).to be_a(FmData::Spyke::Relation)
+        expect(sort_scope).to be_a(FmRest::Spyke::Relation)
         expect(sort_scope.sort_params).to \
           eq([{ fieldName: :foo },
               { fieldName: :bar, sortOrder: "descend" },
@@ -66,7 +66,7 @@ RSpec.describe FmData::Spyke::Relation do
 
   describe "#order" do
     it "is an alias for #sort" do
-      expect(FmData::Spyke::Relation.instance_method(:order)).to eq(FmData::Spyke::Relation.instance_method(:sort))
+      expect(FmRest::Spyke::Relation.instance_method(:order)).to eq(FmRest::Spyke::Relation.instance_method(:sort))
     end
   end
 
@@ -75,7 +75,7 @@ RSpec.describe FmData::Spyke::Relation do
       it "creates a new scope with the given portal params" do
         portal_scope = relation.portal(:bridges, [:tunnels, :tunnels]).portal("SirNotAppearingInThisClass")
         expect(portal_scope).to_not eq(relation)
-        expect(portal_scope).to be_a(FmData::Spyke::Relation)
+        expect(portal_scope).to be_a(FmRest::Spyke::Relation)
         expect(portal_scope.portal_params).to eq(["Bridges", "Tunnels", "SirNotAppearingInThisClass"])
       end
     end
@@ -89,7 +89,7 @@ RSpec.describe FmData::Spyke::Relation do
 
   describe "#includes" do
     it "is an alias for #portal" do
-      expect(FmData::Spyke::Relation.instance_method(:includes)).to eq(FmData::Spyke::Relation.instance_method(:portal))
+      expect(FmRest::Spyke::Relation.instance_method(:includes)).to eq(FmRest::Spyke::Relation.instance_method(:portal))
     end
   end
 
@@ -97,7 +97,7 @@ RSpec.describe FmData::Spyke::Relation do
     it "creates a new scope with the given query params merged with previous ones" do
       query_scope = relation.query(foo: "Noodles").query(bar: "Onions", omit: true)
       expect(query_scope).to_not eq(relation)
-      expect(query_scope).to be_a(FmData::Spyke::Relation)
+      expect(query_scope).to be_a(FmRest::Spyke::Relation)
       expect(query_scope.query_params).to eq([{ "foo" => "Noodles" }, { "bar" => "Onions", "omit" => "true" }])
     end
   end
@@ -124,7 +124,7 @@ RSpec.describe FmData::Spyke::Relation do
     # TODO: Make these specs less attached to the implementation
     context "when the id is not set" do
       it "runs a fetch with limit 1 and returns the first element" do
-        other_relation = FmData::Spyke::Relation.new(test_class)
+        other_relation = FmRest::Spyke::Relation.new(test_class)
         fetch_result, record = double, double
         expect(relation).to receive(:limit).with(1).and_return(other_relation)
         expect(other_relation).to receive(:fetch).and_return(fetch_result)

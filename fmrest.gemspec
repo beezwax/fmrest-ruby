@@ -1,15 +1,15 @@
 lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "fmdata/version"
+require "fmrest/version"
 
 Gem::Specification.new do |spec|
-  spec.name          = "fmdata"
-  spec.version       = FmData::VERSION
-  spec.authors       = ["Pedro Carbajal", "Hannah Yiu"]
+  spec.name          = "fmrest"
+  spec.version       = FmRest::VERSION
+  spec.authors       = ["Pedro Carbajal"]
   spec.email         = ["pedro_c@beezwax.net"]
 
-  spec.summary       = %q{FileMaker Data API REST client using Faraday}
-  spec.description   = %q{FileMaker Data API REST client using Faraday, with optional ActiveRecord-like ORM based on Spyke}
+  spec.summary       = %q{FileMaker Data API client using Faraday}
+  spec.description   = %q{FileMaker Data API client using Faraday, with optional ActiveRecord-like ORM based on Spyke}
   spec.homepage      = "https://www.beezwax.net/"
   spec.license       = "MIT"
 

@@ -1,23 +1,23 @@
 require "spec_helper"
 
-RSpec.describe FmData::Spyke::Base do
+RSpec.describe FmRest::Spyke::Base do
   it "inherits from Spyke::Base" do
-    expect(FmData::Spyke::Base.superclass).to eq(Spyke::Base)
+    expect(FmRest::Spyke::Base.superclass).to eq(Spyke::Base)
   end
 
-  it "includes FmData::Spyke::Model" do
-    expect(FmData::Spyke::Base.included_modules).to include(FmData::Spyke::Model)
+  it "includes FmRest::Spyke::Model" do
+    expect(FmRest::Spyke::Base.included_modules).to include(FmRest::Spyke::Model)
   end
 
   describe "method form" do
-    let(:subclass) { FmData::Spyke::Base(host: "example.com") }
+    let(:subclass) { FmRest::Spyke::Base(host: "example.com") }
 
-    it "creates a subclass of FmData::Spyke::Base" do
-      expect(subclass.superclass).to eq(FmData::Spyke::Base)
+    it "creates a subclass of FmRest::Spyke::Base" do
+      expect(subclass.superclass).to eq(FmRest::Spyke::Base)
     end
 
-    it "takes an argument and assigns it to fmdata_config" do
-      expect(subclass.fmdata_config).to eq(host: "example.com")
+    it "takes an argument and assigns it to fmrest_config" do
+      expect(subclass.fmrest_config).to eq(host: "example.com")
     end
   end
 end

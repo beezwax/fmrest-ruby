@@ -1,6 +1,6 @@
-require "fmdata/v1/token_store/base"
+require "fmrest/v1/token_store/base"
 
-module FmData
+module FmRest
   module V1
     module TokenStore
       class Memory < Base

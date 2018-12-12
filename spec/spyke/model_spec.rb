@@ -1,7 +1,7 @@
 require "spec_helper"
 
-RSpec.describe FmData::Spyke::Model do
-  let(:test_class) { fmdata_spyke_class }
+RSpec.describe FmRest::Spyke::Model do
+  let(:test_class) { fmrest_spyke_class }
 
   it "defines mod_id accessor" do
     instance = test_class.new

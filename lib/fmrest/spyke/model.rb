@@ -1,10 +1,10 @@
-require "fmdata/spyke/model/connection"
-require "fmdata/spyke/model/uri"
-require "fmdata/spyke/model/attributes"
-require "fmdata/spyke/model/associations"
-require "fmdata/spyke/model/orm"
+require "fmrest/spyke/model/connection"
+require "fmrest/spyke/model/uri"
+require "fmrest/spyke/model/attributes"
+require "fmrest/spyke/model/associations"
+require "fmrest/spyke/model/orm"
 
-module FmData
+module FmRest
   module Spyke
     module Model
       extend ::ActiveSupport::Concern

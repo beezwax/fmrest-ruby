@@ -2,8 +2,8 @@ require "bundler/setup"
 
 require "spyke"
 require "multi_json"
-require "fmdata"
-require "fmdata/spyke"
+require "fmrest"
+require "fmrest/spyke"
 require "pry-byebug"
 
 RSpec.configure do |config|

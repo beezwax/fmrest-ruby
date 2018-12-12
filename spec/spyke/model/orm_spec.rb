@@ -2,9 +2,9 @@ require "spec_helper"
 
 require "fixtures/pirates"
 
-RSpec.describe FmData::Spyke::Model::Orm do
+RSpec.describe FmRest::Spyke::Model::Orm do
   let :test_class do
-    fmdata_spyke_class do
+    fmrest_spyke_class do
       attributes foo: "Foo", bar: "Bar"
     end
   end
@@ -31,8 +31,8 @@ RSpec.describe FmData::Spyke::Model::Orm do
   end
 
   describe ".all" do
-    it "returns a FmData::Spyke::Relation" do
-      expect(Ship.all).to be_a(::FmData::Spyke::Relation)
+    it "returns a FmRest::Spyke::Relation" do
+      expect(Ship.all).to be_a(::FmRest::Spyke::Relation)
     end
   end
 

@@ -1,4 +1,4 @@
-module FmData
+module FmRest
   module Spyke
     module Model
       module Attributes
@@ -36,7 +36,7 @@ module FmData
           # Example:
           #
           #   class Person < Spyke::Base
-          #     include FmData::Spyke::Model
+          #     include FmRest::Spyke::Model
           #
           #     attributes first_name: "FstName", last_name: "LstName"
           #   end
@@ -47,9 +47,9 @@ module FmData
           #
           def attributes(*attrs)
             if attrs.length == 1 && attrs.first.kind_of?(Hash)
-              attrs.first.each { |from, to| _fmdata_define_attribute(from, to) }
+              attrs.first.each { |from, to| _fmrest_define_attribute(from, to) }
             else
-              attrs.each { |attr| _fmdata_define_attribute(attr, attr) }
+              attrs.each { |attr| _fmrest_define_attribute(attr, attr) }
             end
           end
 
@@ -68,18 +68,18 @@ module FmData
             super.tap { |record| record.clear_changes_information }
           end
 
-          def _fmdata_attribute_methods_container
-            @fmdata_attribute_methods_container ||= Module.new.tap { |mod| include mod }
+          def _fmrest_attribute_methods_container
+            @fmrest_attribute_methods_container ||= Module.new.tap { |mod| include mod }
           end
 
-          def _fmdata_define_attribute(from, to)
+          def _fmrest_define_attribute(from, to)
             # We use a setter here instead of injecting the hash key/value pair
             # directly with #[]= so that we don't change the mapped_attributes
             # hash on the parent class. The resulting hash is frozen for the
             # same reason.
             self.mapped_attributes = mapped_attributes.merge(from => to).freeze
 
-            _fmdata_attribute_methods_container.module_eval do
+            _fmrest_attribute_methods_container.module_eval do
               define_method(from) do
                 attribute(to)
               end

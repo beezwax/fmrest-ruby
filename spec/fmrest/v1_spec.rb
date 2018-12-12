@@ -1,17 +1,17 @@
 require "spec_helper"
 
-RSpec.describe FmData::V1 do
+RSpec.describe FmRest::V1 do
   describe ".base_connection" do
     context "when not given proper :host or :database options" do
       it "raises a KeyError" do
-        expect { FmData::V1.base_connection(host: "example.com") }.to raise_error(KeyError)
-        expect { FmData::V1.base_connection(database: "Test DB") }.to raise_error(KeyError)
+        expect { FmRest::V1.base_connection(host: "example.com") }.to raise_error(KeyError)
+        expect { FmRest::V1.base_connection(database: "Test DB") }.to raise_error(KeyError)
       end
     end
 
     context "when passed proper :host and :database options" do
       it "returns a Faraday::Connection with the right URL set" do
-        connection = FmData::V1.base_connection(host: "example.com", database: "Test DB")
+        connection = FmRest::V1.base_connection(host: "example.com", database: "Test DB")
         expect(connection).to be_a(Faraday::Connection)
         expect(connection.url_prefix.to_s).to eq("https://example.com/fmi/data/v1/databases/Test%20DB/")
       end
@@ -19,7 +19,7 @@ RSpec.describe FmData::V1 do
       it "passes the given block to the Faraday constructor" do
         dbl = double
         expect(dbl).to receive(:foo) { true }
-        FmData::V1.base_connection(host: "example.com", database: "Test DB") { dbl.foo }
+        FmRest::V1.base_connection(host: "example.com", database: "Test DB") { dbl.foo }
       end
     end
   end
@@ -30,11 +30,11 @@ RSpec.describe FmData::V1 do
     end
 
     let :connection do
-      FmData::V1.build_connection(conn_options)
+      FmRest::V1.build_connection(conn_options)
     end
 
     it "returns a Faraday::Connection that uses TokenSession" do
-      expect(connection.builder[0]).to eq(FmData::V1::TokenSession)
+      expect(connection.builder[0]).to eq(FmRest::V1::TokenSession)
     end
 
     it "returns a Faraday::Connection that encodes requests as JSON" do
@@ -49,7 +49,7 @@ RSpec.describe FmData::V1 do
 
     context "with a block given" do
       it "doesn't return a Faraday::Connection that parses responses as JSON" do
-        connection = FmData::V1.build_connection(conn_options) {}
+        connection = FmRest::V1.build_connection(conn_options) {}
         expect(connection.builder.handlers).to_not include(FaradayMiddleware::ParseJson)
       end
     end
@@ -73,27 +73,27 @@ RSpec.describe FmData::V1 do
 
   describe ".session_path" do
     it "returns just `sessions' when called without a token" do
-      expect(FmData::V1.session_path).to eq("sessions")
+      expect(FmRest::V1.session_path).to eq("sessions")
     end
 
     it "returns sessions/:token when called with a token" do
-      expect(FmData::V1.session_path("+TOKEN+")).to eq("sessions/+TOKEN+")
+      expect(FmRest::V1.session_path("+TOKEN+")).to eq("sessions/+TOKEN+")
     end
   end
 
   describe ".record_path" do
     it "returns layouts/:layout/records when called without an id" do
-      expect(FmData::V1.record_path("Some Layout")).to eq("layouts/Some%20Layout/records")
+      expect(FmRest::V1.record_path("Some Layout")).to eq("layouts/Some%20Layout/records")
     end
 
     it "returns layouts/:layout/records/:id when called with an id" do
-      expect(FmData::V1.record_path("Some Layout", 1337)).to eq("layouts/Some%20Layout/records/1337")
+      expect(FmRest::V1.record_path("Some Layout", 1337)).to eq("layouts/Some%20Layout/records/1337")
     end
   end
 
   describe ".find_path" do
     it "returns layouts/:layout/_find" do
-      expect(FmData::V1.find_path("Some Layout")).to eq("layouts/Some%20Layout/_find")
+      expect(FmRest::V1.find_path("Some Layout")).to eq("layouts/Some%20Layout/_find")
     end
   end
 end

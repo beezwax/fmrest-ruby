@@ -1,4 +1,4 @@
-# FmData
+# fmrest-ruby
 
 A Ruby client for FileMaker 17's Data API using
 [Faraday](https://github.com/lostisland/faraday) and with additional (optional)
@@ -15,7 +15,7 @@ try the fabulous [ginjo-rfm gem](https://github.com/ginjo/rfm) instead.
 Add this line to your Gemfile:
 
 ```ruby
-gem 'fmdata', git: 'https://gitlab.beezwax.net/pedro_c/fmdata'
+gem 'fmrest'
 ```
 
 ## Basic usage
@@ -23,7 +23,7 @@ gem 'fmdata', git: 'https://gitlab.beezwax.net/pedro_c/fmdata'
 To get a Faraday connection that can handle FM's Data API auth workflow:
 
 ```ruby
-connection = FmData::V1.build_connection(
+connection = FmRest::V1.build_connection(
   host:     "example.com",
   database: "database name",
   username: "username",
@@ -50,14 +50,14 @@ connection.post do |req|
 end
 ```
 
-For each request FmData will first request a session token (using the provided
-username and password) if it doesn't yet have one in store.
+For each request fmrest-ruby will first request a session token (using the
+provided username and password) if it doesn't yet have one in store.
 
 ## Session token store
 
-By default FmData will use a memory-based store for the session tokens. This is
-generally good enough for development, but not good enough for production, as
-in-memory tokens aren't shared across threads/processes.
+By default fmrest-ruby will use a memory-based store for the session tokens.
+This is generally good enough for development, but not good enough for
+production, as in-memory tokens aren't shared across threads/processes.
 
 Besides the default memory token store an ActiveRecord-based token store is
 included with the gem (maybe more to come later).
@@ -66,37 +66,38 @@ On Rails apps already using ActiveRecord setting up this token store should be
 dead simple:
 
 ```ruby
-# config/initializers/fmdata.rb
-require "fmdata/v1/token_store/active_record"
+# config/initializers/fmrest.rb
+require "fmrest/v1/token_store/active_record"
 
-FmData.token_store = FmData::V1::TokenStore::ActiveRecord
+FmRest.token_store = FmRest::V1::TokenStore::ActiveRecord
 ```
 
 No migrations are needed, the token store table will be created automatically
-when needed, defaulting to the table name "fmdata_session_tokens".
+when needed, defaulting to the table name "fmrest_session_tokens".
 
 ## Spyke support
 
 [Spyke](https://github.com/balvig/spyke) is an ActiveRecord-like gem for
-building REST models. FmData has Spyke support out of the box, although Spyke
-itself is not a dependency of FmData, so you'll need to install it yourself:
+building REST models. fmrest-ruby has Spyke support out of the box, although
+Spyke itself is not a dependency of fmrest-ruby, so you'll need to install it
+yourself:
 
 ```ruby
 gem 'spyke'
 ```
 
-Then require FmData's Spyke support:
+Then require fmrest-ruby's Spyke support:
 
 ```ruby
-# config/initializers/fmdata.rb
-require "fmdata/spyke"
+# config/initializers/fmrest.rb
+require "fmrest/spyke"
 ```
 
-And finally extend your Spyke models with `FmData::Spyke`:
+And finally extend your Spyke models with `FmRest::Spyke`:
 
 ```ruby
 class Kitty < Spyke::Base
-  include FmData::Spyke
+  include FmRest::Spyke
 end
 ```
 
@@ -105,26 +106,26 @@ token session auth. Find, create, update and destroy actions should all work
 as expected.
 
 Alternatively you can inherit directly from the shorthand
-`FmData::Spyke::Base`, which is in itself a subclass of `Spyke::Base` with
-`FmData::Spyke` already included:
+`FmRest::Spyke::Base`, which is in itself a subclass of `Spyke::Base` with
+`FmRest::Spyke` already included:
 
 ```ruby
-class Kitty < FmData::Spyke::Base
+class Kitty < FmRest::Spyke::Base
 end
 ```
 
-In this case you can pass the `fmdata_config` hash as an argument to `Base()`:
+In this case you can pass the `fmrest_config` hash as an argument to `Base()`:
 
 ```ruby
-class Kitty < FmData::Spyke::Base(host: "...", database: "...", username: "...", password: "...")
+class Kitty < FmRest::Spyke::Base(host: "...", database: "...", username: "...", password: "...")
 end
 
-Kitty.fmdata_config # => { host: "...", database: "...", username: "...", password: "..." }
+Kitty.fmrest_config # => { host: "...", database: "...", username: "...", password: "..." }
 ```
 
-`FmData::Spyke` extends `Spyke::Base` subclasses with the following features:
+`FmRest::Spyke` extends `Spyke::Base` subclasses with the following features:
 
-### Model.fmdata_config=
+### Model.fmrest_config=
 
 Usually to tell a Spyke object to use a certain Faraday connection you'd use:
 
@@ -134,14 +135,14 @@ class Kitty < Spyke::Base
 end
 ```
 
-FmData simplfies the process of setting up your Spyke model with a Faraday
+fmrest-ruby simplfies the process of setting up your Spyke model with a Faraday
 connection by allowing you to just set your Data API connection settings:
 
 ```ruby
 class Kitty < Spyke::Base
-  include FmData::Spyke
+  include FmRest::Spyke
 
-  self.fmdata_config = {
+  self.fmrest_config = {
     host:     "example.com",
     database: "database name",
     username: "username",
@@ -159,9 +160,9 @@ same connection. E.g.:
 
 ```ruby
 class KittyBase < Spyke::Base
-  include FmData::Spyke
+  include FmRest::Spyke
 
-  self.fmdata_config = {
+  self.fmrest_config = {
     host:     "example.com",
     database: "My Database",
     username: "username",
@@ -179,7 +180,7 @@ end
 Use `layout` to set the `:layout` part of API URLs, e.g.:
 
 ```ruby
-class Kitty < FmData::Spyke::Base
+class Kitty < FmRest::Spyke::Base
   layout "FluffyKitty" # uri path will be "layouts/FluffyKitty/records(/:id)"
 end
 ```
@@ -194,12 +195,12 @@ the layout differ, otherwise the default will just work.
 
 Spyke allows you to define your model's attributes using `attributes`, however
 sometimes FileMaker's field names aren't very Ruby-ORM-friendly, especially
-since they may sometimes contain spaces and other special characters, so FmData
-extends `attributes`' functionality to allow you to map Ruby-friendly attribute
-names to FileMaker field names. E.g.:
+since they may sometimes contain spaces and other special characters, so
+fmrest-ruby extends `attributes`' functionality to allow you to map
+Ruby-friendly attribute names to FileMaker field names. E.g.:
 
 ```ruby
-class Kitty < FmData::Spyke::Base
+class Kitty < FmRest::Spyke::Base
   attributes first_name: "First Name", last_name: "Last Name"
 end
 ```
@@ -223,18 +224,18 @@ kitty.attributes # => { "First Name": "Dr.", "Last Name": "Fluffers" }
 You can define portal associations on your model as such:
 
 ```ruby
-class Kitty < FmData::Spyke::Base
+class Kitty < FmRest::Spyke::Base
   has_portal :woolyarns
 end
 
-class Woolyarn < FmData::Spyke::Base
+class Woolyarn < FmRest::Spyke::Base
   attributes :color, :thickness
 end
 ```
 
-In this case FmData will expect the portal table name and portal object name to
-be both "woolyarns". E.g., the expected portal JSON portion should be look like
-this:
+In this case fmrest-ruby will expect the portal table name and portal object
+name to be both "woolyarns". E.g., the expected portal JSON portion should be
+look like this:
 
 ```json
 ...
@@ -253,7 +254,7 @@ If you need to specify different values for them you can do so with
 object name, e.g.:
 
 ```ruby
-class Kitty < FmData::Spyke::Base
+class Kitty < FmRest::Spyke::Base
   has_portal :woolyarns, portal_key: "Woolyarn Table", attribute_prefix: "Woolyarn"
 end
 ```
@@ -275,15 +276,15 @@ The above expects the following portal JSON portion:
 You can also specify a different class name with the `class_name` option:
 
 ```ruby
-class Kitty < FmData::Spyke::Base
+class Kitty < FmRest::Spyke::Base
   has_portal :woolyarns, class_name: "FancyWoolyarn"
 end
 ```
 
 ### Dirty attributes
 
-FmData includes support for ActiveModel's Dirty mixin out of the box, providing
-methods like:
+fmrest-ruby includes support for ActiveModel's Dirty mixin out of the box,
+providing methods like:
 
 ```ruby
 kitty = Kitty.new
@@ -297,8 +298,8 @@ kitty.changed? # => true
 kitty.name_changed? # => true
 ```
 
-FmData uses the Dirty functionality to only send changed attributes back to the
-server on save.
+fmrest-ruby uses the Dirty functionality to only send changed attributes back
+to the server on save.
 
 You can read more about [ActiveModel's Dirty in Rails
 Guides](https://guides.rubyonrails.org/active_model_basics.html#dirty).
@@ -306,13 +307,13 @@ Guides](https://guides.rubyonrails.org/active_model_basics.html#dirty).
 ### Query API
 
 Since Spyke is API-agnostic it only provides a wide-purpose `.where` method for
-passing arbitrary parameters to the REST backend. FmData however is well aware
-of its backend API, so it extends Spkye models with a bunch of useful querying
-methods.
+passing arbitrary parameters to the REST backend. fmrest-ruby however is well
+aware of its backend API, so it extends Spkye models with a bunch of useful
+querying methods.
 
 ```ruby
 class Kitty < Spyke::Base
-  include FmData::Spyke
+  include FmRest::Spyke
 
   attributes name: "CatName", age: "CatAge"
 
@@ -437,16 +438,16 @@ Kitty.find(89) # => <Kitty...>
 
 ## Logging
 
-If using FmData + Spyke in a Rails app pretty log output will be set up for you
-automatically by Spyke
-(see [their README](https://github.com/balvig/spyke#log-output)).
+If using fmrest-ruby + Spyke in a Rails app pretty log output will be set up
+for you automatically by Spyke (see [their
+README](https://github.com/balvig/spyke#log-output)).
 
 You can also enable simple STDOUT logging (useful for debugging) by passing
-`log: true` in the options hash for either `FmData.config=` or your models'
-`fmdata_config=`, e.g.:
+`log: true` in the options hash for either `FmRest.config=` or your models'
+`fmrest_config=`, e.g.:
 
 ```ruby
-FmData.config = {
+FmRest.config = {
   host:     "example.com",
   database: "My Database",
   username: "z3r0c00l",
@@ -455,8 +456,8 @@ FmData.config = {
 }
 
 # Or in your model
-class LoggyKitty < FmData::Spyke::Base
-  self.fmdata_config = {
+class LoggyKitty < FmRest::Spyke::Base
+  self.fmrest_config = {
     host:     "example.com",
     database: "My Database",
     username: "z3r0c00l",
@@ -466,14 +467,14 @@ class LoggyKitty < FmData::Spyke::Base
 end
 ```
 
-Note that the log option set in `FmData.config` is ignored by models.
+Note that the log option set in `FmRest.config` is ignored by models.
 
 If you need to set up more complex logging for your models can use the
 `faraday` block inside your class to inject your own logger middleware into the
 Faraday connection, e.g.:
 
 ```ruby
-class LoggyKitty < FmData::Spyke::Base
+class LoggyKitty < FmRest::Spyke::Base
   faraday do |conn|
     conn.response :logger, MyApp.logger, bodies: true
   end
@@ -488,7 +489,7 @@ end
 - [ ] Support for portal limit and offset
 - [ ] More options for token storage
 - [x] Optional logging
-- [x] FmData::Spyke::Base class for single inheritance (as alternative for mixin)
+- [x] FmRest::Spyke::Base class for single inheritance (as alternative for mixin)
 - [x] Specs
 - [x] Support for portal data
 
@@ -519,6 +520,6 @@ License](https://opensource.org/licenses/MIT).
 
 ## Code of Conduct
 
-Everyone interacting in the FmData project’s codebases, issue trackers, chat
-rooms and mailing lists is expected to follow the [code of
+Everyone interacting in the fmrest-ruby project’s codebases, issue trackers,
+chat rooms and mailing lists is expected to follow the [code of
 conduct](CODE_OF_CONDUCT.md).

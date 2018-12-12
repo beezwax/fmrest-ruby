@@ -1,10 +1,10 @@
 require "faraday"
 require "faraday_middleware"
 
-require "fmdata/version"
-require "fmdata/v1"
+require "fmrest/version"
+require "fmrest/v1"
 
-module FmData
+module FmRest
   class << self
     attr_accessor :token_store
 

@@ -1,11 +1,11 @@
 #!/usr/bin/env ruby
 
 require "bundler/setup"
-require "fmdata"
+require "fmrest"
 require "spyke"
-require "fmdata/spyke"
+require "fmrest/spyke"
 
-require_relative "../spec/support/fmdata_dummy_config"
+require_relative "../spec/support/fmrest_dummy_config"
 require_relative "../spec/fixtures/pirates"
 
 require "pry"

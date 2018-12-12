@@ -1,6 +1,6 @@
-require "fmdata/spyke/portal"
+require "fmrest/spyke/portal"
 
-module FmData
+module FmRest
   module Spyke
     module Model
       module Associations
@@ -54,7 +54,7 @@ module FmData
           end
 
           super.tap do |assoc|
-            next unless assoc.kind_of?(FmData::Spyke::Portal)
+            next unless assoc.kind_of?(FmRest::Spyke::Portal)
             @loaded_portals[name.to_sym] = assoc
           end
         end
@@ -66,7 +66,7 @@ module FmData
         def portals
           self.class.associations.each_with_object([]) do |(key, _), portals|
             candidate = association(key)
-            next unless candidate.kind_of?(FmData::Spyke::Portal)
+            next unless candidate.kind_of?(FmRest::Spyke::Portal)
             portals << candidate
           end
         end

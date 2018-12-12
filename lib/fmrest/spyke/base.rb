@@ -1,13 +1,13 @@
-module FmData
+module FmRest
   module Spyke
     class Base < ::Spyke::Base
-      include FmData::Spyke::Model
+      include FmRest::Spyke::Model
     end
 
     class << self
       def Base(config = {})
-        Class.new(::FmData::Spyke::Base) do
-          self.fmdata_config = config
+        Class.new(::FmRest::Spyke::Base) do
+          self.fmrest_config = config
         end
       end
     end

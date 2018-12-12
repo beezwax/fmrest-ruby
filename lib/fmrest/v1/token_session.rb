@@ -1,11 +1,11 @@
-module FmData
+module FmRest
   module V1
     # FM Data API authentication middleware using the credentials strategy
     #
     class TokenSession < Faraday::Middleware
       HEADER_KEY = "Authorization".freeze
 
-      def initialize(app, options = FmData.config)
+      def initialize(app, options = FmRest.config)
         super(app)
         @options = options
       end
@@ -66,10 +66,10 @@ module FmData
       end
 
       def token_store_class
-        FmData.token_store ||
+        FmRest.token_store ||
           begin
             # TODO: Make this less ugly
-            require "fmdata/v1/token_store/memory"
+            require "fmrest/v1/token_store/memory"
             TokenStore::Memory
           end
       end

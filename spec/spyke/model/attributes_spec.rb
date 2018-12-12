@@ -2,9 +2,9 @@ require "spec_helper"
 
 require "fixtures/pirates"
 
-RSpec.describe FmData::Spyke::Model::Attributes do
+RSpec.describe FmRest::Spyke::Model::Attributes do
   let :test_class do
-    fmdata_spyke_class do
+    fmrest_spyke_class do
       attributes foo: "Foo", bar: "Bar"
     end
   end

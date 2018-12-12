@@ -1,4 +1,4 @@
-module FmData
+module FmRest
   module Spyke
     # Extend Spyke's HasMany association with custom options
     #

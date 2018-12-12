@@ -1,6 +1,6 @@
-require "fmdata/spyke/relation"
+require "fmrest/spyke/relation"
 
-module FmData
+module FmRest
   module Spyke
     module Model
       module Orm
@@ -17,7 +17,7 @@ module FmData
           delegate :limit, :offset, :sort, :query, :portal, to: :all
 
           def all
-            # Use FmData's Relation insdead of Spyke's vanilla one
+            # Use FmRest's Relation insdead of Spyke's vanilla one
             current_scope || Relation.new(self, uri: uri)
           end
 
@@ -31,7 +31,7 @@ module FmData
             if current_scope.has_query?
               scope = extend_scope_with_fm_params(current_scope, prefixed: false)
               scope = scope.where(query: scope.query_params)
-              scope = scope.with(FmData::V1::find_path(layout))
+              scope = scope.with(FmRest::V1::find_path(layout))
             else
               scope = extend_scope_with_fm_params(current_scope, prefixed: true)
             end

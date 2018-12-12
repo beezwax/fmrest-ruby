@@ -1,4 +1,4 @@
-module FmData
+module FmRest
   module Spyke
     class JsonParser < ::Faraday::Response::Middleware
       SINGLE_RECORD_RE = %r(/records/\d+\Z).freeze

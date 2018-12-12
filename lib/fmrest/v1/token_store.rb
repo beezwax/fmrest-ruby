@@ -1,4 +1,4 @@
-module FmData
+module FmRest
   module V1
     module TokenStore
     end

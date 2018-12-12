@@ -1,12 +1,12 @@
-require "fmdata/v1/token_session"
+require "fmrest/v1/token_session"
 require "uri"
 
-module FmData
+module FmRest
   module V1
     BASE_PATH = "/fmi/data/v1/databases".freeze
 
     class << self
-      def build_connection(options = FmData.config, &block)
+      def build_connection(options = FmRest.config, &block)
         base_connection(options) do |conn|
           conn.use      TokenSession, options
           conn.request  :json
@@ -26,7 +26,7 @@ module FmData
         end
       end
 
-      def base_connection(options = FmData.config, &block)
+      def base_connection(options = FmRest.config, &block)
         # TODO: Make HTTPS optional
         Faraday.new("https://#{options.fetch(:host)}#{BASE_PATH}/#{URI.escape(options.fetch(:database))}/".freeze, &block)
       end

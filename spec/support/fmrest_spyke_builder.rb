@@ -1,9 +1,9 @@
-require "support/fmdata_dummy_config"
+require "support/fmrest_dummy_config"
 
-module FmDataSpykeBuilder
-  def fmdata_spyke_class(class_name: "TestClass", &block)
-    Class.new(FmData::Spyke::Base).tap do |klass|
-      klass.fmdata_config = FMDATA_DUMMY_CONFIG
+module FmRestSpykeBuilder
+  def fmrest_spyke_class(class_name: "TestClass", &block)
+    Class.new(FmRest::Spyke::Base).tap do |klass|
+      klass.fmrest_config = FMREST_DUMMY_CONFIG
 
       klass.define_singleton_method(:name) do
         class_name
@@ -15,5 +15,5 @@ module FmDataSpykeBuilder
 end
 
 RSpec.configure do |config|
-  config.include FmDataSpykeBuilder
+  config.include FmRestSpykeBuilder
 end

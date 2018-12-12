@@ -2,9 +2,9 @@ require "spec_helper"
 
 require "fixtures/pirates"
 
-RSpec.describe FmData::Spyke::Model::Uri do
+RSpec.describe FmRest::Spyke::Model::Uri do
   let :test_class do
-    fmdata_spyke_class
+    fmrest_spyke_class
   end
 
   describe ".layout" do

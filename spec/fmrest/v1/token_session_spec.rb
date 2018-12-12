@@ -1,6 +1,6 @@
 require "spec_helper"
 
-RSpec.describe FmData::V1::TokenSession do
+RSpec.describe FmRest::V1::TokenSession do
   describe "#initialize" do
     xit "sets options"
   end

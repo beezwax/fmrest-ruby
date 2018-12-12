@@ -1,6 +1,6 @@
-require "fmdata/v1/token_store/base"
+require "fmrest/v1/token_store/base"
 
-module FmData
+module FmRest
   module V1
     module TokenStore
       # Heavily inspired by Moneta's ActiveRecord store:
@@ -8,7 +8,7 @@ module FmData
       #   https://github.com/minad/moneta/blob/master/lib/moneta/adapters/activerecord.rb
       #
       class ActiveRecord < Base
-        DEFAULT_TABLE_NAME = "fmdata_session_tokens".freeze
+        DEFAULT_TABLE_NAME = "fmrest_session_tokens".freeze
 
         @connection_lock = ::Mutex.new
         class << self

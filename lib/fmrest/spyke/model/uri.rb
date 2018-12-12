@@ -1,4 +1,4 @@
-module FmData
+module FmRest
   module Spyke
     module Model
       module Uri
@@ -16,7 +16,7 @@ module FmData
           #
           def uri(uri_template = nil)
             if @uri.nil? && uri_template.nil?
-              return FmData::V1.record_path(layout) + "(/:id)"
+              return FmRest::V1.record_path(layout) + "(/:id)"
             end
 
             super

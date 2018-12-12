@@ -1,4 +1,4 @@
-FMDATA_DUMMY_CONFIG = {
+FMREST_DUMMY_CONFIG = {
   host:     "example.com",
   database: "TestDB",
   username: "test",
