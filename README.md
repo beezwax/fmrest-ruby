@@ -81,8 +81,8 @@ when needed, defaulting to the table name "fmrest_session_tokens".
 
 [Spyke](https://github.com/balvig/spyke) is an ActiveRecord-like gem for
 building REST models. fmrest-ruby has Spyke support out of the box, although
-Spyke itself is not a dependency of fmrest-ruby, so you'll need to install it
-yourself:
+Spyke itself is not a dependency of fmrest-ruby, so you'll need to add it to
+your Gemfile yourself:
 
 ```ruby
 gem 'spyke'
@@ -91,7 +91,7 @@ gem 'spyke'
 Then require fmrest-ruby's Spyke support:
 
 ```ruby
-# config/initializers/fmrest.rb
+# Put this in config/initializers/fmrest.rb if it's a Rails project
 require "fmrest/spyke"
 ```
 
@@ -125,7 +125,30 @@ end
 Kitty.fmrest_config # => { host: "...", database: "...", username: "...", password: "..." }
 ```
 
-`FmRest::Spyke` extends `Spyke::Base` subclasses with the following features:
+All of Spyke's basic ORM operations work:
+
+```ruby
+kitty = Kitty.new
+
+kitty.name = "Felix"
+
+kitty.save # POST request
+
+kitty.name = "Tom"
+
+kitty.save # PATCH request
+
+kitty.reload # GET request
+
+kitty.destroy # DELETE request
+
+kitty = Kitty.find(9) # GET request
+```
+
+Read Spyke's documentation for more information on these basic features.
+
+In addition `FmRest::Spyke` extends `Spyke::Base` subclasses with the following
+features:
 
 ### Model.fmrest_config=
 
@@ -227,25 +250,25 @@ You can define portal associations on your model as such:
 
 ```ruby
 class Kitty < FmRest::Spyke::Base
-  has_portal :woolyarns
+  has_portal :wool_yarns
 end
 
-class Woolyarn < FmRest::Spyke::Base
+class WoolYarn < FmRest::Spyke::Base
   attributes :color, :thickness
 end
 ```
 
 In this case fmrest-ruby will expect the portal table name and portal object
-name to be both "woolyarns". E.g., the expected portal JSON portion should be
+name to be both "wool_yarns". E.g., the expected portal JSON portion should be
 look like this:
 
 ```json
 ...
 "portalData": {
-  "woolyarns": [
+  "wool_yarns": [
     {
-      "woolyarns::color": "yellow",
-      "woolyarns::thickness": "thick",
+      "wool_yarns::color": "yellow",
+      "wool_yarns::thickness": "thick",
     }
   ]
 }
@@ -257,7 +280,7 @@ object name, e.g.:
 
 ```ruby
 class Kitty < FmRest::Spyke::Base
-  has_portal :woolyarns, portal_key: "Woolyarn Table", attribute_prefix: "Woolyarn"
+  has_portal :wool_yarns, portal_key: "Wool Yarn", attribute_prefix: "WoolYarn"
 end
 ```
 
@@ -266,10 +289,10 @@ The above expects the following portal JSON portion:
 ```json
 ...
 "portalData": {
-  "Woolyarn Table": [
+  "Wool Yarn": [
     {
-      "Woolyarn::color": "yellow",
-      "Woolyarn::thickness": "thick",
+      "WoolYarn::color": "yellow",
+      "WoolYarn::thickness": "thick",
     }
   ]
 }
@@ -279,7 +302,7 @@ You can also specify a different class name with the `class_name` option:
 
 ```ruby
 class Kitty < FmRest::Spyke::Base
-  has_portal :woolyarns, class_name: "FancyWoolyarn"
+  has_portal :wool_yarns, class_name: "FancyWoolYarn"
 end
 ```
 
