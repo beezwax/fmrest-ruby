@@ -1,14 +1,16 @@
 # fmrest-ruby
 
-A Ruby client for FileMaker 17's Data API using
-[Faraday](https://github.com/lostisland/faraday) and with additional (optional)
+A Ruby client for
+[FileMaker 17's Data API](https://fmhelp.filemaker.com/docs/17/en/dataapi/)
+using
+[Faraday](https://github.com/lostisland/faraday) and with optional
 [Spyke](https://github.com/balvig/spyke) support (ActiveRecord-ish models).
 
 FileMaker 16's Data API is not supported (but you shouldn't be using it
 anyway).
 
 If you're looking for a Ruby client for the legacy XML/Custom Web Publishing
-try the fabulous [ginjo-rfm gem](https://github.com/ginjo/rfm) instead.
+API try the fabulous [ginjo-rfm gem](https://github.com/ginjo/rfm) instead.
 
 ## Installation
 
