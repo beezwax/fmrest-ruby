@@ -12,6 +12,8 @@ anyway).
 If you're looking for a Ruby client for the legacy XML/Custom Web Publishing
 API try the fabulous [ginjo-rfm gem](https://github.com/ginjo/rfm) instead.
 
+fmrest-ruby does not currently implement the full spec of FileMaker Data API.
+
 ## Installation
 
 Add this line to your Gemfile:
@@ -540,8 +542,15 @@ conduct.
 
 ## License
 
-The gem is available as open source under the terms of the [MIT
-License](https://opensource.org/licenses/MIT).
+The gem is available as open source under the terms of the
+[MIT License](https://opensource.org/licenses/MIT).
+See [LICENSE.txt](LICENSE.txt).
+
+## Disclaimer
+
+This project is not sponsored by or otherwise affiliated with FileMaker, Inc,
+an Apple subsidiary. FileMaker is a trademark of FileMaker, Inc., registered in
+the U.S. and other countries.
 
 ## Code of Conduct
 
