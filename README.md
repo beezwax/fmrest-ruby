@@ -1,5 +1,7 @@
 # fmrest-ruby
 
+<a href="https://rubygems.org/gems/fmrest"><img src="https://badge.fury.io/rb/fmrest.svg?style=flat" alt="Gem Version"></a>
+
 A Ruby client for
 [FileMaker 17's Data API](https://fmhelp.filemaker.com/docs/17/en/dataapi/)
 using
