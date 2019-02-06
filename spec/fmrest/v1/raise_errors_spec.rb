@@ -45,7 +45,7 @@ RSpec.describe FmRest::V1::RaiseErrors do
       let(:error_code) { -1 }
 
       it "raises an UnknownError" do
-        expect { faraday.post("/") }.to raise_error(FmRest::UnknownError)
+        expect { faraday.post("/") }.to raise_error(FmRest::APIError::UnknownError)
       end
     end
 
@@ -53,7 +53,7 @@ RSpec.describe FmRest::V1::RaiseErrors do
       let(:error_code) { 100 }
 
       it "raises a ResourceMissingError" do
-        expect { faraday.post("/") }.to raise_error(FmRest::ResourceMissingError)
+        expect { faraday.post("/") }.to raise_error(FmRest::APIError::ResourceMissingError)
       end
     end
 
@@ -61,7 +61,7 @@ RSpec.describe FmRest::V1::RaiseErrors do
       let(:error_code) { 101 }
 
       it "raises a RecordMissingError" do
-        expect { faraday.post("/") }.to raise_error(FmRest::RecordMissingError)
+        expect { faraday.post("/") }.to raise_error(FmRest::APIError::RecordMissingError)
       end
     end
 
@@ -69,7 +69,7 @@ RSpec.describe FmRest::V1::RaiseErrors do
       let(:error_code) { 200 }
 
       it "raises an AccountError" do
-        expect { faraday.post("/") }.to raise_error(FmRest::AccountError)
+        expect { faraday.post("/") }.to raise_error(FmRest::APIError::AccountError)
       end
     end
 
@@ -77,7 +77,7 @@ RSpec.describe FmRest::V1::RaiseErrors do
       let(:error_code) { 300 }
 
       it "raises a LockError" do
-        expect { faraday.post("/") }.to raise_error(FmRest::LockError)
+        expect { faraday.post("/") }.to raise_error(FmRest::APIError::LockError)
       end
     end
 
@@ -85,7 +85,7 @@ RSpec.describe FmRest::V1::RaiseErrors do
       let(:error_code) { 400 }
 
       it "raises a ParameterError" do
-        expect { faraday.post("/") }.to raise_error(FmRest::ParameterError)
+        expect { faraday.post("/") }.to raise_error(FmRest::APIError::ParameterError)
       end
     end
 
@@ -93,7 +93,7 @@ RSpec.describe FmRest::V1::RaiseErrors do
       let(:error_code) { 500 }
 
       it "raises an ValidationError" do
-        expect { faraday.post("/") }.to raise_error(FmRest::ValidationError)
+        expect { faraday.post("/") }.to raise_error(FmRest::APIError::ValidationError)
       end
     end
 
@@ -101,7 +101,7 @@ RSpec.describe FmRest::V1::RaiseErrors do
       let(:error_code) { 800 }
 
       it "raises an SystemError" do
-        expect { faraday.post("/") }.to raise_error(FmRest::SystemError)
+        expect { faraday.post("/") }.to raise_error(FmRest::APIError::SystemError)
       end
     end
 
@@ -109,7 +109,7 @@ RSpec.describe FmRest::V1::RaiseErrors do
       let(:error_code) { 1200 }
 
       it "raises an ScriptError" do
-        expect { faraday.post("/") }.to raise_error(FmRest::ScriptError)
+        expect { faraday.post("/") }.to raise_error(FmRest::APIError::ScriptError)
       end
     end
 
@@ -117,7 +117,7 @@ RSpec.describe FmRest::V1::RaiseErrors do
       let(:error_code) { 1400 }
 
       it "raises an ODBCError" do
-        expect { faraday.post("/") }.to raise_error(FmRest::ODBCError)
+        expect { faraday.post("/") }.to raise_error(FmRest::APIError::ODBCError)
       end
     end
   end

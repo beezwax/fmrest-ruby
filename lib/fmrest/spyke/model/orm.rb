@@ -94,7 +94,7 @@ module FmRest
 
           def save(options = {})
             save!(options)
-          rescue FmRest::APIError
+          rescue APIError::ValidationError
             false
           end
         end

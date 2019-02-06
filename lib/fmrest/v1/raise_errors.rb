@@ -10,17 +10,17 @@ module FmRest
     class RaiseErrors < Faraday::Response::Middleware
       # https://fmhelp.filemaker.com/help/17/fmp/en/index.html#page/FMP_Help/error-codes.html
       ERROR_RANGES = {
-        -1         => UnknownError,
-        100        => ResourceMissingError,
-        101        => RecordMissingError,
-        102..199   => ResourceMissingError,
-        200..299   => AccountError,
-        300..399   => LockError,
-        400..499   => ParameterError,
-        500..599   => ValidationError,
-        800..899   => SystemError,
-        1200..1299 => ScriptError,
-        1400..1499 => ODBCError
+        -1         => APIError::UnknownError,
+        100        => APIError::ResourceMissingError,
+        101        => APIError::RecordMissingError,
+        102..199   => APIError::ResourceMissingError,
+        200..299   => APIError::AccountError,
+        300..399   => APIError::LockError,
+        400..499   => APIError::ParameterError,
+        500..599   => APIError::ValidationError,
+        800..899   => APIError::SystemError,
+        1200..1299 => APIError::ScriptError,
+        1400..1499 => APIError::ODBCError
       }
 
       def on_complete(env)

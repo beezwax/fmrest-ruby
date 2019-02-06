@@ -175,13 +175,16 @@ RSpec.describe FmRest::Spyke::Model::Orm do
         end
       end
 
-      context "when the server responds with failure" do
+      context "when the server responds with a validation error" do
         before do
-          stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_fm(false)
+          stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_json(
+            response: {},
+            messages: [{ code: 500, message: "Date validation error"}]
+          )
         end
 
-        it "raises an APIError" do
-          expect { ship.save! }.to raise_error(FmRest::APIError)
+        it "raises an APIError::ValidationError" do
+          expect { ship.save! }.to raise_error(FmRest::APIError::ValidationError)
         end
       end
     end
@@ -197,9 +200,12 @@ RSpec.describe FmRest::Spyke::Model::Orm do
         allow(ship).to receive(:valid?).and_return(true)
       end
 
-      context "when the server responds with failure" do
+      context "when the server responds with a validation error" do
         before do
-          stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_fm(false)
+          stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_json(
+            response: {},
+            messages: [{ code: 500, message: "Date validation error"}]
+          )
         end
 
         it "returns false" do

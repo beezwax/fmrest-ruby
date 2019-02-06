@@ -98,9 +98,12 @@ RSpec.describe FmRest::Spyke::Model::Attributes do
       end
     end
 
-    context "with an unsuccessful save" do
+    context "with an unsuccessful save (server side validation error)" do
       before do
-        stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_fm(false)
+        stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_json(
+          response: {},
+          messages: [{ code: 500, message: "Date validation error"}]
+        )
       end
 
       it "doesn't resets changes information" do
