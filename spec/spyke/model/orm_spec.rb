@@ -142,9 +142,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
   describe "#save!" do
     let(:ship) { Ship.new }
 
-    before do
-      stub_session_login
-    end
+    before { stub_session_login }
 
     context "with failed validations" do
       before do
@@ -192,9 +190,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
   describe "#save" do
     let(:ship) { Ship.new }
 
-    before do
-      stub_session_login
-    end
+    before { stub_session_login }
 
     context "with passing validations" do
       before do
@@ -210,6 +206,24 @@ RSpec.describe FmRest::Spyke::Model::Orm do
           expect(ship.save).to eq(false)
         end
       end
+    end
+  end
+
+  describe "#update!" do
+    let(:ship) { Ship.new }
+
+    it "calls #save! instead of #save" do
+      expect(ship).to_not receive(:save)
+      expect(ship).to receive(:save!).and_return(true)
+      ship.update!({})
+    end
+  end
+
+  describe ".create!" do
+    it "calls #save! instead of #save" do
+      expect_any_instance_of(Ship).to_not receive(:save)
+      expect_any_instance_of(Ship).to receive(:save!).and_return(true)
+      Ship.create!({})
     end
   end
 end

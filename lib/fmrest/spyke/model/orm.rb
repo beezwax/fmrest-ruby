@@ -46,6 +46,12 @@ module FmRest
             self.current_scope = previous
           end
 
+          # API-error-raising version of #create
+          #
+          def create!(attributes = {})
+            new(attributes).tap(&:save!)
+          end
+
           private
 
           def extend_scope_with_fm_params(scope, prefixed: false)
@@ -74,9 +80,8 @@ module FmRest
         # defined, so we put them in their own separate mixin
         #
         module SaveMethods
-          # Saves the model but raises an exception if something goes wrong
-          # (the actual exception raising is handled by the
-          # FmRest::V1::RaiseErrors Faraday middleware).
+          # Saves the model but raises an exception if there's an API error
+          # (raised by FmRest::V1::RaiseErrors)
           #
           def save!(options = {})
             if options[:validate] == false || valid?
@@ -92,6 +97,13 @@ module FmRest
           rescue FmRest::APIError
             false
           end
+        end
+
+        # API-error-raising version of #update
+        #
+        def update!(new_attributes)
+          self.attributes = new_attributes
+          save!
         end
       end
     end
