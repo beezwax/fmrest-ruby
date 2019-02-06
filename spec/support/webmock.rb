@@ -10,7 +10,7 @@ class WebMock::RequestStub
     if hash_or_status == false
       wrapped_hash =
         { response: {},
-          messages: [{ code: "500", message: "Error" }] }
+          messages: [{ code: "-1", message: "Unknown error" }] }
 
       options[:status] = 500
     else

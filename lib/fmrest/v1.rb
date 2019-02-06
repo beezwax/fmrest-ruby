@@ -1,4 +1,5 @@
 require "fmrest/v1/token_session"
+require "fmrest/v1/raise_errors"
 require "uri"
 
 module FmRest
@@ -8,8 +9,10 @@ module FmRest
     class << self
       def build_connection(options = FmRest.config, &block)
         base_connection(options) do |conn|
-          conn.use      TokenSession, options
-          conn.request  :json
+          conn.use RaiseErrors
+          conn.use TokenSession, options
+
+          conn.request :json
 
           if options[:log]
             conn.response :logger, nil, bodies: true, headers: true
@@ -22,7 +25,7 @@ module FmRest
             conn.response :json
           end
 
-          conn.adapter  Faraday.default_adapter
+          conn.adapter Faraday.default_adapter
         end
       end
 

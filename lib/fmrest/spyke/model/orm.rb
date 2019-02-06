@@ -11,6 +11,10 @@ module FmRest
           class_attribute :default_limit, instance_accessor: false, instance_predicate: false
 
           class_attribute :default_sort, instance_accessor: false, instance_predicate: false
+
+          alias :original_save :save
+          private :original_save
+          include SaveMethods
         end
 
         class_methods do
@@ -66,12 +70,26 @@ module FmRest
           end
         end
 
-        # Ensure save returns true/false, following ActiveRecord's convention
+        # We want #save and #save! included after the #original_save alias is
+        # defined, so we put them in their own separate mixin
         #
-        def save(options = {})
-          if options[:validate] == false || valid?
-            super().present? # Failed save returns empty hash
-          else
+        module SaveMethods
+          # Saves the model but raises an exception if something goes wrong
+          # (the actual exception raising is handled by the
+          # FmRest::V1::RaiseErrors Faraday middleware).
+          #
+          def save!(options = {})
+            if options[:validate] == false || valid?
+              original_save
+              return true
+            end
+
+            false
+          end
+
+          def save(options = {})
+            save!(options)
+          rescue FmRest::APIError
             false
           end
         end

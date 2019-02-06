@@ -139,7 +139,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
     end
   end
 
-  describe "#save" do
+  describe "#save!" do
     let(:ship) { Ship.new }
 
     before do
@@ -154,11 +154,11 @@ RSpec.describe FmRest::Spyke::Model::Orm do
       end
 
       it "returns false when called with no options" do
-        expect(ship.save).to eq(false)
+        expect(ship.save!).to eq(false)
       end
 
       it "returns true if successfully saved when called with validate: false" do
-        expect(ship.save(validate: false)).to eq(true)
+        expect(ship.save!(validate: false)).to eq(true)
       end
     end
 
@@ -173,8 +173,32 @@ RSpec.describe FmRest::Spyke::Model::Orm do
         end
 
         it "returns true" do
-          expect(ship.save).to eq(true)
+          expect(ship.save!).to eq(true)
         end
+      end
+
+      context "when the server responds with failure" do
+        before do
+          stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_fm(false)
+        end
+
+        it "raises an APIError" do
+          expect { ship.save! }.to raise_error(FmRest::APIError)
+        end
+      end
+    end
+  end
+
+  describe "#save" do
+    let(:ship) { Ship.new }
+
+    before do
+      stub_session_login
+    end
+
+    context "with passing validations" do
+      before do
+        allow(ship).to receive(:valid?).and_return(true)
       end
 
       context "when the server responds with failure" do

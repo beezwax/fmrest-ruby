@@ -33,8 +33,12 @@ RSpec.describe FmRest::V1 do
       FmRest::V1.build_connection(conn_options)
     end
 
+    it "returns a Faraday::Connection that uses RaiseErrors" do
+      expect(connection.builder.handlers).to include(FmRest::V1::RaiseErrors)
+    end
+
     it "returns a Faraday::Connection that uses TokenSession" do
-      expect(connection.builder[0]).to eq(FmRest::V1::TokenSession)
+      expect(connection.builder.handlers).to include(FmRest::V1::TokenSession)
     end
 
     it "returns a Faraday::Connection that encodes requests as JSON" do

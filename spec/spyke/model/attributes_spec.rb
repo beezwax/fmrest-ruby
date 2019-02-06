@@ -139,7 +139,7 @@ RSpec.describe FmRest::Spyke::Model::Attributes do
       end
 
       it "raises an error" do
-        expect { ship.reload }.to raise_error(Spyke::ResourceNotFound)
+        expect { ship.reload }.to raise_error(FmRest::APIError)
       end
     end
   end
