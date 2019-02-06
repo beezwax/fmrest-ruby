@@ -3,6 +3,7 @@ module FmRest
     class JsonParser < ::Faraday::Response::Middleware
       SINGLE_RECORD_RE = %r(/records/\d+\Z).freeze
       FIND_RECORDS_RE = %r(/_find\b).freeze
+      VALIDATION_ERROR_RANGE = 500..599
 
       def initialize(app, model)
         super(app)
@@ -33,7 +34,7 @@ module FmRest
         data[:mod_id] = response[:modId].to_i if response[:modId]
         data[:id]     = response[:recordId].to_i if response[:recordId]
 
-        base_hash(json).merge!(data: data)
+        build_base_hash(json, true).merge!(data: data)
       end
 
       def prepare_single_record(json)
@@ -41,7 +42,7 @@ module FmRest
           json[:response][:data] &&
           prepare_record_data(json[:response][:data].first)
 
-        base_hash(json).merge!(data: data)
+        build_base_hash(json).merge!(data: data)
       end
 
       def prepare_collection(json)
@@ -49,14 +50,27 @@ module FmRest
           json[:response][:data] &&
           json[:response][:data].map { |record_data| prepare_record_data(record_data) }
 
-        base_hash(json).merge!(data: data)
+        build_base_hash(json).merge!(data: data)
       end
 
-      def base_hash(json)
+      def build_base_hash(json, include_errors = false)
         {
           metadata: { messages: json[:messages] },
-          errors:   {}
+          errors:   include_errors ? prepare_errors(json) : {}
         }
+      end
+
+      def prepare_errors(json)
+        # Code 0 means "No Error"
+        # https://fmhelp.filemaker.com/help/17/fmp/en/index.html#page/FMP_Help/error-codes.html
+        return {} if json[:messages][0][:code].to_i == 0
+
+        json[:messages].each_with_object(base: []) do |message, hash|
+          # Only include validation errors
+          next unless VALIDATION_ERROR_RANGE.include?(message[:code].to_i)
+
+          hash[:base] << "#{message[:message]} (#{message[:code]})"
+        end
       end
 
       # json_data is expected in this format:
