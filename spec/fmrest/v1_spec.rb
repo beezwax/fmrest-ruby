@@ -41,6 +41,10 @@ RSpec.describe FmRest::V1 do
       expect(connection.builder.handlers).to include(FmRest::V1::TokenSession)
     end
 
+    it "returns a Faraday::Connection that encodes requests as multipart/form-data when appropriate" do
+      expect(connection.builder.handlers).to include(Faraday::Request::Multipart)
+    end
+
     it "returns a Faraday::Connection that encodes requests as JSON" do
       expect(connection.builder.handlers).to include(FaradayMiddleware::EncodeJson)
     end
@@ -95,9 +99,58 @@ RSpec.describe FmRest::V1 do
     end
   end
 
+  describe ".container_field_path" do
+    it "returns layouts/:layout/records/:id/containers/:field_name/1 when called without field_repetition" do
+      expect(FmRest::V1.container_field_path("Some Layout", 66, "My Container Field")).to eq("layouts/Some%20Layout/records/66/containers/My%20Container%20Field/1")
+    end
+
+    it "returns layouts/:layout/records/:id/containers/:field_name/:field_repetition when called with field_repetition" do
+      expect(FmRest::V1.container_field_path("Some Layout", 66, "My Container Field", 10)).to eq("layouts/Some%20Layout/records/66/containers/My%20Container%20Field/10")
+    end
+  end
+
   describe ".find_path" do
     it "returns layouts/:layout/_find" do
       expect(FmRest::V1.find_path("Some Layout")).to eq("layouts/Some%20Layout/_find")
+    end
+  end
+
+  describe ".fetch_container_field" do
+    context "when given an invalid URL" do
+      it "raises an FmRest::ContainerFieldError" do
+        expect { FmRest::V1.fetch_container_field("boo boo") }.to raise_error(FmRest::ContainerFieldError, /Invalid container field URL/)
+      end
+    end
+
+    context "when given a non-http URL" do
+      it "raises an FmRest::ContainerFieldError" do
+        expect { FmRest::V1.fetch_container_field("file://foo/bar") }.to raise_error(FmRest::ContainerFieldError, /Container URL is not HTTP/)
+      end
+    end
+
+    context "when the given URL doesn't return a Set-Cookie header" do
+      let(:container_url) { "http://foo.bar/qux" }
+
+      before do
+        stub_request(:get, container_url).to_return(body: "foo")
+      end
+
+      it "raises an FmRest::ContainerFieldError" do
+        expect { FmRest::V1.fetch_container_field(container_url) }.to raise_error(FmRest::ContainerFieldError, /session cookie/)
+      end
+    end
+
+    context "when the given URL returns a Set-Cookie header" do
+      let(:container_url) { "http://foo.bar/qux" }
+
+      before do
+        stub_request(:get, container_url).to_return(headers: { "Set-Cookie" => "secret cookie" })
+        stub_request(:get, container_url).with(headers: { "Cookie" => "secret cookie" }).to_return(body: "hi there")
+      end
+
+      it "returns an IO object with the container field contents" do
+        expect(FmRest::V1.fetch_container_field(container_url).read).to eq("hi there")
+      end
     end
   end
 end

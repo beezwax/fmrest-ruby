@@ -20,4 +20,6 @@ module FmRest
   class APIError::SystemError < APIError; end          # error codes 800..899
   class APIError::ScriptError < APIError; end          # error codes 1200..1299
   class APIError::ODBCError < APIError; end            # error codes 1400..1499
+
+  class ContainerFieldError < Error; end
 end
