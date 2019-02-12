@@ -30,8 +30,19 @@ module FmRest
       end
 
       def base_connection(options = FmRest.config, &block)
-        # TODO: Make HTTPS optional
-        Faraday.new("https://#{options.fetch(:host)}#{BASE_PATH}/#{URI.escape(options.fetch(:database))}/".freeze, &block)
+        host = options.fetch(:host)
+
+        # Default to HTTPS
+        scheme = "https"
+
+        if host.match(/\Ahttps?:\/\//)
+          uri = URI(host)
+          host = uri.hostname
+          host += ":#{uri.port}" if uri.port != uri.default_port
+          scheme = uri.scheme
+        end
+
+        Faraday.new("#{scheme}://#{host}#{BASE_PATH}/#{URI.escape(options.fetch(:database))}/".freeze, &block)
       end
 
       def session_path(token = nil)
