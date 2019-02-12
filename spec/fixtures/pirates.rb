@@ -4,6 +4,8 @@ class Pirate < FixtureBase
   layout :Pirates
 
   attributes :name, :rank
+
+  container :photo, field_name: "Photo"
 end
 
 class Ship < FixtureBase

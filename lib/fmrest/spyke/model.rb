@@ -3,6 +3,7 @@ require "fmrest/spyke/model/uri"
 require "fmrest/spyke/model/attributes"
 require "fmrest/spyke/model/associations"
 require "fmrest/spyke/model/orm"
+require "fmrest/spyke/model/container_fields"
 
 module FmRest
   module Spyke
@@ -14,6 +15,7 @@ module FmRest
       include Attributes
       include Associations
       include Orm
+      include ContainerFields
 
       included do
         attr_accessor :mod_id
