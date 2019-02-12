@@ -18,6 +18,7 @@ module FmRest
         end
 
         class_methods do
+          # Methods delegated to FmRest::Spyke::Relation
           delegate :limit, :offset, :sort, :query, :portal, to: :all
 
           def all
