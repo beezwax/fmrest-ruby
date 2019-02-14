@@ -112,19 +112,6 @@ module FmRest
           super.tap { |r| clear_changes_information }
         end
 
-        # Override to_params to return FM Data API's expected JSON format, and
-        # including only modified fields
-        #
-        def to_params
-          params = { fieldData: changed_params_not_embedded_in_url }
-          params[:modId] = mod_id if mod_id
-
-          portal_data = serialize_portals
-          params[:portalData] = portal_data unless portal_data.empty?
-
-          params
-        end
-
         # ActiveModel::Dirty since version 5.2 assumes that if there's an
         # @attributes instance variable set we must be using ActiveRecord, so
         # we override the instance variable name used by Spyke to avoid issues.
@@ -143,42 +130,10 @@ module FmRest
           use_setters(sanitize_for_mass_assignment(new_attributes)) if new_attributes && !new_attributes.empty?
         end
 
-        protected
-
-        def serialize_for_portal(portal)
-          params =
-            changed_params.except(:id).transform_keys do |key|
-              "#{portal.attribute_prefix}::#{key}"
-            end
-
-          params[:recordId] = id if id
-          params[:modId] = mod_id if mod_id
-
-          params
-        end
-
         private
-
-        def serialize_portals
-          portal_data = {}
-
-          portals.each do |portal|
-            portal.each do |portal_record|
-              next unless portal_record.changed?
-              portal_params = portal_data[portal.portal_key] ||= []
-              portal_params << portal_record.serialize_for_portal(portal)
-            end
-          end
-
-          portal_data
-        end
 
         def changed_params
           attributes.to_params.slice(*mapped_changed)
-        end
-
-        def changed_params_not_embedded_in_url
-          params_not_embedded_in_url.slice(*mapped_changed)
         end
 
         def mapped_changed

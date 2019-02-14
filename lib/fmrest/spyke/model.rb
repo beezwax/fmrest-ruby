@@ -1,6 +1,7 @@
 require "fmrest/spyke/model/connection"
 require "fmrest/spyke/model/uri"
 require "fmrest/spyke/model/attributes"
+require "fmrest/spyke/model/serialization"
 require "fmrest/spyke/model/associations"
 require "fmrest/spyke/model/orm"
 require "fmrest/spyke/model/container_fields"
@@ -13,6 +14,7 @@ module FmRest
       include Connection
       include Uri
       include Attributes
+      include Serialization
       include Associations
       include Orm
       include ContainerFields
