@@ -1,5 +1,6 @@
 require "fmrest/v1/token_session"
 require "fmrest/v1/raise_errors"
+require "fmrest/v1/utils"
 require "uri"
 
 module FmRest
@@ -7,6 +8,8 @@ module FmRest
     BASE_PATH = "/fmi/data/v1/databases".freeze
 
     class << self
+      include Utils
+
       def build_connection(options = FmRest.config, &block)
         base_connection(options) do |conn|
           conn.use RaiseErrors

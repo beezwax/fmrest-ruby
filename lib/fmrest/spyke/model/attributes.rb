@@ -100,14 +100,6 @@ module FmRest
           super
         end
 
-        def save(*_args)
-          super.tap do |r|
-            next unless r.present?
-            changes_applied
-            portals.each(&:parent_changes_applied)
-          end
-        end
-
         def reload
           super.tap { |r| clear_changes_information }
         end
@@ -146,6 +138,11 @@ module FmRest
           mapped_attributes.except(primary_key).map do |k, v|
             "#{k}: #{attribute(v).inspect}"
           end.join(', ')
+        end
+
+        def changes_applied_after_save
+          changes_applied
+          portals.each(&:parent_changes_applied)
         end
       end
     end

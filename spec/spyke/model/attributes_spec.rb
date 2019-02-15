@@ -80,38 +80,6 @@ RSpec.describe FmRest::Spyke::Model::Attributes do
     end
   end
 
-  describe "#save" do
-    let(:ship) { Ship.new name: "Mary Celeste" }
-
-    before { stub_session_login }
-
-    context "with a successful save" do
-      before do
-        stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_fm(
-          recordId: 1,
-          modId: 0
-        )
-      end
-
-      it "resets changes information for self and portal records" do
-        expect { ship.save }.to change { ship.changed? }.from(true).to(false)
-      end
-    end
-
-    context "with an unsuccessful save (server side validation error)" do
-      before do
-        stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_json(
-          response: {},
-          messages: [{ code: 500, message: "Date validation error"}]
-        )
-      end
-
-      it "doesn't resets changes information" do
-        expect { ship.save }.to_not change { ship.changed? }.from(true)
-      end
-    end
-  end
-
   describe "#reload" do
     let(:ship) { Ship.new id: 1, name: "Obra Djinn" }
 

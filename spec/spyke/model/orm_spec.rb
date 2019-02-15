@@ -151,8 +151,8 @@ RSpec.describe FmRest::Spyke::Model::Orm do
         stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_fm({ recordId: 1, modId: 1 })
       end
 
-      it "returns false when called with no options" do
-        expect(ship.save!).to eq(false)
+      it "raises ActiveModel::ValidationError when called with no options" do
+        expect { ship.save! }.to raise_error(ActiveModel::ValidationError)
       end
 
       it "returns true if successfully saved when called with validate: false" do
@@ -191,7 +191,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
   end
 
   describe "#save" do
-    let(:ship) { Ship.new }
+    let(:ship) { Ship.new name: "Mary Celeste" }
 
     before { stub_session_login }
 
@@ -211,6 +211,32 @@ RSpec.describe FmRest::Spyke::Model::Orm do
         it "returns false" do
           expect(ship.save).to eq(false)
         end
+      end
+    end
+
+    context "with a successful save" do
+      before do
+        stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_fm(
+          recordId: 1,
+          modId: 0
+        )
+      end
+
+      it "resets changes information for self and portal records" do
+        expect { ship.save }.to change { ship.changed? }.from(true).to(false)
+      end
+    end
+
+    context "with an unsuccessful save (server side validation error)" do
+      before do
+        stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_json(
+          response: {},
+          messages: [{ code: 500, message: "Date validation error"}]
+        )
+      end
+
+      it "doesn't resets changes information" do
+        expect { ship.save }.to_not change { ship.changed? }.from(true)
       end
     end
   end

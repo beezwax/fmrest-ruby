@@ -11,10 +11,6 @@ module FmRest
           class_attribute :default_limit, instance_accessor: false, instance_predicate: false
 
           class_attribute :default_sort, instance_accessor: false, instance_predicate: false
-
-          alias :original_save :save
-          private :original_save
-          include SaveMethods
         end
 
         class_methods do
@@ -77,27 +73,25 @@ module FmRest
           end
         end
 
-        # We want #save and #save! included after the #original_save alias is
-        # defined, so we put them in their own separate mixin
+        # Completely override Spyke's save to provide a number of features:
         #
-        module SaveMethods
-          # Saves the model but raises an exception if there's an API error
-          # (raised by FmRest::V1::RaiseErrors)
-          #
-          def save!(options = {})
-            if options[:validate] == false || valid?
-              original_save
-              return true
-            end
+        # * Validations
+        # * Data API scripts execution
+        # * Refresh of dirty attributes
+        #
+        def save(options = {})
+          callback = persisted? ? :update : :create
 
-            false
-          end
+          return false unless perform_save_validations(callback, options)
+          return false unless perform_save_persistence(callback, options)
 
-          def save(options = {})
-            save!(options)
-          rescue APIError::ValidationError
-            false
-          end
+          changes_applied_after_save
+
+          true
+        end
+
+        def save!(options = {})
+          save(options.merge(raise_validation_errors: true))
         end
 
         # API-error-raising version of #update
@@ -105,6 +99,42 @@ module FmRest
         def update!(new_attributes)
           self.attributes = new_attributes
           save!
+        end
+
+        private
+
+        def perform_save_validations(context, options)
+          return true if options[:validate] == false
+          options[:raise_validation_errors] ? validate!(context) : validate(context)
+        end
+
+        def perform_save_persistence(callback, options)
+          run_callbacks :save do
+            run_callbacks(callback) do
+
+              begin
+                send self.class.method_for(callback), build_params_for_save(options)
+
+              rescue APIError::ValidationError => e
+                if options[:raise_validation_errors]
+                  raise e
+                else
+                  return false
+                end
+              end
+
+            end
+          end
+
+          true
+        end
+
+        def build_params_for_save(options)
+          to_params.tap do |params|
+            if options.has_key?(:script)
+              params.merge!(FmRest::V1.convert_script_params(options[:script]))
+            end
+          end
         end
       end
     end
