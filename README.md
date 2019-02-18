@@ -517,6 +517,7 @@ end
 - [ ] Oauth support
 - [ ] Support for portal limit and offset
 - [ ] More options for token storage
+- [x] Support for container fields
 - [x] Optional logging
 - [x] FmRest::Spyke::Base class for single inheritance (as alternative for mixin)
 - [x] Specs

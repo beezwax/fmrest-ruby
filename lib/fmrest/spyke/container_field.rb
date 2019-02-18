@@ -28,9 +28,12 @@ module FmRest
           @base.class.connection.post do |request|
             request.url upload_path(repetition)
             request.headers['Content-Type'] = ::Faraday::Request::Multipart.mime_type
+
+            filename = options[:filename] || filename_or_io.try(:original_filename)
+
             # TODO: Do we care about the content type? Currently sending
             # application/octet-stream every time
-            request.body = { upload: Faraday::UploadIO.new(filename_or_io, content_type) }
+            request.body = { upload: Faraday::UploadIO.new(filename_or_io, content_type, filename) }
           end
 
         # Update mod id on record
