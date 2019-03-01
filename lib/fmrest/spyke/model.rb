@@ -20,6 +20,7 @@ module FmRest
       include ContainerFields
 
       included do
+        # Keep mod_id as a separate, custom accessor
         attr_accessor :mod_id
       end
     end
