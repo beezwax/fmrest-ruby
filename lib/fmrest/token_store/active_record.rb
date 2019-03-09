@@ -1,4 +1,5 @@
 require "fmrest/token_store/base"
+require "active_record"
 
 module FmRest
   module TokenStore
@@ -41,7 +42,7 @@ module FmRest
         record = model.find_or_initialize_by(scope: key)
         record.token = value
         record.save!
-        token
+        value
       end
 
       private

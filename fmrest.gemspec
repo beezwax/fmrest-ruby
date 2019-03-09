@@ -30,4 +30,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "webmock"
   spec.add_development_dependency "multi_json"
   spec.add_development_dependency "pry-byebug"
+  spec.add_development_dependency "activerecord"
+  spec.add_development_dependency "sqlite3", "~> 1.3.6"
 end
