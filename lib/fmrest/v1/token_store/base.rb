@@ -2,11 +2,22 @@ module FmRest
   module V1
     module TokenStore
       class Base
-        attr_reader :scope, :options
+        attr_reader :options
 
-        def initialize(host, database, options = {})
-          @scope = "#{host.to_s}:#{database.to_s}"
+        def initialize(options = {})
           @options = options
+        end
+
+        def load(key)
+          raise "Not implemented"
+        end
+
+        def store(key, value)
+          raise "Not implemented"
+        end
+
+        def delete(key)
+          raise "Not implemented"
         end
       end
     end

@@ -19,7 +19,7 @@ module FmRest
 
         delegate :with_connection, to: :connection_pool
 
-        def initialize(host, database, options = {})
+        def initialize(options = {})
           super
 
           @connection_pool = ::ActiveRecord::Base.connection_pool
@@ -30,17 +30,17 @@ module FmRest
           @model.table_name = table_name
         end
 
-        def clear
-          model.where(scope: scope).delete_all
+        def delete(key)
+          model.where(scope: key).delete_all
         end
 
-        def fetch
-          model.where(scope: scope).pluck(:token).first
+        def load(key)
+          model.where(scope: key).pluck(:token).first
         end
 
-        def store(token)
-          record = model.find_or_initialize_by(scope: scope)
-          record.token = token
+        def store(key, value)
+          record = model.find_or_initialize_by(scope: key)
+          record.token = value
           record.save!
           token
         end

@@ -4,6 +4,7 @@ module FmRest
     #
     class TokenSession < Faraday::Middleware
       HEADER_KEY = "Authorization".freeze
+      TOKEN_STORE_INTERFACE = [:load, :store, :delete].freeze
 
       def initialize(app, options = FmRest.config)
         super(app)
@@ -20,7 +21,7 @@ module FmRest
         @app.call(env).on_complete do |response_env|
           if response_env[:status] == 401 # Unauthorized
             env[:body] = request_body
-            token_store.clear
+            token_store.delete(token_store_key)
             set_auth_header(env)
             return @app.call(env)
           end
@@ -38,11 +39,11 @@ module FmRest
       # otherwise raises an exception.
       #
       def token
-        token = token_store.fetch
+        token = token_store.load(token_store_key)
         return token if token
 
         if token = request_token
-          token_store.store(token)
+          token_store.store(token_store_key, token)
           return token
         end
 
@@ -61,17 +62,34 @@ module FmRest
         false
       end
 
-      def token_store
-        @token_store ||= token_store_class.new(@options.fetch(:host), @options.fetch(:database))
+      # The key to use to store a token, uses the format host:database
+      #
+      def token_store_key
+        @token_store_key ||=
+          begin
+            # Strip the host part to just the hostname (i.e. no scheme or port)
+            host = @options.fetch(:host)
+            host = URI(host).hostname if host.match?(/\Ahttps?:\/\//)
+            "#{host}:#{@options.fetch(:database)}"
+          end
       end
 
-      def token_store_class
-        FmRest.token_store ||
+      def token_store
+        @token_store ||=
           begin
-            # TODO: Make this less ugly
-            require "fmrest/v1/token_store/memory"
-            TokenStore::Memory
+            if TOKEN_STORE_INTERFACE.all? { |method| token_store_option.respond_to?(method) }
+              token_store_option
+            elsif token_store_option.kind_of?(Class)
+              token_store_option.new
+            else
+              require "fmrest/v1/token_store/memory"
+              TokenStore::Memory.new
+            end
           end
+      end
+
+      def token_store_option
+        @options[:token_store] || FmRest.token_store
       end
 
       def auth_connection
@@ -82,8 +100,8 @@ module FmRest
             conn.response :logger, nil, bodies: true, headers: true
           end
 
-          conn.response   :json
-          conn.adapter    Faraday.default_adapter
+          conn.response :json
+          conn.adapter Faraday.default_adapter
         end
       end
     end

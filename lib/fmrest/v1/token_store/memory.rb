@@ -4,21 +4,21 @@ module FmRest
   module V1
     module TokenStore
       class Memory < Base
-        def initialize(host, database, options = {})
+        def initialize(*args)
           super
           @tokens = {}
         end
 
-        def clear
-          @tokens.delete(scope)
+        def delete(key)
+          @tokens.delete(key)
         end
 
-        def fetch
-          @tokens[scope]
+        def load(key)
+          @tokens[key]
         end
 
-        def store(token)
-          @tokens[scope] = token
+        def store(key, value)
+          @tokens[key] = value
         end
       end
     end
