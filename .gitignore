@@ -20,6 +20,7 @@ tmp
 *.o
 *.a
 mkmf.log
+spec/db/*
 
 # rspec failure tracking
 .rspec_status
