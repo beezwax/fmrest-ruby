@@ -75,7 +75,7 @@ dead simple:
 # config/initializers/fmrest.rb
 require "fmrest/v1/token_store/active_record"
 
-FmRest.token_store = FmRest::V1::TokenStore::ActiveRecord
+FmRest.token_store = FmRest::TokenStore::ActiveRecord
 ```
 
 No migrations are needed, the token store table will be created automatically

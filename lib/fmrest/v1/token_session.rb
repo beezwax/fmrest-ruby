@@ -82,7 +82,7 @@ module FmRest
             elsif token_store_option.kind_of?(Class)
               token_store_option.new
             else
-              require "fmrest/v1/token_store/memory"
+              require "fmrest/token_store/memory"
               TokenStore::Memory.new
             end
           end

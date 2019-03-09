@@ -1,8 +1,8 @@
 require "spec_helper"
-require "fmrest/v1/token_store/memory"
+require "fmrest/token_store/memory"
 
 RSpec.describe FmRest::V1::TokenSession do
-  let(:token_store) { FmRest::V1::TokenStore::Memory.new }
+  let(:token_store) { FmRest::TokenStore::Memory.new }
 
   let(:config) do
     {
