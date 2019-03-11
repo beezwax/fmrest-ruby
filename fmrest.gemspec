@@ -16,12 +16,14 @@ Gem::Specification.new do |spec|
   spec.files         = `git ls-files -z`.split("\x0").reject do |f|
     f.match(%r{^(test|spec|features|bin)/})
   end
+  
   spec.bindir        = "exe"
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
   spec.add_dependency 'faraday', '>= 0.9.0', '< 2.0'
   spec.add_dependency 'faraday_middleware', '>= 0.9.1', '< 2.0'
+  spec.add_dependency "redis", '~> 3.0'
 
   spec.add_development_dependency "bundler", "~> 1.16"
   spec.add_development_dependency "rake", "~> 10.0"
