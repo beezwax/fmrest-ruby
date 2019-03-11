@@ -81,6 +81,15 @@ FmRest.token_store = FmRest::V1::TokenStore::ActiveRecord
 No migrations are needed, the token store table will be created automatically
 when needed, defaulting to the table name "fmrest_session_tokens".
 
+To use the redis connection in a Rails app, you can set the REDIS_URL environment variable and set up the token store like this:
+
+```ruby
+# config/initializers/fmrest.rb
+require "fmrest/v1/token_store/redis_store"
+
+FmRest.token_store = FmRest::V1::TokenStore::RedisStore
+```
+
 ## Spyke support
 
 [Spyke](https://github.com/balvig/spyke) is an ActiveRecord-like gem for

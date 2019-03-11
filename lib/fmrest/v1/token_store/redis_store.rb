@@ -10,8 +10,7 @@ module FmRest
         def initialize(host, database, options = {})
           super
 
-          @connection = Redis.new(host: host, port: options[:port].nil? ? 6389 : options[:port], db: database)
-
+          @connection = Redis.new
         end
 
         def store(token)
