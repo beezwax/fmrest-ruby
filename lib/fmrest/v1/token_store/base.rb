@@ -5,8 +5,7 @@ module FmRest
         attr_reader :scope, :options
 
         def initialize(host, database, options = {})
-          puts "OPTIONS ARE #{options}"
-          @scope = "#{host.to_s}:#{database.to_s}#{options[:multi_tenancy].nil? ? "dtxhtdrdryudrytydrtrydydrtdrty" : ":#{options[:multi_tenancy]}"}"
+          @scope = "#{host.to_s}:#{database.to_s}#{options[:multi_tenancy].nil? ? "" : ":#{options[:multi_tenancy]}"}"
           @options = options
         end
       end

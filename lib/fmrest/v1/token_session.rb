@@ -62,7 +62,7 @@ module FmRest
       end
 
       def token_store
-        @token_store ||= token_store_class.new(@options.fetch(:host), @options.fetch(:database))
+        @token_store ||= token_store_class.new(@options.fetch(:host), @options.fetch(:database), @options.fetch(:multi_tenancy).nil? ? {} : {multi_tenancy: @options.fetch(:multi_tenancy)})
       end
 
       def token_store_class
