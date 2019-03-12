@@ -1,6 +1,8 @@
 require "spec_helper"
 require "fmrest/token_store/active_record"
 
+require_relative "token_store_examples"
+
 RSpec.describe FmRest::TokenStore::ActiveRecord do
   let(:store) { FmRest::TokenStore::ActiveRecord.new }
 
@@ -10,19 +12,24 @@ RSpec.describe FmRest::TokenStore::ActiveRecord do
       database: File.join(__dir__, "../../db/test.sqlite3")
     )
 
-    #ActiveRecord::Base.logger = ActiveSupport::Logger.new(STDOUT)
+    # Uncomment this to get queries logged to STDOUT
+    # ActiveRecord::Base.logger = ActiveSupport::Logger.new(STDOUT)
   end
 
+  # Close SQL connection after running specs
   after(:all) do
     ActiveRecord::Base.remove_connection
   end
 
+  # Run specs as SQL transactions and roll them back after
   around do |example|
     ActiveRecord::Base.transaction do
       example.run
       raise ActiveRecord::Rollback
     end
   end
+
+  it_behaves_like "a token store"
 
   describe "#initialize" do
     it "creates the tokens table" do
@@ -35,32 +42,6 @@ RSpec.describe FmRest::TokenStore::ActiveRecord do
       expect { FmRest::TokenStore::ActiveRecord.new(table_name: "i_like_tokens") }.to change {
         ActiveRecord::Base.connection.table_exists?(:i_like_tokens)
       }.from(false).to(true)
-    end
-  end
-
-  describe "#store" do
-    it "stores the given token" do
-      store.store("hostname:Database Name", "bar")
-      expect(store.load("hostname:Database Name")).to eq("bar")
-    end
-  end
-
-  describe "#load" do
-    it "returns nil when no stored token exists" do
-      expect(store.load("miss")).to be_nil
-    end
-
-    it "returns the token value when a stored token exists" do
-      store.store("hit", "token")
-      expect(store.load("hit")).to eq("token")
-    end
-  end
-
-  describe "#delete" do
-    it "deletes the token for the given key" do
-      store.store("hostname:DB Name", "token")
-      store.delete("hostname:DB Name")
-      expect(store.load("hostname:DB Name")).to be_nil
     end
   end
 end
