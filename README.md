@@ -65,21 +65,57 @@ By default fmrest-ruby will use a memory-based store for the session tokens.
 This is generally good enough for development, but not good enough for
 production, as in-memory tokens aren't shared across threads/processes.
 
-Besides the default memory token store an ActiveRecord-based token store is
-included with the gem (maybe more to come later).
+Besides the default token store the following token stores are bundled with fmrest-ruby:
+
+### ActiveRecord
 
 On Rails apps already using ActiveRecord setting up this token store should be
 dead simple:
 
 ```ruby
 # config/initializers/fmrest.rb
-require "fmrest/v1/token_store/active_record"
+require "fmrest/token_store/active_record"
 
 FmRest.token_store = FmRest::TokenStore::ActiveRecord
 ```
 
 No migrations are needed, the token store table will be created automatically
-when needed, defaulting to the table name "fmrest_session_tokens".
+when needed, defaulting to the table name "fmrest_session_tokens". If you want
+to change the table name you can do so by initializing the token store and
+passing it the `:table_name` option:
+
+```ruby
+FmRest.token_store = FmRest::TokenStore::ActiveRecord.new(table_name: "my_token_store")
+```
+
+### Redis
+
+To use the Redis token store do:
+
+```ruby
+require "fmrest/token_store/redis"
+
+FmRest.token_store = FmRest::TokenStore::Redis
+```
+
+You can also initialize it with the following options:
+
+* `:redis` - A `Redis` object to use as connection, if ommited a new `Redis` object will be created with remaining options
+* `:prefix` - The prefix to use for token keys, by default `"fmrest-token:"`
+* Any other options will be passed to `Redis.new` if `:redis` isn't provided
+
+Examples:
+
+```ruby
+# Passing a Redis connection explicitly
+FmRest.token_store = FmRest::TokenStore::Redis.new(redis: Redis.new, prefix: "my-fancy-prefix:")
+
+# Passing options for Redis.new
+FmRest.token_store = FmRest::TokenStore::Redis.new(prefix: "my-fancy-prefix:", host: "10.0.1.1", port: 6380, db: 15)
+```
+
+**NOTE:** redis-rb is not included as a gem dependency of fmrest-ruby, so you'll
+have to add it to your Gemfile.
 
 ## Spyke support
 
