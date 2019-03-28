@@ -2,7 +2,9 @@ module FmRest
   module Spyke
     class JsonParser < ::Faraday::Response::Middleware
       SINGLE_RECORD_RE = %r(/records/\d+\Z).freeze
+      MULTIPLE_RECORDS_RE = %r(/records\Z).freeze
       FIND_RECORDS_RE = %r(/_find\b).freeze
+
       VALIDATION_ERROR_RANGE = 500..599
 
       def initialize(app, model)
@@ -13,16 +15,14 @@ module FmRest
       def on_complete(env)
         json = parse_json(env.body)
 
-        env.body =
-          if env.method == :get || find_results?(env.url)
-            if single_record_url?(env.url)
-              prepare_single_record(json)
-            else
-              prepare_collection(json)
-            end
-          else
-            prepare_save_response(json)
-          end
+        case
+        when single_record_request?(env)
+          env.body = prepare_single_record(json)
+        when multiple_records_request?(env), find_request?(env)
+          env.body = prepare_collection(json)
+        when create_request?(env), update_request?(env), delete_request?(env)
+          env.body = prepare_save_response(json)
+        end
       end
 
       private
@@ -111,7 +111,7 @@ module FmRest
       #
       #     "portalData": {
       #       "Orders":[
-      #         { "Orders::DeliveryDate":"3/7/2017", "recordId":"23" }
+      #         { "Orders::DeliveryDate": "3/7/2017", "recordId": "23" }
       #       ]
       #     }
       #
@@ -129,7 +129,7 @@ module FmRest
 
               portal_fields.each do |k, v|
                 next if :recordId == k || :modId == k
-                attributes[k.to_s.gsub(prefix_matcher, "")] = v
+                attributes[k.to_s.gsub(prefix_matcher, "").to_sym] = v
               end
 
               attributes
@@ -137,12 +137,28 @@ module FmRest
         end
       end
 
-      def find_results?(url)
-        url.path.match(FIND_RECORDS_RE)
+      def single_record_request?(env)
+        env.method == :get && env.url.path.match(SINGLE_RECORD_RE)
       end
 
-      def single_record_url?(url)
-        url.path.match(SINGLE_RECORD_RE)
+      def multiple_records_request?(env)
+        env.method == :get && env.url.path.match(MULTIPLE_RECORDS_RE)
+      end
+
+      def find_request?(env)
+        env.method == :post && env.url.path.match(FIND_RECORDS_RE)
+      end
+
+      def update_request?(env)
+        env.method == :patch && env.url.path.match(SINGLE_RECORD_RE)
+      end
+
+      def create_request?(env)
+        env.method == :post && env.url.path.match(MULTIPLE_RECORDS_RE)
+      end
+
+      def delete_request?(env)
+        env.method == :delete && env.url.path.match(SINGLE_RECORD_RE)
       end
 
       def parse_json(source)
