@@ -71,7 +71,6 @@ module FmRest
             host = @options.fetch(:host)
             host = URI(host).hostname if host.match?(/\Ahttps?:\/\//)
             multi_tenant = @options[:multi_tenancy].nil? ? '' : ":#{@options[:multi_tenancy]}"
-            puts "THE DATABASE IS #{host}:#{@options.fetch(:database)}#{multi_tenant}"
             "#{host}:#{@options.fetch(:database)}#{multi_tenant}"
           end
       end
