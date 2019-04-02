@@ -3,10 +3,12 @@ module FmRest
     class Relation < ::Spyke::Relation
       SORT_PARAM_MATCHER = /(.*?)(!|__desc(?:end)?)?\Z/.freeze
 
-      # We need to keep these separate from regular params because FM Data API
-      # uses either "limit" or "_limit" (or "_offset", etc.) as param keys
-      # depending on the type of request, so we can't set the params until the
-      # last moment
+      # NOTE: We need to keep limit, offset, sort, query and portal accessors
+      # separate from regular params because FM Data API uses either "limit" or
+      # "_limit" (or "_offset", etc.) as param keys depending on the type of
+      # request, so we can't set the params until the last moment
+
+
       attr_accessor :limit_value, :offset_value, :sort_params, :query_params,
                     :portal_params
 
@@ -23,32 +25,40 @@ module FmRest
         @portal_params = []
       end
 
+      # @param value [Integer] the limit value
+      # @return [FmRest::Spyke::Relation] a new relation with the limit applied
       def limit(value)
         with_clone { |r| r.limit_value = value }
       end
 
+      # @param value [Integer] the offset value
+      # @return [FmRest::Spyke::Relation] a new relation with the offset
+      #   applied
       def offset(value)
         with_clone { |r| r.offset_value = value }
       end
 
       # Allows sort params given in either hash format (using FM Data API's
       # format), or as a symbol, in which case the of the attribute must match
-      # a known mapped attribute, optionally suffixed with ! or __desc[end] to
+      # a known mapped attribute, optionally suffixed with `!` or `__desc` to
       # signify it should use descending order.
       #
-      # E.g.
-      #
-      #     Person.sort(:first_name, :age!)
-      #     Person.sort(:first_name, :age__desc)
-      #     Person.sort(:first_name, :age__descend)
-      #     Person.sort({ fieldName: "FirstName" }, { fieldName: "Age", sortOrder: "descend" })
-      #
+      # @param args [Array<Symbol, Hash>] the names of attributes to sort by with
+      #   optional `!` or `__desc` suffix, or a hash of options as expected by
+      #     the FM Data API
+      # @example
+      #   Person.sort(:first_name, :age!)
+      #   Person.sort(:first_name, :age__desc)
+      #   Person.sort(:first_name, :age__descend)
+      #   Person.sort({ fieldName: "FirstName" }, { fieldName: "Age", sortOrder: "descend" })
+      # @return [FmRest::Spyke::Relation] a new relation with the sort options
+      #   applied
       def sort(*args)
         with_clone do |r|
           r.sort_params = args.flatten.map { |s| normalize_sort_param(s) }
         end
       end
-      alias :order :sort
+      alias order sort
 
       def portal(*args)
         with_clone do |r|
@@ -56,7 +66,7 @@ module FmRest
           r.portal_params.uniq!
         end
       end
-      alias :includes :portal
+      alias includes portal
 
       def query(*params)
         with_clone do |r|
@@ -68,10 +78,14 @@ module FmRest
         query(params.merge(omit: true))
       end
 
+      # @return [Boolean] whether a query was set on this relation
       def has_query?
         query_params.present?
       end
 
+      # Finds a single instance of the model by forcing limit = 1
+      #
+      # @return [FmRest::Spyke::Base]
       def find_one
         return super if params[klass.primary_key].present?
         @find_one ||= klass.new_collection_from_result(limit(1).fetch).first

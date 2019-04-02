@@ -117,7 +117,7 @@ FmRest.token_store = FmRest::TokenStore::Redis.new(prefix: "my-fancy-prefix:", h
 **NOTE:** redis-rb is not included as a gem dependency of fmrest-ruby, so you'll
 have to add it to your Gemfile.
 
-## Spyke support
+## Spyke support (ActiveRecord-like ORM)
 
 [Spyke](https://github.com/balvig/spyke) is an ActiveRecord-like gem for
 building REST models. fmrest-ruby has Spyke support out of the box, although
@@ -386,17 +386,23 @@ class Kitty < Spyke::Base
 end
 ```
 
+#### .limit
+
 `.limit` sets the limit for get and find request:
 
 ```ruby
 Kitty.limit(10)
 ```
 
+#### .offset
+
 `.offset` sets the offset for get and find requests:
 
 ```ruby
 Kitty.offset(10)
 ```
+
+#### .sort
 
 `.sort` (or `.order`) sets sorting options for get and find requests:
 
@@ -413,6 +419,8 @@ Kitty.sort(:name, :age!)
 Kitty.sort(:name, :age__desc)
 ```
 
+#### .portal
+
 `.portal` (or `.includes`) sets the portals to fetch for get and find requests
 (this recognizes portals defined with `has_portal`):
 
@@ -420,6 +428,8 @@ Kitty.sort(:name, :age__desc)
 Kitty.portal(:toys)
 Kitty.includes(:toys) # alias method
 ```
+
+#### .query
 
 `.query` sets query conditions for a find request (and supports attributes as
 defined with `attributes`):
@@ -445,6 +455,8 @@ Kitty.query({ name: "Mr. Fluffers" }, { name: "Coronel Chai Latte" })
 # JSON -> {"query": [{"CatName": "Mr. Fluffers"}, {"CatName": "Coronel Chai Latte"}]}
 ```
 
+#### .omit
+
 `.omit` works like `.query` but excludes matches:
 
 ```ruby
@@ -458,6 +470,8 @@ You can get the same effect by passing `omit: true` to `.query`:
 Kitty.query(name: "Captain Whiskers", omit: true)
 # JSON -> {"query": [{"CatName": "Captain Whiskers", "omit": "true"}]}
 ```
+
+#### Other notes on querying
 
 You can chain all query methods together:
 

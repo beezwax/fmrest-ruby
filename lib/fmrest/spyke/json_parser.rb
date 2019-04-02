@@ -1,5 +1,7 @@
 module FmRest
   module Spyke
+    # Response Faraday middleware for converting FM API's response JSON into
+    # Spyke's expected format
     class JsonParser < ::Faraday::Response::Middleware
       SINGLE_RECORD_RE = %r(/records/\d+\Z).freeze
       MULTIPLE_RECORDS_RE = %r(/records\Z).freeze
@@ -7,11 +9,14 @@ module FmRest
 
       VALIDATION_ERROR_RANGE = 500..599
 
+      # @param app [#call]
+      # @param model [Class<FmRest::Spyke::Base>]
       def initialize(app, model)
         super(app)
         @model = model
       end
 
+      # @param env [Faraday::Env]
       def on_complete(env)
         json = parse_json(env.body)
 
@@ -27,6 +32,8 @@ module FmRest
 
       private
 
+      # @param json [Hash]
+      # @return [Hash] the response in Spyke format
       def prepare_save_response(json)
         response = json[:response]
 
@@ -37,6 +44,7 @@ module FmRest
         build_base_hash(json, true).merge!(data: data)
       end
 
+      # (see #prepare_save_response)
       def prepare_single_record(json)
         data =
           json[:response][:data] &&
@@ -45,6 +53,7 @@ module FmRest
         build_base_hash(json).merge!(data: data)
       end
 
+      # (see #prepare_save_response)
       def prepare_collection(json)
         data =
           json[:response][:data] &&
@@ -53,6 +62,9 @@ module FmRest
         build_base_hash(json).merge!(data: data)
       end
 
+      # @param json [Hash]
+      # @param include_errors [Boolean]
+      # @return [Hash] the skeleton structure for a Spyke-formatted response
       def build_base_hash(json, include_errors = false)
         {
           metadata: { messages: json[:messages] },
@@ -60,6 +72,8 @@ module FmRest
         }
       end
 
+      # @param json [Hash]
+      # @return [Hash] the errors hash in Spyke format
       def prepare_errors(json)
         # Code 0 means "No Error"
         # https://fmhelp.filemaker.com/help/17/fmp/en/index.html#page/FMP_Help/error-codes.html
@@ -73,7 +87,7 @@ module FmRest
         end
       end
 
-      # json_data is expected in this format:
+      # `json_data` is expected in this format:
       #
       #     {
       #       "fieldData": {
@@ -97,6 +111,8 @@ module FmRest
       #       "recordId": <Unique_internal_ID_for_this_record>
       #     }
       #
+      # @param json_data [Hash]
+      # @return [Hash] the record data in Spyke format
       def prepare_record_data(json_data)
         out = { id: json_data[:recordId].to_i, mod_id: json_data[:modId].to_i }
         out.merge!(json_data[:fieldData])
@@ -104,10 +120,10 @@ module FmRest
         out
       end
 
-      # Extracts recordId and strips the PortalName:: field prefix for each
+      # Extracts `recordId` and strips the `"PortalName::"` field prefix for each
       # portal
       #
-      # Sample json_portal_data:
+      # Sample `json_portal_data`:
       #
       #     "portalData": {
       #       "Orders":[
@@ -115,6 +131,8 @@ module FmRest
       #       ]
       #     }
       #
+      # @param json_portal_data [Hash]
+      # @return [Hash] the portal data in Spyke format
       def prepare_portal_data(json_portal_data)
         json_portal_data.each_with_object({}) do |(portal_name, portal_records), out|
           portal_options = @model.portal_options[portal_name.to_s] || {}
@@ -137,30 +155,39 @@ module FmRest
         end
       end
 
+      # @param env [Faraday::Env]
+      # @return [Boolean]
       def single_record_request?(env)
         env.method == :get && env.url.path.match(SINGLE_RECORD_RE)
       end
 
+      # (see #single_record_request?)
       def multiple_records_request?(env)
         env.method == :get && env.url.path.match(MULTIPLE_RECORDS_RE)
       end
 
+      # (see #single_record_request?)
       def find_request?(env)
         env.method == :post && env.url.path.match(FIND_RECORDS_RE)
       end
 
+      # (see #single_record_request?)
       def update_request?(env)
         env.method == :patch && env.url.path.match(SINGLE_RECORD_RE)
       end
 
+      # (see #single_record_request?)
       def create_request?(env)
         env.method == :post && env.url.path.match(MULTIPLE_RECORDS_RE)
       end
 
+      # (see #single_record_request?)
       def delete_request?(env)
         env.method == :delete && env.url.path.match(SINGLE_RECORD_RE)
       end
 
+      # @param source [String] a JSON string
+      # @return [Hash] the parsed JSON
       def parse_json(source)
         if defined?(::MultiJson)
           ::MultiJson.load(source, symbolize_keys: true)

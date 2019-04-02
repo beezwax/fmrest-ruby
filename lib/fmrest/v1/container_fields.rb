@@ -7,10 +7,12 @@ module FmRest
       # object with its body content (see Ruby's OpenURI for how the IO object
       # is extended with useful HTTP response information).
       #
-      # In case of failure a FmRest::ContainerFieldError will be raised.
-      #
       # This method uses Net::HTTP and OpenURI instead of Faraday.
       #
+      # @raise [FmRest::ContainerFieldError] if any step fails
+      # @param container_field_url [String] the URL to the container to
+      #   download
+      # @return [IO] the contents of the container
       def fetch_container_data(container_field_url)
         require "open-uri"
 
@@ -43,6 +45,15 @@ module FmRest
 
       # Handles the core logic of uploading a file into a container field
       #
+      # @param connection [Faraday] the Faraday connection to use
+      # @param container_path [String] the path to the container
+      # @param filename_or_io [String, IO] a path to the file to upload or an
+      #   IO object
+      # @param options [Hash]
+      # @option options [String] :content_type (DEFAULT_UPLOAD_CONTENT_TYPE)
+      #   The content type for the uploaded file
+      # @option options [String] :filename The filename to use for the uploaded
+      #   file, defaults to `filename_or_io.original_filename` if available
       def upload_container_data(connection, container_path, filename_or_io, options = {})
         content_type = options[:content_type] || DEFAULT_UPLOAD_CONTENT_TYPE
 
