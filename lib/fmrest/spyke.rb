@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 begin
   require "spyke"
 rescue LoadError => e
-  e.message << " (Did you include Spyke in your Gemfile?)"
+  e.message << " (Did you include Spyke in your Gemfile?)" unless e.message.frozen?
   raise e
 end
 

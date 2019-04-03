@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "fmrest/v1/connection"
 require "fmrest/v1/paths"
 require "fmrest/v1/container_fields"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module FmRest
   module V1
     # FM Data API authentication middleware using the credentials strategy

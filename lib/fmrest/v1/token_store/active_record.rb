@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 warn "FmRest::V1::TokenStore::ActiveRecord is deprecated, use FmRest::TokenStore::ActiveRecord instead"
 
 require "fmrest/token_store/active_record"

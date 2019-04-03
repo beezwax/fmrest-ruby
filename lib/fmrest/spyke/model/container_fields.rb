@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "fmrest/spyke/container_field"
 
 module FmRest

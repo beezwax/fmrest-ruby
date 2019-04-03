@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "fmrest/spyke/model/connection"
 require "fmrest/spyke/model/uri"
 require "fmrest/spyke/model/attributes"

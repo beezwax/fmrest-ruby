@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 warn "FmRest::V1::TokenStore::Memory is deprecated, use FmRest::TokenStore::Memory instead"
 
 require "fmrest/token_store/memory"

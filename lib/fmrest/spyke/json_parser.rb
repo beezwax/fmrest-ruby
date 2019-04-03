@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module FmRest
   module Spyke
     # Response Faraday middleware for converting FM API's response JSON into

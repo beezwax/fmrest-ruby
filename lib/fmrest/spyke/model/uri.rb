@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module FmRest
   module Spyke
     module Model

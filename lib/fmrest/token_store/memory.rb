@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "fmrest/token_store/base"
 
 module FmRest

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "uri"
 require "fmrest/v1/token_session"
 require "fmrest/v1/raise_errors"
