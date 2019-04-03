@@ -148,7 +148,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
       before do
         allow(ship).to receive(:valid?).and_return(false)
 
-        stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_fm({ recordId: 1, modId: 1 })
+        stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_fm(recordId: 1, modId: 1)
       end
 
       it "raises ActiveModel::ValidationError when called with no options" do
@@ -167,7 +167,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
 
       context "when the server responds successfully" do
         before do
-          stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_fm({ recordId: 1, modId: 1 })
+          stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_fm(recordId: 1, modId: 1)
         end
 
         it "returns true" do
@@ -238,6 +238,26 @@ RSpec.describe FmRest::Spyke::Model::Orm do
       it "doesn't resets changes information" do
         expect { ship.save }.to_not change { ship.changed? }.from(true)
       end
+    end
+  end
+
+  describe "#reload" do
+    let(:ship) { Ship.new(id: 1) }
+
+    before { stub_session_login }
+
+    before do
+      stub_request(:get, fm_url(layout: "Ships") + "/records/1").to_return_fm(
+        data: [{ recordId: 1, modId: 2, fieldData: { name: "Obra Dinn Reloaded" } }]
+      )
+    end
+
+    it "reloads the record" do
+      expect { ship.reload }.to change { ship.name }.to("Obra Dinn Reloaded")
+    end
+
+    it "sets the mod_id" do
+      expect { ship.reload }.to change { ship.mod_id }.from(nil).to(2)
     end
   end
 

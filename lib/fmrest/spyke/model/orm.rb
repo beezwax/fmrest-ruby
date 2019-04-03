@@ -87,8 +87,6 @@ module FmRest
           return false unless perform_save_validations(callback, options)
           return false unless perform_save_persistence(callback, options)
 
-          changes_applied_after_save
-
           true
         end
 
@@ -101,6 +99,12 @@ module FmRest
         def update!(new_attributes)
           self.attributes = new_attributes
           save!
+        end
+
+        def reload
+          reloaded = self.class.find(id)
+          self.attributes = reloaded.attributes
+          self.mod_id = reloaded.mod_id
         end
 
         private
