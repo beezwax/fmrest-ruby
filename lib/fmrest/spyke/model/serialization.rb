@@ -12,7 +12,7 @@ module FmRest
         #
         def to_params
           params = {
-            fieldData: typecast_values_for_serialization!(changed_params_not_embedded_in_url)
+            fieldData: serialize_values!(changed_params_not_embedded_in_url)
           }
 
           params[:modId] = mod_id if mod_id
@@ -34,7 +34,7 @@ module FmRest
           params[:recordId] = id if id
           params[:modId] = mod_id if mod_id
 
-          typecast_values_for_serialization!(params)
+          serialize_values!(params)
         end
 
         private
@@ -60,11 +60,7 @@ module FmRest
         # Modifies the given hash in-place encoding non-string values (e.g.
         # dates) to their string representation when appropriate.
         #
-        # "Typecast" is a misnomer, this is closer to encoding, but typecast
-        # makes it clearer that this deals with data types... may need a better
-        # name for this method though.
-        #
-        def typecast_values_for_serialization!(params)
+        def serialize_values!(params)
           params.transform_values! do |value|
             case value
             when DateTime, Time
