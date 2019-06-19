@@ -561,6 +561,8 @@ If using fmrest-ruby + Spyke in a Rails app pretty log output will be set up
 for you automatically by Spyke (see [their
 README](https://github.com/balvig/spyke#log-output)).
 
+To save different tokens per user you can pass a tenantname to the multi_tenancy option.
+
 You can also enable simple STDOUT logging (useful for debugging) by passing
 `log: true` in the options hash for either `FmRest.config=` or your models'
 `fmrest_config=`, e.g.:
@@ -571,7 +573,8 @@ FmRest.config = {
   database: "My Database",
   username: "z3r0c00l",
   password: "abc123",
-  log:      true
+  log:      true,
+  multi_tenancy: "My-Tenant-Name"
 }
 
 # Or in your model
@@ -581,7 +584,8 @@ class LoggyKitty < FmRest::Spyke::Base
     database: "My Database",
     username: "z3r0c00l",
     password: "abc123",
-    log:      true
+    log:      true,
+    multi_tenancy: "My-Tenant-Name"
   }
 end
 ```

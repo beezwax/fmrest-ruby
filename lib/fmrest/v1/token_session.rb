@@ -72,7 +72,8 @@ module FmRest
             # Strip the host part to just the hostname (i.e. no scheme or port)
             host = @options.fetch(:host)
             host = URI(host).hostname if host.match?(/\Ahttps?:\/\//)
-            "#{host}:#{@options.fetch(:database)}"
+            multi_tenant = @options[:multi_tenancy].nil? ? '' : ":#{@options[:multi_tenancy]}"
+            "#{host}:#{@options.fetch(:database)}#{multi_tenant}"
           end
       end
 
