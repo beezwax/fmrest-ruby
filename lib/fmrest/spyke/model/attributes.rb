@@ -1,16 +1,19 @@
+# frozen_string_literal: true
+
+require "fmrest/spyke/model/orm"
+
 module FmRest
   module Spyke
     module Model
       module Attributes
         extend ::ActiveSupport::Concern
 
+        include Orm # Needed to extend custom save and reload
+
         include ::ActiveModel::Dirty
         include ::ActiveModel::ForbiddenAttributesProtection
 
         included do
-          # Keep mod_id as a separate, custom accessor
-          attr_accessor :mod_id
-
           # Prevent the creation of plain (no prefix/suffix) attribute methods
           # when calling ActiveModels' define_attribute_method, otherwise it
           # will define an `attribute` method which overrides the one provided
@@ -100,8 +103,12 @@ module FmRest
           super
         end
 
-        def reload
+        def reload(*args)
           super.tap { |r| clear_changes_information }
+        end
+
+        def save(*args)
+          super.tap { |r| changes_applied_after_save if r }
         end
 
         # ActiveModel::Dirty since version 5.2 assumes that if there's an
