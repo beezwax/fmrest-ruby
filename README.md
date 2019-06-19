@@ -22,6 +22,9 @@ Add this line to your Gemfile:
 
 ```ruby
 gem 'fmrest'
+
+# Optional (for ORM features)
+gem 'spyke'
 ```
 
 ## Basic usage
