@@ -602,11 +602,12 @@ end
 
 ## TODO
 
+- [ ] Support for FM18 features
 - [ ] Better/simpler-to-use core Ruby API
 - [ ] Better API documentation and README
 - [ ] Oauth support
 - [ ] Support for portal limit and offset
-- [ ] More options for token storage
+- [x] More options for token storage
 - [x] Support for container fields
 - [x] Optional logging
 - [x] FmRest::Spyke::Base class for single inheritance (as alternative for mixin)
