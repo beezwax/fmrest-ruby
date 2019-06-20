@@ -14,7 +14,8 @@ anyway).
 If you're looking for a Ruby client for the legacy XML/Custom Web Publishing
 API try the fabulous [ginjo-rfm gem](https://github.com/ginjo/rfm) instead.
 
-fmrest-ruby does not currently implement the full spec of FileMaker Data API.
+fmrest-ruby does not currently implement the full spec of FileMaker 17's Data
+API.
 
 ## Installation
 
@@ -141,7 +142,7 @@ require "fmrest/spyke"
 And finally extend your Spyke models with `FmRest::Spyke`:
 
 ```ruby
-class Kitty < Spyke::Base
+class Honeybee < Spyke::Base
   include FmRest::Spyke
 end
 ```
@@ -155,37 +156,35 @@ Alternatively you can inherit directly from the shorthand
 `FmRest::Spyke` already included:
 
 ```ruby
-class Kitty < FmRest::Spyke::Base
+class Honeybee < FmRest::Spyke::Base
 end
 ```
 
 In this case you can pass the `fmrest_config` hash as an argument to `Base()`:
 
 ```ruby
-class Kitty < FmRest::Spyke::Base(host: "...", database: "...", username: "...", password: "...")
+class Honeybee < FmRest::Spyke::Base(host: "...", database: "...", username: "...", password: "...")
 end
 
-Kitty.fmrest_config # => { host: "...", database: "...", username: "...", password: "..." }
+Honeybee.fmrest_config # => { host: "...", database: "...", username: "...", password: "..." }
 ```
 
 All of Spyke's basic ORM operations work:
 
 ```ruby
-kitty = Kitty.new
+bee = Honeybee.new
 
-kitty.name = "Felix"
+bee.name = "Hutch"
+bee.save # POST request
 
-kitty.save # POST request
+bee.name = "ハッチ"
+bee.save # PATCH request
 
-kitty.name = "Tom"
+bee.reload # GET request
 
-kitty.save # PATCH request
+bee.destroy # DELETE request
 
-kitty.reload # GET request
-
-kitty.destroy # DELETE request
-
-kitty = Kitty.find(9) # GET request
+bee = Honeybee.find(9) # GET request
 ```
 
 Read Spyke's documentation for more information on these basic features.
@@ -198,7 +197,7 @@ features:
 Usually to tell a Spyke object to use a certain Faraday connection you'd use:
 
 ```ruby
-class Kitty < Spyke::Base
+class Honeybee < Spyke::Base
   self.connection = Faraday.new(...)
 end
 ```
@@ -207,14 +206,14 @@ fmrest-ruby simplfies the process of setting up your Spyke model with a Faraday
 connection by allowing you to just set your Data API connection settings:
 
 ```ruby
-class Kitty < Spyke::Base
+class Honeybee < Spyke::Base
   include FmRest::Spyke
 
   self.fmrest_config = {
     host:     "example.com",
-    database: "database name",
-    username: "username",
-    password: "password"
+    database: "My Database",
+    username: "...",
+    password: "..."
   }
 end
 ```
@@ -227,19 +226,19 @@ does the initial connection setup and then inherit from it in models using that
 same connection. E.g.:
 
 ```ruby
-class KittyBase < Spyke::Base
+class BeeBase < Spyke::Base
   include FmRest::Spyke
 
   self.fmrest_config = {
     host:     "example.com",
     database: "My Database",
-    username: "username",
-    password: "password"
+    username: "...",
+    password: "..."
   }
 end
 
-class Kitty < KittyBase
-  # This model will use the same connection as KittyBase
+class Honeybee < BeeBase
+  # This model will use the same connection as BeeBase
 end
 ```
 
@@ -248,8 +247,8 @@ end
 Use `layout` to set the `:layout` part of API URLs, e.g.:
 
 ```ruby
-class Kitty < FmRest::Spyke::Base
-  layout "FluffyKitty" # uri path will be "layouts/FluffyKitty/records(/:id)"
+class Honeybee < FmRest::Spyke::Base
+  layout "Honeybees Web" # uri path will be "layouts/Honeybees%20Web/records(/:id)"
 end
 ```
 
@@ -268,7 +267,7 @@ fmrest-ruby extends `attributes`' functionality to allow you to map
 Ruby-friendly attribute names to FileMaker field names. E.g.:
 
 ```ruby
-class Kitty < FmRest::Spyke::Base
+class Honeybee < FmRest::Spyke::Base
   attributes first_name: "First Name", last_name: "Last Name"
 end
 ```
@@ -277,14 +276,14 @@ You can then simply use the pretty attribute names whenever working with your
 model and they will get mapped to their FileMaker fields:
 
 ```ruby
-kitty = Kitty.find(1)
+bee = Honeybee.find(1)
 
-kitty.first_name # => "Mr."
-kitty.last_name  # => "Fluffers"
+bee.first_name # => "Princess"
+bee.last_name  # => "Buzz"
 
-kitty.first_name = "Dr."
+bee.first_name = "Queen"
 
-kitty.attributes # => { "First Name": "Dr.", "Last Name": "Fluffers" }
+bee.attributes # => { "First Name": "Queen", "Last Name": "Buzz" }
 ```
 
 ### Model.has_portal
@@ -292,26 +291,26 @@ kitty.attributes # => { "First Name": "Dr.", "Last Name": "Fluffers" }
 You can define portal associations on your model as such:
 
 ```ruby
-class Kitty < FmRest::Spyke::Base
-  has_portal :wool_yarns
+class Honeybee < FmRest::Spyke::Base
+  has_portal :flowers
 end
 
-class WoolYarn < FmRest::Spyke::Base
-  attributes :color, :thickness
+class Flower < FmRest::Spyke::Base
+  attributes :color, :species
 end
 ```
 
 In this case fmrest-ruby will expect the portal table name and portal object
-name to be both "wool_yarns". E.g., the expected portal JSON portion should be
-look like this:
+name to be both "flowers", i.e. the expected portal JSON portion should look
+like this:
 
 ```json
 ...
 "portalData": {
-  "wool_yarns": [
+  "flowers": [
     {
-      "wool_yarns::color": "yellow",
-      "wool_yarns::thickness": "thick",
+      "flowers::color": "red",
+      "flowers::species": "rose"
     }
   ]
 }
@@ -319,34 +318,29 @@ look like this:
 
 If you need to specify different values for them you can do so with
 `portal_key` for the portal table name, and `attribute_prefix` for the portal
-object name, e.g.:
+object name, and `class_name`, e.g.:
 
 ```ruby
-class Kitty < FmRest::Spyke::Base
-  has_portal :wool_yarns, portal_key: "Wool Yarn", attribute_prefix: "WoolYarn"
+class Honeybee < FmRest::Spyke::Base
+  has_portal :pollinated_flowers, portal_key: "Bee Flowers",
+                                  attribute_prefix: "Flower",
+                                  class_name: "Flower"
 end
 ```
 
-The above expects the following portal JSON portion:
+The above will use the `Flower` model class and expects the following portal JSON
+portion:
 
 ```json
 ...
 "portalData": {
-  "Wool Yarn": [
+  "Bee Flowers": [
     {
-      "WoolYarn::color": "yellow",
-      "WoolYarn::thickness": "thick",
+      "Flower::color": "white",
+      "Flower::species": "rose"
     }
   ]
 }
-```
-
-You can also specify a different class name with the `class_name` option:
-
-```ruby
-class Kitty < FmRest::Spyke::Base
-  has_portal :wool_yarns, class_name: "FancyWoolYarn"
-end
 ```
 
 ### Dirty attributes
@@ -355,15 +349,15 @@ fmrest-ruby includes support for ActiveModel's Dirty mixin out of the box,
 providing methods like:
 
 ```ruby
-kitty = Kitty.new
+bee = Honeybee.new
 
-kitty.changed? # => false
+bee.changed? # => false
 
-kitty.name = "Mr. Fluffers"
+bee.name = "Maya"
 
-kitty.changed? # => true
+bee.changed? # => true
 
-kitty.name_changed? # => true
+bee.name_changed? # => true
 ```
 
 fmrest-ruby uses the Dirty functionality to only send changed attributes back
@@ -380,12 +374,12 @@ aware of its backend API, so it extends Spkye models with a bunch of useful
 querying methods.
 
 ```ruby
-class Kitty < Spyke::Base
+class Honeybee < Spyke::Base
   include FmRest::Spyke
 
-  attributes name: "CatName", age: "CatAge"
+  attributes name: "Bee Name", age: "Bee Age"
 
-  has_portal :toys, portal_key: "CatToys"
+  has_portal :hives, portal_key: "Bee Hives"
 end
 ```
 
@@ -394,7 +388,7 @@ end
 `.limit` sets the limit for get and find request:
 
 ```ruby
-Kitty.limit(10)
+Honeybee.limit(10)
 ```
 
 #### .offset
@@ -402,7 +396,7 @@ Kitty.limit(10)
 `.offset` sets the offset for get and find requests:
 
 ```ruby
-Kitty.offset(10)
+Honeybee.offset(10)
 ```
 
 #### .sort
@@ -410,16 +404,16 @@ Kitty.offset(10)
 `.sort` (or `.order`) sets sorting options for get and find requests:
 
 ```ruby
-Kitty.sort(:name, :age)
-Kitty.order(:name, :age) # alias method
+Honeybee.sort(:name, :age)
+Honeybee.order(:name, :age) # alias method
 ```
 
 You can set descending sort order by appending either `!` or `__desc` to a sort
 attribute (defaults to ascending order):
 
 ```ruby
-Kitty.sort(:name, :age!)
-Kitty.sort(:name, :age__desc)
+Honeybee.sort(:name, :age!)
+Honeybee.sort(:name, :age__desc)
 ```
 
 #### .portal
@@ -428,8 +422,8 @@ Kitty.sort(:name, :age__desc)
 (this recognizes portals defined with `has_portal`):
 
 ```ruby
-Kitty.portal(:toys)
-Kitty.includes(:toys) # alias method
+Honeybee.portal(:hives)
+Honeybee.includes(:hives) # alias method
 ```
 
 #### .query
@@ -438,24 +432,24 @@ Kitty.includes(:toys) # alias method
 defined with `attributes`):
 
 ```ruby
-Kitty.query(name: "Mr. Fluffers")
-# JSON -> {"query": [{"CatName": "Mr. Fluffers"}]}
+Honeybee.query(name: "Hutch")
+# JSON -> {"query": [{"Bee Name": "Hutch"}]}
 ```
 
 Passing multiple attributes to `.query` will group them in the same JSON object:
 
 ```ruby
-Kitty.query(name: "Mr. Fluffers", age: 4)
-# JSON -> {"query": [{"CatName": "Foo", "CatAge": 4}]}
+Honeybee.query(name: "Hutch", age: 4)
+# JSON -> {"query": [{"Bee Name": "Hutch", "Bee Age": 4}]}
 ```
 
 Calling `.query` multiple times or passing it multiple hashes creates separate
 JSON objects (so you can define OR queries):
 
 ```ruby
-Kitty.query(name: "Mr. Fluffers").query(name: "Coronel Chai Latte")
-Kitty.query({ name: "Mr. Fluffers" }, { name: "Coronel Chai Latte" })
-# JSON -> {"query": [{"CatName": "Mr. Fluffers"}, {"CatName": "Coronel Chai Latte"}]}
+Honeybee.query(name: "Hutch").query(name: "Maya")
+Honeybee.query({ name: "Hutch" }, { name: "Maya" })
+# JSON -> {"query": [{"Bee Name": "Hutch"}, {"Bee Name": "Maya"}]}
 ```
 
 #### .omit
@@ -463,15 +457,15 @@ Kitty.query({ name: "Mr. Fluffers" }, { name: "Coronel Chai Latte" })
 `.omit` works like `.query` but excludes matches:
 
 ```ruby
-Kitty.omit(name: "Captain Whiskers")
-# JSON -> {"query": [{"CatName": "Captain Whiskers", "omit": "true"}]}
+Honeybee.omit(name: "Hutch")
+# JSON -> {"query": [{"Bee Name": "Hutch", "omit": "true"}]}
 ```
 
 You can get the same effect by passing `omit: true` to `.query`:
 
 ```ruby
-Kitty.query(name: "Captain Whiskers", omit: true)
-# JSON -> {"query": [{"CatName": "Captain Whiskers", "omit": "true"}]}
+Honeybee.query(name: "Hutch", omit: true)
+# JSON -> {"query": [{"Bee Name": "Hutch", "omit": "true"}]}
 ```
 
 #### Other notes on querying
@@ -479,35 +473,35 @@ Kitty.query(name: "Captain Whiskers", omit: true)
 You can chain all query methods together:
 
 ```ruby
-Kitty.limit(10).offset(20).sort(:name, :age!).portal(:toys).query(name: "Mr. Fluffers")
+Honeybee.limit(10).offset(20).sort(:name, :age!).portal(:hives).query(name: "Hutch")
 ```
 
 You can also set default values for limit and sort on the class:
 
 ```ruby
-Kitty.default_limit = 1000
-Kitty.default_sort = [:name, :age!]
+Honeybee.default_limit = 1000
+Honeybee.default_sort = [:name, :age!]
 ```
 
 Calling any `Enumerable` method on the resulting scope object will trigger a
 server request, so you can treat the scope as a collection:
 
 ```ruby
-Kitty.limit(10).sort(:name).each { |kitty| ... }
+Honeybee.limit(10).sort(:name).each { |bee| ... }
 ```
 
 If you want to explicitly run the request instead you can use `.find_some` on
 the scope object:
 
 ```ruby
-Kitty.limit(10).sort(:name).find_some # => [<Kitty...>, ...]
+Honeybee.limit(10).sort(:name).find_some # => [<Honeybee...>, ...]
 ```
 
 If you want just a single result you can use `.find_one` instead (this will
 force `.limit(1)`):
 
 ```ruby
-Kitty.query(name: "Mr. Fluffers").find_one # => <Kitty...>
+Honeybee.query(name: "Hutch").find_one # => <Honeybee...>
 ```
 
 NOTE: If you know the id of the record you should use `.find(id)` instead of
@@ -515,7 +509,7 @@ NOTE: If you know the id of the record you should use `.find(id)` instead of
 instead of `POST ../:layout/_find`).
 
 ```ruby
-Kitty.find(89) # => <Kitty...>
+Honeybee.find(89) # => <Honeybee...>
 ```
 
 ### Container fields
@@ -523,8 +517,8 @@ Kitty.find(89) # => <Kitty...>
 You can define container fields on your model class with `container`:
 
 ```ruby
-class Kitty < FmRest::Spyke::Base
-  container :photo, field_name: "Vet Card Photo ID"
+class Honeybee < FmRest::Spyke::Base
+  container :photo, field_name: "Beehive Photo ID"
 end
 ```
 
@@ -538,13 +532,13 @@ addition to the `container` definition.)
 This will provide you with the following instance methods:
 
 ```ruby
-kitty = Kitty.new
+bee = Honeybee.new
 
-kitty.photo.url # The URL of the container file on the FileMaker server
+bee.photo.url # The URL of the container file on the FileMaker server
 
-kitty.photo.download # Download the contents of the container as an IO object
+bee.photo.download # Download the contents of the container as an IO object
 
-kitty.photo.upload(filename_or_io) # Upload a file to the container
+bee.photo.upload(filename_or_io) # Upload a file to the container
 ```
 
 `upload` also accepts an options hash with the following options:
@@ -575,12 +569,12 @@ FmRest.config = {
 }
 
 # Or in your model
-class LoggyKitty < FmRest::Spyke::Base
+class LoggyBee < FmRest::Spyke::Base
   self.fmrest_config = {
     host:     "example.com",
     database: "My Database",
-    username: "z3r0c00l",
-    password: "abc123",
+    username: "...",
+    password: "...",
     log:      true
   }
 end
@@ -593,7 +587,7 @@ If you need to set up more complex logging for your models can use the
 Faraday connection, e.g.:
 
 ```ruby
-class LoggyKitty < FmRest::Spyke::Base
+class LoggyBee < FmRest::Spyke::Base
   faraday do |conn|
     conn.response :logger, MyApp.logger, bodies: true
   end
