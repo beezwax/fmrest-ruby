@@ -63,7 +63,7 @@ RSpec.describe FmRest::V1::ContainerFields do
       content_transfer_encoding_matcher = /Content-Transfer-Encoding: binary/
 
       # Full multipart body
-      /\A--#{boundary}\r\n#{content_disposition_matcher}\r\n#{content_length_matcher}\r\n#{content_type_matcher}\r\n#{content_transfer_encoding_matcher}\r\n\r\n#{content}\r\n--#{boundary}--\r\n\r\n\Z/
+      /\A--#{boundary}\W+#{content_disposition_matcher}\W+#{content_length_matcher}\W+#{content_type_matcher}\W+#{content_transfer_encoding_matcher}\W+#{content}\W+--#{boundary}--\W+\z/
     end
 
     before do

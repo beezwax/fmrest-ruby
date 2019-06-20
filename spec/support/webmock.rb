@@ -23,9 +23,5 @@ class WebMock::RequestStub
   end
 end
 
-# Don't raise but report uncaught net connections
+# Raise errors for unstubbed net connections
 WebMock.disable_net_connect!
-WebMock.stub_request(:any, /.*/).to_return do |request|
-  puts "\e[35mUNSTUBBED REQUEST:\e[0m #{request.method.upcase} #{request.uri}"
-  { body: nil }
-end
