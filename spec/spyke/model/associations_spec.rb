@@ -36,21 +36,21 @@ RSpec.describe FmRest::Spyke::Model::Associations do
                     {
                       "Pirate::name": "Hendrick van der Decken",
                       "Pirate::rank": "Captain",
-                      recordId: 1,
-                      modId: 0
+                      recordId: "1",
+                      modId: "0"
                     },
 
                     {
                       "Pirate::name": "Marthijn van het Vriesendijks",
                       "Pirate::rank": "First Officer",
-                      recordId: 2,
-                      modId: 0
+                      recordId: "2",
+                      modId: "0"
                     }
                   ]
                 },
 
-                recordId: 1,
-                modId: 0
+                recordId: "1",
+                modId: "0"
               }
             ]
           )
@@ -63,7 +63,7 @@ RSpec.describe FmRest::Spyke::Model::Associations do
           expect(ship.crew.first).to be_a(Pirate)
           expect(ship.crew.first.name).to eq("Hendrick van der Decken")
           expect(ship.crew.first.id).to eq(1)
-          expect(ship.crew.first.mod_id).to eq(0)
+          expect(ship.crew.first.mod_id).to eq("0")
           expect(ship.crew.first).to_not be_changed
           expect(ship.crew.last.id).to eq(2)
         end
