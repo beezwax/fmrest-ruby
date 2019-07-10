@@ -1,7 +1,6 @@
 require "bundler/setup"
 
 require "spyke"
-require "multi_json"
 require "fmrest"
 require "fmrest/spyke"
 require "pry-byebug"
