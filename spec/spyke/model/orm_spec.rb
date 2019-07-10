@@ -72,6 +72,12 @@ RSpec.describe FmRest::Spyke::Model::Orm do
         expect(request).to have_been_requested
       end
 
+      it "applies sort JSON param even when .limit(1) is used" do
+        request.with(body: { limit: 1, sort: [{fieldName: "name"}, {fieldName: "rank", sortOrder: "descend"}], query: [{ name: "foo" }] })
+        Pirate.query(name: "foo").limit(1).sort(:name, :rank!).fetch
+        expect(request).to have_been_requested
+      end
+
       it "applies portal URI param" do
         request = stub_request(:post, fm_url(layout: "Ships") + "/_find")
           .with(body: hash_including(portal: ["PiratesTable", "Flags"]))

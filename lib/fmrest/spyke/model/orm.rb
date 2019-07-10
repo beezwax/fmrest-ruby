@@ -61,7 +61,7 @@ module FmRest
             where_options["#{prefix}limit"] = scope.limit_value if scope.limit_value
             where_options["#{prefix}offset"] = scope.offset_value if scope.offset_value
 
-            if scope.sort_params.present? && scope.limit_value != 1
+            if scope.sort_params.present?
               where_options["#{prefix}sort"] =
                 prefixed ? scope.sort_params.to_json : scope.sort_params
             end
