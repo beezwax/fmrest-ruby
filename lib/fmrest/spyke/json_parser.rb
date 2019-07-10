@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "json"
+
 module FmRest
   module Spyke
     # Response Faraday middleware for converting FM API's response JSON into
@@ -191,11 +193,7 @@ module FmRest
       # @param source [String] a JSON string
       # @return [Hash] the parsed JSON
       def parse_json(source)
-        if defined?(::MultiJson)
-          ::MultiJson.load(source, symbolize_keys: true)
-        else
-          ::JSON.parse(source, symbolize_names: true)
-        end
+        JSON.parse(source, symbolize_names: true)
       end
     end
   end
