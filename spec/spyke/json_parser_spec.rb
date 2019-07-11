@@ -18,13 +18,13 @@ RSpec.describe FmRest::Spyke::JsonParser do
           portalData: {
             portal1: [{
               "PortalOne::bar": "Bar",
-              recordId: 1,
-              modId: 1
+              recordId: "1",
+              modId: "1"
             }]
           },
 
-          modId: 1,
-          recordId: 1
+          modId: "1",
+          recordId: "1"
         }],
       },
       messages: [{ code: "0", message: "OK" }]
@@ -69,9 +69,9 @@ RSpec.describe FmRest::Spyke::JsonParser do
         },
         data: {
           id: 1,
-          mod_id: 1,
+          mod_id: "1",
           foo: "Foo",
-          portal1: [{ bar: "Bar", id: 1, mod_id: 1 }]
+          portal1: [{ bar: "Bar", id: 1, mod_id: "1" }]
         }
       )
     end
@@ -87,9 +87,9 @@ RSpec.describe FmRest::Spyke::JsonParser do
         },
         data: [{
           id: 1,
-          mod_id: 1,
+          mod_id: "1",
           foo: "Foo",
-          portal1: [{ bar: "Bar", id: 1, mod_id: 1 }]
+          portal1: [{ bar: "Bar", id: 1, mod_id: "1" }]
         }]
       )
     end
@@ -105,9 +105,9 @@ RSpec.describe FmRest::Spyke::JsonParser do
         },
         data: [{
           id: 1,
-          mod_id: 1,
+          mod_id: "1",
           foo: "Foo",
-          portal1: [{ bar: "Bar", id: 1, mod_id: 1 }]
+          portal1: [{ bar: "Bar", id: 1, mod_id: "1" }]
         }]
       )
     end
@@ -120,7 +120,7 @@ RSpec.describe FmRest::Spyke::JsonParser do
       context "when sucessful" do
         let :response_json do
           {
-            response: { modId: 2 },
+            response: { modId: "2" },
             messages: [{code: "0", message: "OK"}]
           }
         end
@@ -130,7 +130,7 @@ RSpec.describe FmRest::Spyke::JsonParser do
             metadata: {
               messages: [{code: "0", message: "OK"}]
             },
-            data: { mod_id: 2 },
+            data: { mod_id: "2" },
             errors: {}
           )
         end

@@ -91,8 +91,8 @@ RSpec.describe FmRest::Spyke::Model::Attributes do
           data: [
             {
               fieldData: { name: "Obra Djinn" },
-              recordId: 1,
-              modId: 0
+              recordId: "1",
+              modId: "0"
             }
           ]
         )

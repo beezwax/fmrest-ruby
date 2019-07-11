@@ -154,7 +154,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
       before do
         allow(ship).to receive(:valid?).and_return(false)
 
-        stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_fm(recordId: 1, modId: 1)
+        stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_fm(recordId: "1", modId: "1")
       end
 
       it "raises ActiveModel::ValidationError when called with no options" do
@@ -173,7 +173,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
 
       context "when the server responds successfully" do
         before do
-          stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_fm(recordId: 1, modId: 1)
+          stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_fm(recordId: "1", modId: "1")
         end
 
         it "returns true" do
@@ -223,8 +223,8 @@ RSpec.describe FmRest::Spyke::Model::Orm do
     context "with a successful save" do
       before do
         stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_fm(
-          recordId: 1,
-          modId: 0
+          recordId: "1",
+          modId: "0"
         )
       end
 
@@ -254,7 +254,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
 
     before do
       stub_request(:get, fm_url(layout: "Ships") + "/records/1").to_return_fm(
-        data: [{ recordId: 1, modId: 2, fieldData: { name: "Obra Dinn Reloaded" } }]
+        data: [{ recordId: "1", modId: "2", fieldData: { name: "Obra Dinn Reloaded" } }]
       )
     end
 
@@ -263,7 +263,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
     end
 
     it "sets the mod_id" do
-      expect { ship.reload }.to change { ship.mod_id }.from(nil).to(2)
+      expect { ship.reload }.to change { ship.mod_id }.from(nil).to("2")
     end
   end
 
