@@ -7,6 +7,7 @@ rescue LoadError => e
   raise e
 end
 
+require "fmrest"
 require "fmrest/spyke/json_parser"
 require "fmrest/spyke/model"
 require "fmrest/spyke/base"
