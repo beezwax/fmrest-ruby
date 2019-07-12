@@ -10,14 +10,28 @@ RSpec.describe FmRest::Spyke::Base do
   end
 
   describe "method form" do
-    let(:subclass) { FmRest::Spyke::Base(host: "example.com") }
+    context "with config given" do
+      let(:subclass) { FmRest::Spyke::Base(host: "example.com") }
 
-    it "creates a subclass of FmRest::Spyke::Base" do
-      expect(subclass.superclass).to eq(FmRest::Spyke::Base)
+      it "creates a subclass of FmRest::Spyke::Base" do
+        expect(subclass.superclass).to eq(::FmRest::Spyke::Base)
+      end
+
+      it "takes an argument and assigns it to fmrest_config" do
+        expect(subclass.fmrest_config).to eq(host: "example.com")
+      end
     end
 
-    it "takes an argument and assigns it to fmrest_config" do
-      expect(subclass.fmrest_config).to eq(host: "example.com")
+    context "with no config given" do
+      let(:subclass) { FmRest::Spyke::Base() }
+
+      it "returns FmRest::Spyke::Base" do
+        expect(subclass).to eq(::FmRest::Spyke::Base)
+      end
+
+      it "doesn't set fmrest_config" do
+        expect(subclass.fmrest_config).to eq(nil)
+      end
     end
   end
 end
