@@ -7,8 +7,9 @@ module FmRest
     # Response Faraday middleware for converting FM API's response JSON into
     # Spyke's expected format
     class JsonParser < ::Faraday::Response::Middleware
-      SINGLE_RECORD_RE = %r(/records/\d+\Z).freeze
-      MULTIPLE_RECORDS_RE = %r(/records\Z).freeze
+      SINGLE_RECORD_RE = %r(/records/\d+\z).freeze
+      MULTIPLE_RECORDS_RE = %r(/records\z).freeze
+      CONTAINER_RE = %r(/records/\d+/containers/[^/]+/\d+\z).freeze
       FIND_RECORDS_RE = %r(/_find\b).freeze
 
       VALIDATION_ERROR_RANGE = 500..599
@@ -29,7 +30,7 @@ module FmRest
           env.body = prepare_single_record(json)
         when multiple_records_request?(env), find_request?(env)
           env.body = prepare_collection(json)
-        when create_request?(env), update_request?(env), delete_request?(env)
+        when create_request?(env), update_request?(env), delete_request?(env), container_upload_request?(env)
           env.body = prepare_save_response(json)
         end
       end
@@ -183,6 +184,11 @@ module FmRest
       # (see #single_record_request?)
       def create_request?(env)
         env.method == :post && env.url.path.match(MULTIPLE_RECORDS_RE)
+      end
+
+      # (see #single_record_request?)
+      def container_upload_request?(env)
+        env.method == :post && env.url.path.match(CONTAINER_RE)
       end
 
       # (see #single_record_request?)

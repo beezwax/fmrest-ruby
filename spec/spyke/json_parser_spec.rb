@@ -55,6 +55,10 @@ RSpec.describe FmRest::Spyke::JsonParser do
         stub.delete '/records/1' do
           [200, {}, response_json.to_json]
         end
+
+        stub.post '/records/1/containers/Pie/1' do
+          [200, {}, response_json.to_json]
+        end
       end
     end
   end
@@ -113,8 +117,8 @@ RSpec.describe FmRest::Spyke::JsonParser do
     end
   end
 
-  [["updating", :patch, "/records/1"], ["creating", :post, '/records']].each do |(action, method, endpoint)|
-    context "when #{action} a record" do
+  [["updating a record", :patch, "/records/1"], ["creating a record", :post, "/records"], ["uploading to a container", :post, "/records/1/containers/Pie/1"]].each do |(action, method, endpoint)|
+    context "when #{action}" do
       let(:response) { faraday.send(method, endpoint) }
 
       context "when sucessful" do
