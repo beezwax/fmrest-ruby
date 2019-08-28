@@ -23,6 +23,14 @@ RSpec.describe FmRest::V1::Connection do
         expect(dbl).to receive(:foo) { true }
         extendee.base_connection(host: "example.com", database: "Test DB") { dbl.foo }
       end
+
+      context "when passed :ssl and :proxy options" do
+        it "returns a Faraday::Connection with ssl and proxy options set" do
+          connection = extendee.base_connection(host: "example.com", database: "Test DB", ssl: { verify: false }, proxy: "https://foo.bar")
+          expect(connection.ssl.verify).to eq(false)
+          expect(connection.proxy.uri.to_s).to eq("https://foo.bar")
+        end
+      end
     end
   end
 

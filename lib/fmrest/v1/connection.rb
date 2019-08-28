@@ -9,6 +9,13 @@ module FmRest
     module Connection
       BASE_PATH = "/fmi/data/v1/databases".freeze
 
+      # Builds a complete DAPI Faraday connection with middleware already
+      # configured to handle authentication, JSON parsing, logging and DAPI
+      # error handling. A block can be optionally given for additional
+      # middleware configuration
+      #
+      # @option (see #base_connection)
+      # @return (see #base_connection)
       def build_connection(options = FmRest.config, &block)
         base_connection(options) do |conn|
           conn.use RaiseErrors
@@ -37,6 +44,18 @@ module FmRest
         end
       end
 
+      # Builds a base Faraday connection with base URL constructed from
+      # connection options and passes it the given block
+      #
+      # @option options [String] :host The hostname for the FM server
+      # @option options [String] :database The FM database name
+      # @option options [String] :username The username for DAPI authentication
+      # @option options [String] :password The password for DAPI authentication
+      # @option options [String] :ssl SSL options to forward to the Faraday
+      #   connection
+      # @option options [String] :proxy Proxy options to forward to the Faraday
+      #   connection
+      # @return [Faraday] The new Faraday connection
       def base_connection(options = FmRest.config, &block)
         host = options.fetch(:host)
 
@@ -50,7 +69,15 @@ module FmRest
           scheme = uri.scheme
         end
 
-        Faraday.new("#{scheme}://#{host}#{BASE_PATH}/#{URI.escape(options.fetch(:database))}/".freeze, &block)
+        faraday_options = {}
+        faraday_options[:ssl] = options[:ssl] if options.key?(:ssl)
+        faraday_options[:proxy] = options[:proxy] if options.key?(:proxy)
+
+        Faraday.new(
+          "#{scheme}://#{host}#{BASE_PATH}/#{URI.escape(options.fetch(:database))}/".freeze,
+          faraday_options,
+          &block
+        )
       end
     end
   end

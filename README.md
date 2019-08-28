@@ -63,6 +63,39 @@ end
 For each request fmrest-ruby will first request a session token (using the
 provided username and password) if it doesn't yet have one in store.
 
+## Connection options
+
+In addition to the required `:host`, `:database`, `:username` and `:password`
+connection options, you can also pass `:ssl` and `:proxy`, which are passed to
+the underlying [Faraday](https://github.com/lostisland/faraday) connection.
+
+You can use this to, for instance, disable SSL verification:
+
+```ruby
+FmRest::V1.build_connection(
+  host:     "example.com",
+  ...
+  ssl:      { verify: false }
+)
+```
+
+### Default connection options
+
+If you're only connecting to a single FM database you can configure it globally
+through `FmRest.config=`. E.g.:
+
+```ruby
+FmRest.config = {
+  host:     "example.com",
+  database: "database name",
+  username: "username",
+  password: "password"
+}
+```
+
+This configuration will be used by default by `FmRest::V1.build_connection` as
+well as your models whenever you don't pass a configuration hash explicitly.
+
 ## Session token store
 
 By default fmrest-ruby will use a memory-based store for the session tokens.
