@@ -8,7 +8,7 @@ module FmRest
       HEADER_KEY = "Authorization".freeze
       TOKEN_STORE_INTERFACE = [:load, :store, :delete].freeze
 
-      def initialize(app, options = FmRest.config)
+      def initialize(app, options = FmRest.default_connection_settings)
         super(app)
         @options = options
       end

@@ -38,7 +38,7 @@ module FmRest
           private
 
           def fmrest_connection
-            @fmrest_connection ||= FmRest::V1.build_connection(fmrest_config || FmRest.config) do |conn|
+            @fmrest_connection ||= FmRest::V1.build_connection(fmrest_config || FmRest.default_connection_settings) do |conn|
               faraday_block.call(conn) if faraday_block
 
               # Pass the class to JsonParser's initializer so it can have

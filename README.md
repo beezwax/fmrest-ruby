@@ -79,13 +79,16 @@ FmRest::V1.build_connection(
 )
 ```
 
+You can use the `:log` option for basic request logging, see the section on
+[Logging](#Logging) below.
+
 ### Default connection options
 
 If you're only connecting to a single FM database you can configure it globally
-through `FmRest.config=`. E.g.:
+through `FmRest.default_connection_settings=`. E.g.:
 
 ```ruby
-FmRest.config = {
+FmRest.default_connection_settings = {
   host:     "example.com",
   database: "database name",
   username: "username",
@@ -589,11 +592,11 @@ for you automatically by Spyke (see [their
 README](https://github.com/balvig/spyke#log-output)).
 
 You can also enable simple STDOUT logging (useful for debugging) by passing
-`log: true` in the options hash for either `FmRest.config=` or your models'
-`fmrest_config=`, e.g.:
+`log: true` in the options hash for either
+`FmRest.default_connection_settings=` or your models' `fmrest_config=`, e.g.:
 
 ```ruby
-FmRest.config = {
+FmRest.default_connection_settings = {
   host:     "example.com",
   database: "My Database",
   username: "z3r0c00l",
@@ -612,8 +615,6 @@ class LoggyBee < FmRest::Spyke::Base
   }
 end
 ```
-
-Note that the log option set in `FmRest.config` is ignored by models.
 
 If you need to set up more complex logging for your models can use the
 `faraday` block inside your class to inject your own logger middleware into the

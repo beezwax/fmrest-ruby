@@ -7,7 +7,7 @@ RSpec.describe FmRest do
     xit "sets the token store"
   end
 
-  describe ".config" do
-    xit "sets the config"
+  describe ".default_connection_settings" do
+    xit "sets the default connection settings"
   end
 end

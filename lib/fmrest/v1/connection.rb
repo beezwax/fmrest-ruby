@@ -16,7 +16,7 @@ module FmRest
       #
       # @option (see #base_connection)
       # @return (see #base_connection)
-      def build_connection(options = FmRest.config, &block)
+      def build_connection(options = FmRest.default_connection_settings, &block)
         base_connection(options) do |conn|
           conn.use RaiseErrors
           conn.use TokenSession, options
@@ -56,7 +56,7 @@ module FmRest
       # @option options [String] :proxy Proxy options to forward to the Faraday
       #   connection
       # @return [Faraday] The new Faraday connection
-      def base_connection(options = FmRest.config, &block)
+      def base_connection(options = FmRest.default_connection_settings, &block)
         host = options.fetch(:host)
 
         # Default to HTTPS
