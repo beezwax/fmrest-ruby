@@ -63,7 +63,7 @@ end
 For each request fmrest-ruby will first request a session token (using the
 provided username and password) if it doesn't yet have one in store.
 
-## Connection options
+## Connection settings
 
 In addition to the required `:host`, `:database`, `:username` and `:password`
 connection options, you can also pass `:ssl` and `:proxy`, which are passed to
@@ -82,7 +82,7 @@ FmRest::V1.build_connection(
 You can use the `:log` option for basic request logging, see the section on
 [Logging](#Logging) below.
 
-### Default connection options
+### Default connection settings
 
 If you're only connecting to a single FM database you can configure it globally
 through `FmRest.default_connection_settings=`. E.g.:
