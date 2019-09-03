@@ -1,7 +1,8 @@
 RSpec.describe FmRest::Spyke::ContainerField do
   let(:url) { "https://foo" }
 
-  let(:model_class) { double("ModelClass", layout: "MyLayout", connection: double(Faraday)) }
+  let(:faraday) { double(Faraday) }
+  let(:model_class) { double("ModelClass", layout: "MyLayout", connection: faraday) }
 
   let(:record) do
     double(FmRest::Spyke::Base, attributes: { "container" => url },
@@ -35,7 +36,7 @@ RSpec.describe FmRest::Spyke::ContainerField do
     let(:io) { double(IO) }
 
     it "returns an IO object with the contained file" do
-      expect(FmRest::V1).to receive(:fetch_container_data).with(url).and_return(io)
+      expect(FmRest::V1).to receive(:fetch_container_data).with(url, faraday).and_return(io)
       expect(container.download).to eq(io)
     end
   end

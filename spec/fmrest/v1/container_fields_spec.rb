@@ -40,6 +40,55 @@ RSpec.describe FmRest::V1::ContainerFields do
         expect(extendee.fetch_container_data(container_url).read).to eq("hi there")
       end
     end
+
+    context "when given a base Faraday connection" do
+      # NOTE: These specs are too close to implementation, but there doesn't
+      # seem to be another way around it since WebMock can't mock SSL/proxy
+      # requests, which would be the ideal way of testing this
+
+      let(:container_url) { "https://foo.bar/qux" }
+
+      let(:faraday_options) { { ssl: { verify: false, cert_store: __dir__ }, proxy: "http://proxy.foo.bar" } }
+
+      let!(:base_faraday) { Faraday.new(nil, faraday_options) }
+
+      before do
+        stub_request(:get, container_url).to_return(headers: { "Set-Cookie" => "secret cookie" })
+        stub_request(:get, container_url).with(headers: { "Cookie" => "secret cookie" }).to_return(body: "hi there")
+      end
+
+      after :each do
+        extendee.fetch_container_data(container_url, base_faraday)
+      end
+
+      it "uses a new Faraday connection with copied SSL and proxy options" do
+        faraday = Faraday.new(nil, faraday_options)
+
+        expect(Faraday).to receive(:new)
+          .with(anything, ssl: { verify: false, cert_store: __dir__ }, proxy: { uri: URI.parse("http://proxy.foo.bar") })
+          .and_return(faraday)
+      end
+
+      it "calls URI#open with right SSL and proxy options" do
+        expect_any_instance_of(URI::HTTPS).to receive(:open)
+          .with(hash_including(
+            ssl_verify_mode: OpenSSL::SSL::VERIFY_NONE,
+            ssl_ca_cert:     __dir__,
+            proxy:           URI("http://proxy.foo.bar")
+          ))
+      end
+
+      context "with authenticated proxy option" do
+        let(:faraday_options) { { proxy: "http://user:pass@proxy.foo.bar" } }
+
+        it "calls URI#open with right SSL and proxy options" do
+          expect_any_instance_of(URI::HTTPS).to receive(:open)
+            .with(hash_including(
+              proxy_http_basic_authentication: [URI("http://proxy.foo.bar"), "user", "pass"]
+            ))
+        end
+      end
+    end
   end
 
   describe "#upload_container_data" do

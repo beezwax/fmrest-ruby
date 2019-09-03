@@ -21,7 +21,7 @@ module FmRest
 
       # @return (see FmRest::V1::ContainerFields#fetch_container_data)
       def download
-        FmRest::V1.fetch_container_data(url)
+        FmRest::V1.fetch_container_data(url, @base.class.connection)
       end
 
       # @param filename_or_io [String, IO] a path to the file to upload or an
