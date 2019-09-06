@@ -4,9 +4,11 @@ require "fmrest/token_store/memory"
 RSpec.describe FmRest::V1::TokenSession do
   let(:token_store) { FmRest::TokenStore::Memory.new }
 
+  let(:hostname) { "stub" }
+
   let(:config) do
     {
-      host:        "stub",
+      host:        "https://#{hostname}",
       database:    "My DB",
       username:    "bobby",
       password:    "cubictrousers",
@@ -15,7 +17,7 @@ RSpec.describe FmRest::V1::TokenSession do
   end
 
   let :faraday do
-    Faraday.new("https://#{config[:host]}") do |conn|
+    Faraday.new("https://#{hostname}") do |conn|
       conn.use FmRest::V1::TokenSession, config
       conn.response :json
       conn.adapter Faraday.default_adapter
@@ -28,7 +30,7 @@ RSpec.describe FmRest::V1::TokenSession do
 
   describe "#call" do
     before do
-      token_store.store("#{config[:host]}:#{config[:database]}", token)
+      token_store.store("#{hostname}:#{config[:database]}", token)
     end
 
     context "with a valid token" do
@@ -36,7 +38,7 @@ RSpec.describe FmRest::V1::TokenSession do
 
       before do
         @stubbed_request =
-          stub_request(:get, "https://#{config[:host]}/").with(headers: { "Authorization" => "Bearer #{token}" }).to_return_fm
+          stub_request(:get, "https://#{hostname}/").with(headers: { "Authorization" => "Bearer #{token}" }).to_return_fm
       end
 
       it "sets the token header" do
@@ -50,14 +52,14 @@ RSpec.describe FmRest::V1::TokenSession do
       let(:new_token) { "SHINY_NEW_TOKEN" }
 
       before do
-        @retry_request = stub_request(:get, "https://#{config[:host]}/").with(headers: { "Authorization" => "Bearer #{new_token}" }).to_return_fm
-        @session_request = stub_request(:post, fm_url(config.slice(:host, :database)) + "/sessions").to_return_fm(token: new_token)
+        @retry_request = stub_request(:get, "https://#{hostname}/").with(headers: { "Authorization" => "Bearer #{new_token}" }).to_return_fm
+        @session_request = stub_request(:post, fm_url(host: hostname, database: config[:database]) + "/sessions").to_return_fm(token: new_token)
       end
 
       it "request a new token and stores it" do
         faraday.get("/")
         expect(@session_request).to have_been_requested.once
-        expect(token_store.load("#{config[:host]}:#{config[:database]}")).to eq(new_token)
+        expect(token_store.load("#{hostname}:#{config[:database]}")).to eq(new_token)
       end
 
       it "resends the request" do
@@ -71,15 +73,15 @@ RSpec.describe FmRest::V1::TokenSession do
       let(:new_token) { "SHINY_NEW_TOKEN" }
 
       before do
-        @init_request = stub_request(:get, "https://#{config[:host]}/").with(headers: { "Authorization" => "Bearer #{token}" }).to_return(status: 401)
-        @retry_request = stub_request(:get, "https://#{config[:host]}/").with(headers: { "Authorization" => "Bearer #{new_token}" }).to_return_fm
-        @session_request = stub_request(:post, fm_url(config.slice(:host, :database)) + "/sessions").to_return_fm(token: new_token)
+        @init_request = stub_request(:get, "https://#{hostname}/").with(headers: { "Authorization" => "Bearer #{token}" }).to_return(status: 401)
+        @retry_request = stub_request(:get, "https://#{hostname}/").with(headers: { "Authorization" => "Bearer #{new_token}" }).to_return_fm
+        @session_request = stub_request(:post, fm_url(host: hostname, database: config[:database]) + "/sessions").to_return_fm(token: new_token)
       end
 
       it "request a new token and stores it" do
         faraday.get("/")
         expect(@session_request).to have_been_requested.once
-        expect(token_store.load("#{config[:host]}:#{config[:database]}")).to eq(new_token)
+        expect(token_store.load("#{hostname}:#{config[:database]}")).to eq(new_token)
       end
 
       it "resends the request" do

@@ -71,7 +71,7 @@ module FmRest
           begin
             # Strip the host part to just the hostname (i.e. no scheme or port)
             host = @options.fetch(:host)
-            host = URI(host).hostname if host.match?(/\Ahttps?:\/\//)
+            host = URI(host).hostname if host =~ /\Ahttps?:\/\//
             "#{host}:#{@options.fetch(:database)}"
           end
       end
