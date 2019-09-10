@@ -140,7 +140,8 @@ FmRest.token_store = FmRest::TokenStore::Redis
 
 You can also initialize it with the following options:
 
-* `:redis` - A `Redis` object to use as connection, if ommited a new `Redis` object will be created with remaining options
+* `:redis` - A `Redis` object to use as connection, if ommited a new `Redis`
+  object will be created with remaining options
 * `:prefix` - The prefix to use for token keys, by default `"fmrest-token:"`
 * Any other options will be passed to `Redis.new` if `:redis` isn't provided
 
@@ -156,6 +157,43 @@ FmRest.token_store = FmRest::TokenStore::Redis.new(prefix: "my-fancy-prefix:", h
 
 **NOTE:** redis-rb is not included as a gem dependency of fmrest-ruby, so you'll
 have to add it to your Gemfile.
+
+### Moneta
+
+[Moneta](https://github.com/moneta-rb/moneta) is a key/value store wrapper
+around many different storage backends. If ActiveRecord or Redis don't suit
+your needs chances are Moneta will.
+
+To use it:
+
+```ruby
+# config/initializers/fmrest.rb
+require "fmrest/token_store/moneta"
+
+FmRest.token_store = FmRest::TokenStore::Moneta
+```
+
+By default the `:Memory` moneta backend will be used.
+
+You can also initialize it with the following options:
+
+* `:backend` - The moneta backend to initialize the store with
+* `:prefix` - The prefix to use for token keys, by default `"fmrest-token:"`
+* Any other options will be passed to `Moneta.new`
+
+Examples:
+
+```ruby
+# Using YAML as a backend with a custom prefix
+FmRest.token_store = FmRest::TokenStore::Moneta.new(
+  backend: :YAML,
+  file:    "tmp/tokens.yml",
+  prefix:  "my-tokens"
+)
+```
+
+**NOTE:** the moneta gem is not included as a dependency of fmrest-ruby, so
+you'll have to add it to your Gemfile.
 
 ## Spyke support (ActiveRecord-like ORM)
 
