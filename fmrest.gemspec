@@ -32,4 +32,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "activerecord"
   spec.add_development_dependency "sqlite3", "~> 1.3.6"
   spec.add_development_dependency "mock_redis"
+  spec.add_development_dependency "moneta"
 end
