@@ -36,10 +36,13 @@ module FmRest
           raise FmRest::ContainerFieldError, "Container URL is not HTTP (#{container_field_url})"
         end
 
+        ssl_options = base_connection && base_connection.ssl && base_connection.ssl.to_hash
+        proxy_options = base_connection && base_connection.proxy && base_connection.proxy.to_hash
+
         conn =
           Faraday.new(nil,
-            ssl:   base_connection ? base_connection.ssl.to_hash : FmRest.default_connection_settings[:ssl],
-            proxy: base_connection ? base_connection.proxy.to_hash : FmRest.default_connection_settings[:proxy]
+            ssl:   ssl_options || FmRest.default_connection_settings[:ssl],
+            proxy: proxy_options || FmRest.default_connection_settings[:proxy]
           )
 
         # Requesting the container URL with no cookie set will respond with a
