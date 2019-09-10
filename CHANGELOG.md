@@ -1,5 +1,13 @@
 ## Changelog
 
+### 0.3.0
+
+* Add Moneta token store
+
+### 0.2.5
+
+* Fix crash in `fetch_container_data` when no proxy options were set
+
 ### 0.2.4
 
 * Use `String#=~` instead of `String#match?` for Ruby <2.4 compatibility (Fixes
