@@ -162,7 +162,7 @@ have to add it to your Gemfile.
 
 [Moneta](https://github.com/moneta-rb/moneta) is a key/value store wrapper
 around many different storage backends. If ActiveRecord or Redis don't suit
-your needs chances are Moneta will.
+your needs, chances are Moneta will.
 
 To use it:
 
