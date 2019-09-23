@@ -1,5 +1,10 @@
 ## Changelog
 
+### 0.3.2
+
+* Fix support for ActiveSupport < 5.2
+  ([#27](https://github.com/beezwax/fmrest-ruby/issues/27))
+
 ### 0.3.0
 
 * Add Moneta token store
