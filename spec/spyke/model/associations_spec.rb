@@ -3,6 +3,14 @@ require "spec_helper"
 require "fixtures/pirates"
 
 RSpec.describe FmRest::Spyke::Model::Associations do
+  describe ".portal_options" do
+    it "defaults to an empty frozen hash" do
+      klass = fmrest_spyke_class
+      expect(klass.portal_options).to eq({})
+      expect(klass.portal_options).to be_frozen
+    end
+  end
+
   describe ".has_portal" do
     it "creates a Portal instance association" do
       expect(Ship.new.crew).to be_a(FmRest::Spyke::Portal)

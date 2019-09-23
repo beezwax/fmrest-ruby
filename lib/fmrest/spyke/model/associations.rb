@@ -11,9 +11,12 @@ module FmRest
         included do
           # Keep track of portal options by their FM keys as we could need it
           # to parse the portalData JSON in JsonParser
-          class_attribute :portal_options, instance_accessor: false,
-                                           instance_predicate: false,
-                                           default:           {}.freeze
+          class_attribute :portal_options, instance_accessor: false, instance_predicate: false
+
+          # class_attribute supports a :default option since ActiveSupport 5.2,
+          # but we want to support previous versions too so we set the default
+          # manually instead
+          self.portal_options = {}.freeze
 
           class << self; private :portal_options=; end
         end

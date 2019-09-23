@@ -40,6 +40,10 @@ RSpec.describe FmRest::Spyke::Model::Attributes do
     it "returns a hash of the class' mapped attributes" do
       expect(test_class.mapped_attributes).to eq("foo" => "Foo", "bar" => "Bar")
     end
+
+    it "defaults to a HashWithIndifferentAccess" do
+      expect(fmrest_spyke_class.mapped_attributes).to be_a(ActiveSupport::HashWithIndifferentAccess)
+    end
   end
 
   describe "#id_will_change!" do
