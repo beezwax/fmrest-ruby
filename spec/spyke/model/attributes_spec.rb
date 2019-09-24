@@ -34,6 +34,14 @@ RSpec.describe FmRest::Spyke::Model::Attributes do
       expect(instance).to respond_to(:foo_will_change!)
       expect(instance.foo_changed?).to be(true)
     end
+
+    it "raises an error, if attempting to set an attribute named id" do
+      expect do
+        fmrest_spyke_class do
+          attributes id: "Foo", bar: "Bar"
+        end
+      end.to raise_error("id is reserved for the record_id")
+    end
   end
 
   describe ".mapped_attributes" do
