@@ -79,13 +79,12 @@ module FmRest
           end
 
           def _fmrest_define_attribute(from, to)
+            raise ArgumentError, "attribute name `id' is reserved for the recordId" if from.to_s == "id"
+
             # We use a setter here instead of injecting the hash key/value pair
             # directly with #[]= so that we don't change the mapped_attributes
             # hash on the parent class. The resulting hash is frozen for the
             # same reason.
-
-            raise ArgumentError, "id is reserved for the record_id" if from == :id
-
             self.mapped_attributes = mapped_attributes.merge(from => to).freeze
 
             _fmrest_attribute_methods_container.module_eval do

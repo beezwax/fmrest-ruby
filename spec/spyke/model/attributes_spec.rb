@@ -40,7 +40,7 @@ RSpec.describe FmRest::Spyke::Model::Attributes do
         fmrest_spyke_class do
           attributes id: "Foo", bar: "Bar"
         end
-      end.to raise_error("id is reserved for the record_id")
+      end.to raise_error("attribute name `id' is reserved for the recordId")
     end
   end
 
