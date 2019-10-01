@@ -29,15 +29,17 @@ module FmRest
 
       # @param value [Integer] the limit value
       # @return [FmRest::Spyke::Relation] a new relation with the limit applied
-      def limit(value)
-        with_clone { |r| r.limit_value = value }
+      def limit(value = 999, **portal_limits)
+        r = with_clone { |r| r.limit_value = value }
+        set_portal_params(r, portal_limits, type: :limit)
       end
 
       # @param value [Integer] the offset value
       # @return [FmRest::Spyke::Relation] a new relation with the offset
       #   applied
-      def offset(value)
-        with_clone { |r| r.offset_value = value }
+      def offset(value = 999, **portal_offsets)
+        r = with_clone { |r| r.offset_value = value }
+        set_portal_params(r, portal_offsets, type: :offset)
       end
 
       # Allows sort params given in either hash format (using FM Data API's
@@ -144,6 +146,16 @@ module FmRest
             normalized[k.to_s] = v
           end
         end
+      end
+
+      def set_portal_params(r, portal_limits, type:)
+        raise 'Type must be :limit or :offset' unless [:limit, :offset].include?(type)
+
+        portal_limits.each do |portal_name, limit|
+          r.params["_#{type}.#{normalize_portal_param(portal_name)}"] = limit
+        end
+
+        r
       end
 
       def with_clone
