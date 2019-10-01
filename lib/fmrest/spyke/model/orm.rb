@@ -71,6 +71,12 @@ module FmRest
                 prefixed ? scope.portal_params.to_json : scope.portal_params
             end
 
+            if scope.portal_limit_or_offset_params.present?
+              scope.portal_limit_or_offset_params.each do |portal_name, limit|
+                where_options["#{prefix}#{portal_name}"] = limit
+              end
+            end
+
             scope.where(where_options)
           end
         end
