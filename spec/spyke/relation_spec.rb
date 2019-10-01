@@ -36,7 +36,7 @@ RSpec.describe FmRest::Spyke::Relation do
       it "applies the limit to the params for each portal key" do
         limit_scope = relation.limit(bridges: 10, tunnels: 1)
 
-        expect(limit_scope.params).to eq("_limit.Bridges"=>10, "_limit.Tunnels"=>1)
+        expect(limit_scope.portal_limit_or_offset_params).to eq("limit.Bridges"=>10, "limit.Tunnels"=>1)
       end
     end
   end
@@ -53,7 +53,7 @@ RSpec.describe FmRest::Spyke::Relation do
       it "applies the offset to the params for each portal key" do
         offset_scope = relation.offset(bridges: 10, tunnels: 1)
 
-        expect(offset_scope.params).to eq("_offset.Bridges"=>10, "_offset.Tunnels"=>1)
+        expect(offset_scope.portal_limit_or_offset_params).to eq("offset.Bridges"=>10, "offset.Tunnels"=>1)
       end
     end
   end
