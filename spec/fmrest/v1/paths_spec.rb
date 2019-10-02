@@ -22,7 +22,7 @@ RSpec.describe FmRest::V1::Paths do
       expect(extendee.record_path("Some Layout", 1337)).to eq("layouts/Some%20Layout/records/1337")
     end
 
-    it "encodes the url correctly when a layout contains brackets and spaces" do
+    it "encodes the path correctly when a layout contains brackets and spaces" do
       expect(extendee.record_path("Some Layout [horribleUrL]")).to eq("layouts/Some%20Layout%20%5BhorribleUrL%5D/records")
     end
   end
@@ -34,6 +34,10 @@ RSpec.describe FmRest::V1::Paths do
 
     it "returns layouts/:layout/records/:id/containers/:field_name/:field_repetition when called with field_repetition" do
       expect(extendee.container_field_path("Some Layout", 66, "My Container Field", 10)).to eq("layouts/Some%20Layout/records/66/containers/My%20Container%20Field/10")
+    end
+
+    it "encodes the path correctly when a field name contains brackets and spaces" do
+      expect(extendee.container_field_path("Some [Horrible] Layout", 77, "[Ugly] Field")).to eq("layouts/Some%20%5BHorrible%5D%20Layout/records/77/containers/%5BUgly%5D%20Field/1")
     end
   end
 
