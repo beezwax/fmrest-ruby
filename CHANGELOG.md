@@ -1,5 +1,12 @@
 ## Changelog
 
+### 0.3.3
+
+* Fix encoding of paths for layouts with brackets in them (e.g. `"\[Very Ugly\]
+  Layout"`)
+* Raise an error if `"id"` is assigned as an attribute on a model, as it's
+  currently a reserved method name by Spyke
+
 ### 0.3.2
 
 * Fix support for ActiveSupport < 5.2
