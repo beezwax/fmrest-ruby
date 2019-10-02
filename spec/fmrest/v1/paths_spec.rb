@@ -21,6 +21,10 @@ RSpec.describe FmRest::V1::Paths do
     it "returns layouts/:layout/records/:id when called with an id" do
       expect(extendee.record_path("Some Layout", 1337)).to eq("layouts/Some%20Layout/records/1337")
     end
+
+    it "encodes the url correctly when a layout contains brackets and spaces" do
+      expect(extendee.record_path("Some Layout [horribleUrL]")).to eq("layouts/Some%20Layout%20%5BhorribleUrL%5D/records")
+    end
   end
 
   describe "#container_field_path" do

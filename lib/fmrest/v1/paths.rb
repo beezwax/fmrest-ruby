@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "uri"
-
 module FmRest
   module V1
     module Paths
@@ -12,20 +10,20 @@ module FmRest
       end
 
       def record_path(layout, id = nil)
-        url = "layouts/#{URI.escape(layout.to_s)}/records"
+        url = "layouts/#{ERB::Util.url_encode(layout.to_s)}/records"
         url += "/#{id}" if id
         url
       end
 
       def container_field_path(layout, id, field_name, field_repetition = 1)
         url = record_path(layout, id)
-        url += "/containers/#{URI.escape(field_name.to_s)}"
+        url += "/containers/#{ERB::Util.url_encode(field_name.to_s)}"
         url += "/#{field_repetition}" if field_repetition
         url
       end
 
       def find_path(layout)
-        "layouts/#{URI.escape(layout.to_s)}/_find"
+        "layouts/#{ERB::Util.url_encode(layout.to_s)}/_find"
       end
 
       def globals_path
