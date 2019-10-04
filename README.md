@@ -447,16 +447,6 @@ passing arbitrary parameters to the REST backend. fmrest-ruby however is well
 aware of its backend API, so it extends Spkye models with a bunch of useful
 querying methods.
 
-```ruby
-class Honeybee < Spyke::Base
-  include FmRest::Spyke
-
-  attributes name: "Bee Name", age: "Bee Age"
-
-  has_portal :hives, portal_key: "Bee Hives"
-end
-```
-
 #### .limit
 
 `.limit` sets the limit for get and find request:
@@ -464,6 +454,10 @@ end
 ```ruby
 Honeybee.limit(10)
 ```
+
+NOTE: You can also set a default limit value for a model class, see
+[Other notes on querying](#other-notes-on-querying).
+
 
 #### .offset
 
@@ -490,15 +484,43 @@ Honeybee.sort(:name, :age!)
 Honeybee.sort(:name, :age__desc)
 ```
 
+NOTE: You can also set default sort values for a model class, see
+[Other notes on querying](#other-notes-on-querying).
+
 #### .portal
 
-`.portal` (or `.includes`) sets the portals to fetch for get and find requests
-(this recognizes portals defined with `has_portal`):
+`.portal` (aliased as `.includes` and `.portals`) sets which portals to fetch
+(if any) for get and find requests (this recognizes portals defined with
+`has_portal`):
 
 ```ruby
-Honeybee.portal(:hives)
+Honeybee.portal(:hives)   # include just the :hives portal
 Honeybee.includes(:hives) # alias method
+Honeybee.portals(:hives, :flowers) # alias for pluralization fundamentalists
 ```
+
+Chaining calls to `.portal` will add portals to the existing included list:
+
+```ruby
+Honeybee.portal(:flowers).portal(:hives) # include both portals
+```
+
+If you want to disable portals for the scope call `.portal(false)`:
+
+```ruby
+Honeybee.portal(false) # disable portals for this scope
+```
+
+If you want to include all portals call `.portal(true)`:
+
+```ruby
+Honeybee.portal(true) # include all portals
+```
+
+For convenience you can also use `.with_all_portals` and `.without_portals`,
+which behave just as calling `.portal(true)` and `portal(false)` respectively.
+
+NOTE: By default all portals are included.
 
 #### .query
 
@@ -553,8 +575,10 @@ Honeybee.limit(10).offset(20).sort(:name, :age!).portal(:hives).query(name: "Hut
 You can also set default values for limit and sort on the class:
 
 ```ruby
-Honeybee.default_limit = 1000
-Honeybee.default_sort = [:name, :age!]
+class Honeybee < FmRest::Spyke::Base
+  self.default_limit = 1000
+  self.default_sort = [:name, :age!]
+end
 ```
 
 Calling any `Enumerable` method on the resulting scope object will trigger a

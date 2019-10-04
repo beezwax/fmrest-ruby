@@ -71,6 +71,14 @@ RSpec.describe FmRest::Spyke::Relation do
   end
 
   describe "#portal" do
+    it "raises ArgumentError when given no arguments" do
+      expect { relation.portal }.to raise_error(ArgumentError, "Call `portal' with at least one argument")
+    end
+
+    it "raises ArgumentError when given undefined portals as symbols" do
+      expect { relation.portal(:not_a_portal) }.to raise_error(ArgumentError)
+    end
+
     context "when given defined portals as symbols or undefined portals as strings" do
       it "creates a new scope with the given portal params" do
         portal_scope = relation.portal(:bridges, [:tunnels, :tunnels]).portal("SirNotAppearingInThisClass")
@@ -80,10 +88,34 @@ RSpec.describe FmRest::Spyke::Relation do
       end
     end
 
-    context "when given undefined portals as symbols" do
-      it do
-        expect { relation.portal(:not_a_portal) }.to raise_error(ArgumentError)
-      end
+    it "sets portal_params to nil when given true" do
+      portal_scope = relation.portal(true)
+      expect(portal_scope.portal_params).to eq(nil)
+    end
+
+    it "sets portal_params to [] when given false" do
+      portal_scope = relation.portal(false)
+      expect(portal_scope.portal_params).to eq([])
+    end
+  end
+
+  describe "#with_all_portals" do
+    it "sets portal_params to nil" do
+      portal_scope = relation.with_all_portals
+      expect(portal_scope.portal_params).to eq(nil)
+    end
+  end
+
+  describe "#without_portals" do
+    it "sets portal_params to []" do
+      portal_scope = relation.without_portals
+      expect(portal_scope.portal_params).to eq([])
+    end
+  end
+
+  describe "#portals" do
+    it "is an alias for #portal" do
+      expect(FmRest::Spyke::Relation.instance_method(:portals)).to eq(FmRest::Spyke::Relation.instance_method(:portal))
     end
   end
 

@@ -36,7 +36,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
     end
   end
 
-  [:limit, :offset, :sort, :query, :portal].each do |delegator|
+  [:limit, :offset, :sort, :order, :query, :omit, :portal, :portals, :includes, :without_portals, :with_all_portals].each do |delegator|
     describe ".#{delegator}" do
       let(:scope) { double("Relation") }
 
@@ -86,6 +86,22 @@ RSpec.describe FmRest::Spyke::Model::Orm do
         expect(request).to have_been_requested
       end
 
+      it "applies no portal URI param when portal(true) was called" do
+        request = stub_request(:post, fm_url(layout: "Ships") + "/_find")
+          .with(body: { query: [{ name: "Mary Celeste" }] })
+          .to_return_fm
+        Ship.query(name: "Mary Celeste").portal(true).fetch
+        expect(request).to have_been_requested
+      end
+
+      it "applies empty portal URI param" do
+        request = stub_request(:post, fm_url(layout: "Ships") + "/_find")
+          .with(body: hash_including(portal: []))
+          .to_return_fm
+        Ship.query(name: "Mary Celeste").portal(false).fetch
+        expect(request).to have_been_requested
+      end
+
       it "applies all combined JSON params" do
         request.with(body: {
           limit:  42,
@@ -124,6 +140,14 @@ RSpec.describe FmRest::Spyke::Model::Orm do
           .with(query: { portal: ["PiratesTable", "Flags"].to_json })
           .to_return_fm
         Ship.portal(:crew, "Flags").fetch
+        expect(request).to have_been_requested
+      end
+
+      it "applies empty portal URI param" do
+        request = stub_request(:get, fm_url(layout: "Ships") + "/records")
+          .with(query: { portal: "[]" })
+          .to_return_fm
+        Ship.portal(false).fetch
         expect(request).to have_been_requested
       end
 
