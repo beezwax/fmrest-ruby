@@ -17,7 +17,9 @@ module FmRest
 
         class_methods do
           # Methods delegated to FmRest::Spyke::Relation
-          delegate :limit, :offset, :sort, :query, :portal, to: :all
+          delegate :limit, :offset, :sort, :order, :query, :omit, :portal,
+                   :portals, :includes, :with_all_portals, :without_portals,
+                   to: :all
 
           def all
             # Use FmRest's Relation insdead of Spyke's vanilla one
@@ -66,7 +68,7 @@ module FmRest
                 prefixed ? scope.sort_params.to_json : scope.sort_params
             end
 
-            if scope.portal_params.present?
+            unless scope.portal_params.nil?
               where_options["portal"] =
                 prefixed ? scope.portal_params.to_json : scope.portal_params
             end

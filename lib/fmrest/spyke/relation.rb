@@ -24,7 +24,7 @@ module FmRest
         end
 
         @query_params = []
-        @portal_params = []
+        @portal_params = nil
       end
 
       # @param value [Integer] the limit value
@@ -47,7 +47,7 @@ module FmRest
       #
       # @param args [Array<Symbol, Hash>] the names of attributes to sort by with
       #   optional `!` or `__desc` suffix, or a hash of options as expected by
-      #     the FM Data API
+      #   the FM Data API
       # @example
       #   Person.sort(:first_name, :age!)
       #   Person.sort(:first_name, :age__desc)
@@ -62,13 +62,45 @@ module FmRest
       end
       alias order sort
 
+      # Sets the portals to include with each record in the response.
+      #
+      # @param args [Array<Symbol, String>, true, false] the names of portals to
+      #   include, or `false` to request no portals
+      # @example
+      #   Person.portal(:relatives, :pets)
+      #   Person.portal(false) # Disables portals
+      #   Person.portal(true) # Enables portals (includes all)
+      # @return [FmRest::Spyke::Relation] a new relation with the portal
+      #   options applied
       def portal(*args)
+        raise ArgumentError, "Call `portal' with at least one argument" if args.empty?
+
         with_clone do |r|
-          r.portal_params += args.flatten.map { |p| normalize_portal_param(p) }
-          r.portal_params.uniq!
+          if args.length == 1 && args.first.eql?(true) || args.first.eql?(false)
+            r.portal_params = args.first ? nil : []
+          else
+            r.portal_params ||= []
+            r.portal_params += args.flatten.map { |p| normalize_portal_param(p) }
+            r.portal_params.uniq!
+          end
         end
       end
       alias includes portal
+      alias portals portal
+
+      # Same as calling `portal(true)`
+      #
+      # @return (see #portal)
+      def with_all_portals
+        portal(true)
+      end
+
+      # Same as calling `portal(false)`
+      #
+      # @return (see #portal)
+      def without_portals
+        portal(false)
+      end
 
       def query(*params)
         with_clone do |r|
