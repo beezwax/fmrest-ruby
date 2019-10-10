@@ -1,5 +1,10 @@
 ## Changelog
 
+### 0.4.0
+
+* Implement ability to set limit and offset for portals
+* Implement disabling and requesting all portals
+
 ### 0.3.3
 
 * Fix encoding of paths for layouts with brackets in them (e.g. `"\[Very Ugly\]
