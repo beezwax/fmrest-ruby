@@ -35,8 +35,11 @@ RSpec.describe FmRest::Spyke::Relation do
     context "when given portal limits" do
       it "applies the limit to the params for each portal key" do
         limit_scope = relation.limit(bridges: 10, tunnels: 1)
+        expect(limit_scope.portal_params).to eq("limit.Bridges"=>10, "limit.Tunnels"=>1)
+      end
 
-        expect(limit_scope.portal_limit_or_offset_params).to eq("limit.Bridges"=>10, "limit.Tunnels"=>1)
+      it "doesn't modify the portal_params of the parent relation" do
+        expect { relation.limit(bridges: 10) }.to_not change { relation.portal_params }
       end
     end
   end
@@ -52,8 +55,11 @@ RSpec.describe FmRest::Spyke::Relation do
     context "when given portal offsets" do
       it "applies the offset to the params for each portal key" do
         offset_scope = relation.offset(bridges: 10, tunnels: 1)
+        expect(offset_scope.portal_params).to eq("offset.Bridges"=>10, "offset.Tunnels"=>1)
+      end
 
-        expect(offset_scope.portal_limit_or_offset_params).to eq("offset.Bridges"=>10, "offset.Tunnels"=>1)
+      it "doesn't modify the portal_params of the parent relation" do
+        expect { relation.limit(bridges: 10) }.to_not change { relation.portal_params }
       end
     end
   end
@@ -78,6 +84,10 @@ RSpec.describe FmRest::Spyke::Relation do
         expect { relation.sort("NotAnAttribute") }.to raise_error(ArgumentError)
       end
     end
+
+    it "doesn't modify the sort_params of the parent relation" do
+      expect { relation.sort(:foo) }.to_not change { relation.sort_params }
+    end
   end
 
   describe "#order" do
@@ -100,32 +110,36 @@ RSpec.describe FmRest::Spyke::Relation do
         portal_scope = relation.portal(:bridges, [:tunnels, :tunnels]).portal("SirNotAppearingInThisClass")
         expect(portal_scope).to_not eq(relation)
         expect(portal_scope).to be_a(FmRest::Spyke::Relation)
-        expect(portal_scope.portal_params).to eq(["Bridges", "Tunnels", "SirNotAppearingInThisClass"])
+        expect(portal_scope.included_portals).to eq(["Bridges", "Tunnels", "SirNotAppearingInThisClass"])
       end
     end
 
-    it "sets portal_params to nil when given true" do
+    it "sets included_portals to nil when given true" do
       portal_scope = relation.portal(true)
-      expect(portal_scope.portal_params).to eq(nil)
+      expect(portal_scope.included_portals).to eq(nil)
     end
 
-    it "sets portal_params to [] when given false" do
+    it "sets included_portals to [] when given false" do
       portal_scope = relation.portal(false)
-      expect(portal_scope.portal_params).to eq([])
+      expect(portal_scope.included_portals).to eq([])
+    end
+
+    it "doesn't modify the included_portals of the parent relation" do
+      expect { relation.portal(:bridges) }.to_not change { relation.included_portals }
     end
   end
 
   describe "#with_all_portals" do
-    it "sets portal_params to nil" do
+    it "sets included_portals to nil" do
       portal_scope = relation.with_all_portals
-      expect(portal_scope.portal_params).to eq(nil)
+      expect(portal_scope.included_portals).to eq(nil)
     end
   end
 
   describe "#without_portals" do
-    it "sets portal_params to []" do
+    it "sets included_portals to []" do
       portal_scope = relation.without_portals
-      expect(portal_scope.portal_params).to eq([])
+      expect(portal_scope.included_portals).to eq([])
     end
   end
 

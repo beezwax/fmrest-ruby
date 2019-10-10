@@ -68,14 +68,14 @@ module FmRest
                 prefixed ? scope.sort_params.to_json : scope.sort_params
             end
 
-            unless scope.portal_params.nil?
+            unless scope.included_portals.nil?
               where_options["portal"] =
-                prefixed ? scope.portal_params.to_json : scope.portal_params
+                prefixed ? scope.included_portals.to_json : scope.included_portals
             end
 
-            if scope.portal_limit_or_offset_params.present?
-              scope.portal_limit_or_offset_params.each do |portal_name, limit|
-                where_options["#{prefix}#{portal_name}"] = limit
+            if scope.portal_params.present?
+              scope.portal_params.each do |portal_param, value|
+                where_options["#{prefix}#{portal_param}"] = value
               end
             end
 

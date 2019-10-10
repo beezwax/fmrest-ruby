@@ -105,7 +105,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
       it "applies portal limit param" do
         request = stub_request(:post, fm_url(layout: "Ships") + "/_find")
          .with(
-           body: { limit: 999, portal: ["PiratesTable", "Flags"], "limit.PiratesTable" => 10, query: [{ name: "Mary Celeste" }] },
+           body: { portal: ["PiratesTable", "Flags"], "limit.PiratesTable" => 10, query: [{ name: "Mary Celeste" }] },
          ).to_return_fm
         Ship.query(name: "Mary Celeste").portal(:crew, "Flags").limit(crew: 10).fetch
         expect(request).to have_been_requested
@@ -114,7 +114,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
       it "applies portal offset param" do
         request = stub_request(:post, fm_url(layout: "Ships") + "/_find")
          .with(
-           body: { offset: 999, portal: ["PiratesTable", "Flags"], "offset.PiratesTable" => 10, query: [{ name: "Mary Celeste" }] },
+           body: { portal: ["PiratesTable", "Flags"], "offset.PiratesTable" => 10, query: [{ name: "Mary Celeste" }] },
          ).to_return_fm
         Ship.query(name: "Mary Celeste").portal(:crew, "Flags").offset(crew: 10).fetch
         expect(request).to have_been_requested
@@ -123,7 +123,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
       it "applies both portal offset and limit params" do
         request = stub_request(:post, fm_url(layout: "Ships") + "/_find")
          .with(
-           body: { offset: 999, limit: 999, portal: ["PiratesTable", "Flags"], "offset.PiratesTable" => 10,  "limit.PiratesTable" => 10, query: [{ name: "Mary Celeste" }] },
+           body: { portal: ["PiratesTable", "Flags"], "offset.PiratesTable" => 10,  "limit.PiratesTable" => 10, query: [{ name: "Mary Celeste" }] },
          ).to_return_fm
         Ship.query(name: "Mary Celeste").portal(:crew, "Flags").offset(crew: 10).limit(crew: 10).fetch
         expect(request).to have_been_requested
@@ -180,7 +180,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
 
       it "applies portal limit param" do
         request = stub_request(:get, fm_url(layout: "Ships") + "/records")
-          .with(query: { portal: ["PiratesTable", "Flags"].to_json, _limit: 999, "_limit.PiratesTable" => 10 })
+          .with(query: { portal: ["PiratesTable", "Flags"].to_json, "_limit.PiratesTable" => 10 })
           .to_return_fm
         Ship.portal(:crew, "Flags").limit(crew: 10).fetch
         expect(request).to have_been_requested
@@ -188,7 +188,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
 
       it "applies portal offset param" do
         request = stub_request(:get, fm_url(layout: "Ships") + "/records")
-          .with(query: { portal: ["PiratesTable"].to_json, _offset: 999, "_offset.PiratesTable" => 10 })
+          .with(query: { portal: ["PiratesTable"].to_json, "_offset.PiratesTable" => 10 })
           .to_return_fm
         Ship.portal(:crew).offset(crew: 10).fetch
         expect(request).to have_been_requested
@@ -198,9 +198,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
         request = stub_request(:get, fm_url(layout: "Ships") + "/records")
           .with(query: {
             portal: ["PiratesTable"].to_json,
-            _offset: 999,
             "_offset.PiratesTable" => 10,
-            _limit: 999,
             "_limit.PiratesTable" => 10
           })
           .to_return_fm

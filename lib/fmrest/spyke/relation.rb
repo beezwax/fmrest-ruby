@@ -12,7 +12,7 @@ module FmRest
 
 
       attr_accessor :limit_value, :offset_value, :sort_params, :query_params,
-                    :portal_params, :portal_limit_or_offset_params
+                    :included_portals, :portal_params
 
       def initialize(*_args)
         super
@@ -24,23 +24,43 @@ module FmRest
         end
 
         @query_params = []
-        @portal_params = nil
-        @portal_limit_or_offset_params = {}
+
+        @included_portals = nil
+        @portal_params = {}
       end
 
-      # @param value [Integer] the limit value
-      # @return [FmRest::Spyke::Relation] a new relation with the limit applied
-      def limit(value = 999, **portal_limits)
-        r = with_clone { |r| r.limit_value = value }
-        set_portal_limit_or_offset_params(r, portal_limits, type: :limit)
-      end
-
-      # @param value [Integer] the offset value
-      # @return [FmRest::Spyke::Relation] a new relation with the offset
+      # @param value_or_hash [Integer, Hash] the limit value for this layout,
+      #   or a hash with limits for the layout's portals
+      # @example
+      #   Person.limit(10) # Set layout limit
+      #   Person.limit(children: 10) # Set portal limit
+      # @return [FmRest::Spyke::Relation] a new relation with the limits
       #   applied
-      def offset(value = 999, **portal_offsets)
-        r = with_clone { |r| r.offset_value = value }
-        set_portal_limit_or_offset_params(r, portal_offsets, type: :offset)
+      def limit(value_or_hash)
+        with_clone do |r|
+          if value_or_hash.respond_to?(:each)
+            r.set_portal_params(value_or_hash, :limit)
+          else
+            r.limit_value = value_or_hash
+          end
+        end
+      end
+
+      # @param value_or_hash [Integer, Hash] the offset value for this layout,
+      #   or a hash with offsets for the layout's portals
+      # @example
+      #   Person.offset(10) # Set layout offset
+      #   Person.offset(children: 10) # Set portal offset
+      # @return [FmRest::Spyke::Relation] a new relation with the offsets
+      #   applied
+      def offset(value_or_hash)
+        with_clone do |r|
+          if value_or_hash.respond_to?(:each)
+            r.set_portal_params(value_or_hash, :offset)
+          else
+            r.offset_value = value_or_hash
+          end
+        end
       end
 
       # Allows sort params given in either hash format (using FM Data API's
@@ -80,11 +100,11 @@ module FmRest
 
         with_clone do |r|
           if args.length == 1 && args.first.eql?(true) || args.first.eql?(false)
-            r.portal_params = args.first ? nil : []
+            r.included_portals = args.first ? nil : []
           else
-            r.portal_params ||= []
-            r.portal_params += args.flatten.map { |p| normalize_portal_param(p) }
-            r.portal_params.uniq!
+            r.included_portals ||= []
+            r.included_portals += args.flatten.map { |p| normalize_portal_param(p) }
+            r.included_portals.uniq!
           end
         end
       end
@@ -128,6 +148,28 @@ module FmRest
         @find_one ||= klass.new_collection_from_result(limit(1).fetch).first
       rescue ::Spyke::ConnectionError => error
         fallback_or_reraise(error, default: nil)
+      end
+
+      protected
+
+      def set_portal_params(params_hash, param)
+        # Copy portal_params so we're not modifying the same hash as the parent
+        # scope
+        self.portal_params = portal_params.dup
+
+        params_hash.each do |portal_name, value|
+          # TODO: Use a hash like { portal_name: { param: value } } instead so
+          # we can intelligently avoid including portal params for excluded
+          # portals
+          key = "#{param}.#{normalize_portal_param(portal_name)}"
+
+          # Delete key if value is falsy
+          if !value && portal_params.has_key?(key)
+            portal_params.delete(key)
+          else
+            self.portal_params[key] = value
+          end
+        end
       end
 
       private
@@ -179,16 +221,6 @@ module FmRest
             normalized[k.to_s] = v
           end
         end
-      end
-
-      def set_portal_limit_or_offset_params(r, limit_or_offset, type:)
-        raise 'Type must be :limit or :offset' unless [:limit, :offset].include?(type)
-
-        limit_or_offset.each do |portal_name, value|
-          r.portal_limit_or_offset_params["#{type}.#{normalize_portal_param(portal_name)}"] = value
-        end
-
-        r
       end
 
       def with_clone
