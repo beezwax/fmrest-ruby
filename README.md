@@ -458,6 +458,17 @@ Honeybee.limit(10)
 NOTE: You can also set a default limit value for a model class, see
 [Other notes on querying](#other-notes-on-querying).
 
+You can also use `.limit` to set limits on portals:
+
+```ruby
+Honeybee.limit(hives: 3, flowers: 2)
+```
+
+To remove the limit on a portal set it to `nil`:
+
+```ruby
+Honeybee.limit(flowers: nil)
+```
 
 #### .offset
 
@@ -465,6 +476,18 @@ NOTE: You can also set a default limit value for a model class, see
 
 ```ruby
 Honeybee.offset(10)
+```
+
+You can also use `.offset` to set offsets on portals:
+
+```ruby
+Honeybee.offset(hives: 3, flowers: 2)
+```
+
+To remove the offset on a portal set it to `nil`:
+
+```ruby
+Honeybee.offset(flowers: nil)
 ```
 
 #### .sort
@@ -696,7 +719,7 @@ end
 - [ ] Better/simpler-to-use core Ruby API
 - [ ] Better API documentation and README
 - [ ] Oauth support
-- [ ] Support for portal limit and offset
+- [x] Support for portal limit and offset
 - [x] More options for token storage
 - [x] Support for container fields
 - [x] Optional logging
