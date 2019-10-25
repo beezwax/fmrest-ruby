@@ -80,8 +80,8 @@ RSpec.describe FmRest::Spyke::Model::Orm do
 
       it "applies portal URI param" do
         request = stub_request(:post, fm_url(layout: "Ships") + "/_find")
-        .with(body: hash_including(portal: ["PiratesTable", "Flags"]))
-        .to_return_fm
+          .with(body: hash_including(portal: ["PiratesTable", "Flags"]))
+          .to_return_fm
         Ship.query(name: "Mary Celeste").portal(:crew, "Flags").fetch
         expect(request).to have_been_requested
       end
@@ -138,6 +138,22 @@ RSpec.describe FmRest::Spyke::Model::Orm do
         })
         Pirate.limit(42).offset(10).sort(:name, :rank!).query(name: "foo").fetch
         expect(request).to have_been_requested
+      end
+
+      context "when the request returns a 401 API error" do
+        let(:request) { stub_request(:post, fm_url(layout: "Pirates") + "/_find").to_return_fm(401) }
+
+        it "returns an empty Spyke::Result" do
+          request.with(body: { query: [{ name: "foo" }] })
+          expect(Pirate.query(name: "foo").fetch.data).to eq(nil)
+        end
+
+        it "raises an error if the model's raise_on_no_matching_records is true" do
+          request.with(body: { query: [{ name: "foo" }] })
+          Pirate.raise_on_no_matching_records = true
+          expect { Pirate.query(name: "foo").fetch }.to raise_error(FmRest::APIError::NoMatchingRecordsError)
+          Pirate.raise_on_no_matching_records = nil
+        end
       end
     end
 

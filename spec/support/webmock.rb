@@ -7,10 +7,12 @@ class WebMock::RequestStub
   end
 
   def to_return_fm(hash_or_status = {}, options = {})
-    if hash_or_status == false
+    if hash_or_status == false || hash_or_status.kind_of?(Integer)
+      error_code = hash_or_status.kind_of?(Integer) ? hash_or_status.to_s : "-1"
+
       wrapped_hash =
         { response: {},
-          messages: [{ code: "-1", message: "Unknown error" }] }
+          messages: [{ code: error_code, message: "Unknown error" }] }
 
       options[:status] = 500
     else
