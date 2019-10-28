@@ -1,5 +1,11 @@
 ## Changelog
 
+### 0.4.1
+
+* Prevent raising an exception when a /\_find request yields no results
+  ([#33](https://github.com/beezwax/fmrest-ruby/issues/33) and
+  [#34](https://github.com/beezwax/fmrest-ruby/issues/34))
+
 ### 0.4.0
 
 * Implement ability to set limit and offset for portals
