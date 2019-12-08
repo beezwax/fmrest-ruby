@@ -625,13 +625,17 @@ force `.limit(1)`):
 Honeybee.query(name: "Hutch").find_one # => <Honeybee...>
 ```
 
-NOTE: If you know the id of the record you should use `.find(id)` instead of
-`.query(id: id).find_one` (so that the request is sent as `GET ../:layout/records/:id`
-instead of `POST ../:layout/_find`).
+If you know the id of the record you should use `.find(id)` instead of
+`.query(id: id).find_one` (so that the sent request is
+`GET ../:layout/records/:id` instead of `POST ../:layout/_find`).
 
 ```ruby
 Honeybee.find(89) # => <Honeybee...>
 ```
+
+Note also that if you use `.find(id)` your `.query()` parameters (as well as
+limit, offset and sort parameters) will be discarded as they're not supported
+by the single record endpoint.
 
 ### Container fields
 

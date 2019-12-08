@@ -204,14 +204,50 @@ RSpec.describe FmRest::Spyke::Relation do
       end
     end
 
-    context "when the id is set" do
-      it "doesn't call limit" do
-        id_relation = relation.where(id: 1)
-        fetch_result = double(data: nil)
-        expect(id_relation).to receive(:fetch).and_return(fetch_result)
-        expect(id_relation).to_not receive(:limit)
-        id_relation.find_one
+    context "when the primary key is set" do
+      let(:scope) { relation.limit(10).offset(1).sort(:foo).query(foo: 1).where(id: 1) }
+
+      it "ignores collection parameters and doesn't set limit = 1" do
+        expect(scope).to receive(:without_collection_params)
+        expect(scope).to_not receive(:limit)
+        scope.find_one
       end
+
+      it "calls fetch and returns its resulting record" do
+        record = double
+        allow(test_class).to receive(:new_instance_from_result).and_return(record)
+        expect(scope).to receive(:fetch)
+        expect(scope.find_one).to eq(record)
+      end
+
+      it "memoizes the result" do
+        record = double
+        allow(test_class).to receive(:new_instance_from_result).and_return(record)
+        allow(scope).to receive(:fetch)
+        expect { scope.find_one }.to change { scope.instance_variable_get(:@find_one) }.from(nil).to(record)
+      end
+    end
+  end
+
+  # TODO: Testing private methods is generally considered bad practice, but
+  # this was the most straight-forward way I could find of testing the special
+  # case in #find_one where the primary key is set. We need a better way of
+  # testing this.
+  describe "(private) #without_collection_params" do
+    it "clears limit, offset, sort and query, and restores it after yielding" do
+      scope = relation.limit(10).offset(10).query(foo: 1).sort(:foo)
+
+      scope.send(:without_collection_params) do
+        expect(scope.limit_value).to eq(nil)
+        expect(scope.offset_value).to eq(nil)
+        expect(scope.sort_params).to eq(nil)
+        expect(scope.query_params).to eq(nil)
+      end
+
+      expect(scope.limit_value).to eq(10)
+      expect(scope.offset_value).to eq(10)
+      expect(scope.sort_params).to eq([{fieldName: :foo}])
+      expect(scope.query_params).to eq([{"foo" => 1}])
     end
   end
 end

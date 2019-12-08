@@ -26,7 +26,7 @@ module FmRest
                    to: :all
 
           def all
-            # Use FmRest's Relation insdead of Spyke's vanilla one
+            # Use FmRest's Relation instead of Spyke's vanilla one
             current_scope || Relation.new(self, uri: uri)
           end
 
