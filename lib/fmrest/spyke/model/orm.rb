@@ -66,7 +66,9 @@ module FmRest
             new(attributes).tap(&:save!)
           end
 
-          def execute_script(script_name, params: {})
+          def execute_script(script_name, param: nil)
+            params = {}
+            params = {"script.param" => param} unless param.nil?
             request(:get, FmRest::V1::script_path(layout, script_name), params)
           end
 
