@@ -11,6 +11,7 @@ module FmRest
       MULTIPLE_RECORDS_RE = %r(/records\z).freeze
       CONTAINER_RE = %r(/records/\d+/containers/[^/]+/\d+\z).freeze
       FIND_RECORDS_RE = %r(/_find\b).freeze
+      SCRIPT_REQUEST_RE = %r(/script\b).freeze
 
       VALIDATION_ERROR_RANGE = 500..599
 
@@ -32,6 +33,8 @@ module FmRest
           env.body = prepare_collection(json)
         when create_request?(env), update_request?(env), delete_request?(env), container_upload_request?(env)
           env.body = prepare_save_response(json)
+        when execute_script_request?(env)
+          env.body = build_base_hash(json)
         end
       end
 
@@ -194,6 +197,10 @@ module FmRest
       # (see #single_record_request?)
       def delete_request?(env)
         env.method == :delete && env.url.path.match(SINGLE_RECORD_RE)
+      end
+
+      def execute_script_request?(env)
+        env.method == :get && env.url.path.match(SCRIPT_REQUEST_RE)
       end
 
       # @param source [String] a JSON string

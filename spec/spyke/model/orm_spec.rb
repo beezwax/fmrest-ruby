@@ -379,5 +379,25 @@ RSpec.describe FmRest::Spyke::Model::Orm do
       Ship.create!({})
     end
   end
+
+  describe "#execute_script" do
+    before { stub_session_login }
+
+    it "runs the script indicated" do
+      request = stub_request(:get, fm_url(layout: "Ships") + "/script/clear_data").to_return_fm
+
+      Ship.execute_script("clear_data")
+
+      expect(request).to have_been_requested
+    end
+
+    it "raises error when script is missing" do
+      request = stub_request(:get, fm_url(layout: "Ships") + "/script/bleh").to_return_fm(
+        104
+      )
+
+      expect { Ship.execute_script("bleh") }.to raise_error(FmRest::APIError::ResourceMissingError)
+    end
+  end
 end
 

@@ -66,6 +66,10 @@ module FmRest
             new(attributes).tap(&:save!)
           end
 
+          def execute_script(script_name, params: {})
+            request(:get, FmRest::V1::script_path(layout, script_name), params)
+          end
+
           private
 
           def extend_scope_with_fm_params(scope, prefixed: false)
