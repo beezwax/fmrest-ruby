@@ -47,6 +47,12 @@ RSpec.describe FmRest::V1::Paths do
     end
   end
 
+  describe "#script_path" do
+    it "returns layouts/:layout/scripts/:script" do
+      expect(extendee.script_path("Some Layout", "Some script")).to eq("layouts/Some%20Layout/script/Some%20script")
+    end
+  end
+
   describe "#globals_path" do
     it "returns globals" do
       expect(extendee.globals_path).to eq("globals")

@@ -26,6 +26,10 @@ module FmRest
         "layouts/#{url_encode(layout)}/_find"
       end
 
+      def script_path(layout, script)
+        "layouts/#{url_encode(layout)}/script/#{url_encode(script)}"
+      end
+
       def globals_path
         "globals"
       end
