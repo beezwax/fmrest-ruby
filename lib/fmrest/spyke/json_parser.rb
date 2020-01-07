@@ -11,7 +11,7 @@ module FmRest
       MULTIPLE_RECORDS_RE = %r(/records\z).freeze
       CONTAINER_RE = %r(/records/\d+/containers/[^/]+/\d+\z).freeze
       FIND_RECORDS_RE = %r(/_find\b).freeze
-      SCRIPT_REQUEST_RE = %r(/script\b).freeze
+      SCRIPT_REQUEST_RE = %r(/script/[^/]+\z).freeze
 
       VALIDATION_ERROR_RANGE = 500..599
 

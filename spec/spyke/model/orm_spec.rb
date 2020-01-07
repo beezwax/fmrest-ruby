@@ -400,9 +400,9 @@ RSpec.describe FmRest::Spyke::Model::Orm do
     end
 
     it "sends along any passed parameters" do
-      request = stub_request(:get, fm_url(layout: "Ships") + "/script/clear_data?script.param=someString").to_return_fm
+      request = stub_request(:get, fm_url(layout: "Ships") + "/script/clear_data?script.param=some%20string").to_return_fm
 
-      Ship.execute_script("clear_data", param: "someString")
+      Ship.execute_script("clear_data", param: "some string")
 
       expect(request).to have_been_requested
     end

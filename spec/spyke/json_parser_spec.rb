@@ -59,6 +59,10 @@ RSpec.describe FmRest::Spyke::JsonParser do
         stub.post '/records/1/containers/Pie/1' do
           [200, {}, response_json.to_json]
         end
+
+        stub.get '/script/DoSomethingUseful' do
+          [200, {}, response_json.to_json]
+        end
       end
     end
   end
@@ -188,6 +192,28 @@ RSpec.describe FmRest::Spyke::JsonParser do
             messages: [{code: "0", message: "OK"}]
           },
           data: {},
+          errors: {}
+        )
+      end
+    end
+  end
+
+  context "when executing a script" do
+    context "when sucessful" do
+      let :response_json do
+        {
+          response: {},
+          messages: [{code: "0", message: "OK"}]
+        }
+      end
+
+      it "returns a hash with just metadata" do
+        response = faraday.get('/script/DoSomethingUseful?script.param=5')
+
+        expect(response.body).to include(
+          metadata: {
+            messages: [{code: "0", message: "OK"}]
+          },
           errors: {}
         )
       end
