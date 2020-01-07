@@ -17,9 +17,13 @@ RSpec.describe FmRest::Spyke::Model::Attributes do
     expect(test_class.included_modules).to include(::ActiveModel::ForbiddenAttributesProtection)
   end
 
+  # TODO: Rewrite this spec to be less dependent on ActiveModel's internals
   describe ".attribute_method_matchers" do
     it "doesn't include a plain entry" do
-      expect(test_class.attribute_method_matchers.first.method_missing_target).to_not eq("attribute")
+      matcher = test_class.attribute_method_matchers.first
+      # ActiveModel 6 uses .target, while ActiveModel <= 5 uses method_missing_target
+      target = matcher.respond_to?(:target) ? matcher.target : matcher.method_missing_target
+      expect(target).to_not eq("attribute")
     end
   end
 
