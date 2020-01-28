@@ -140,12 +140,17 @@ module FmRest
         query_params.present?
       end
 
-      # Finds a single instance of the model by forcing limit = 1
+      # Finds a single instance of the model by forcing limit = 1, or simply
+      # fetching the record by id if the primary key was set
       #
       # @return [FmRest::Spyke::Base]
       def find_one
-        return super if params[klass.primary_key].present?
-        @find_one ||= klass.new_collection_from_result(limit(1).fetch).first
+        @find_one ||=
+          if primary_key_set?
+            without_collection_params { super }
+          else
+            klass.new_collection_from_result(limit(1).fetch).first
+          end
       rescue ::Spyke::ConnectionError => error
         fallback_or_reraise(error, default: nil)
       end
@@ -221,6 +226,18 @@ module FmRest
             normalized[k.to_s] = v
           end
         end
+      end
+
+      def primary_key_set?
+        params[klass.primary_key].present?
+      end
+
+      def without_collection_params
+        orig_values = limit_value, offset_value, sort_params, query_params
+        self.limit_value = self.offset_value = self.sort_params = self.query_params = nil
+        yield
+      ensure
+        self.limit_value, self.offset_value, self.sort_params, self.query_params = orig_values
       end
 
       def with_clone
