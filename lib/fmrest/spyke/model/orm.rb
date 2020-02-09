@@ -23,7 +23,7 @@ module FmRest
           # Methods delegated to FmRest::Spyke::Relation
           delegate :limit, :offset, :sort, :order, :query, :omit, :portal,
                    :portals, :includes, :with_all_portals, :without_portals,
-                   to: :all
+                   :script, to: :all
 
           def all
             # Use FmRest's Relation instead of Spyke's vanilla one
@@ -98,11 +98,15 @@ module FmRest
               end
             end
 
+            if scope.script_params.present?
+              where_options.merge!(scope.script_params)
+            end
+
             scope.where(where_options)
           end
         end
 
-        # Completely override Spyke's save to provide a number of features:
+        # Overwrite Spyke's save to provide a number of features:
         #
         # * Validations
         # * Data API scripts execution
@@ -121,11 +125,26 @@ module FmRest
           save(options.merge(raise_validation_errors: true))
         end
 
+        # Overwrite Spyke's destroy to provide Data API script execution
+        #
+        def destroy(options = {})
+          # For whatever reason the Data API wants the script params as query
+          # string params for DELETE requests, making this more complicated
+          # than it should be
+          script_query_string = if options.has_key?(:script)
+                                  "?" + Faraday::Utils.build_query(FmRest::V1.convert_script_params(options[:script]))
+                                else
+                                  ""
+                                end
+
+          self.attributes = delete(uri.to_s + script_query_string)
+        end
+
         # API-error-raising version of #update
         #
-        def update!(new_attributes)
+        def update!(new_attributes, options = {})
           self.attributes = new_attributes
-          save!
+          save!(options)
         end
 
         def reload

@@ -7,6 +7,7 @@ require "fmrest/spyke/model/serialization"
 require "fmrest/spyke/model/associations"
 require "fmrest/spyke/model/orm"
 require "fmrest/spyke/model/container_fields"
+require "fmrest/spyke/model/http"
 
 module FmRest
   module Spyke
@@ -20,6 +21,7 @@ module FmRest
       include Associations
       include Orm
       include ContainerFields
+      include Http
 
       included do
         # @return [Integer] the record's modId
