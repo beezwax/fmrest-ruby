@@ -21,8 +21,8 @@ module FmRest
             end
           end
 
-          def last_request_metadata
-            Thread.current[last_request_metadata_key]
+          def last_request_metadata(key: last_request_metadata_key)
+            Thread.current[key]
           end
 
           private

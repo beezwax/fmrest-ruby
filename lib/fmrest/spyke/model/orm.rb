@@ -147,8 +147,10 @@ module FmRest
           save!(options)
         end
 
-        def reload
-          reloaded = self.class.find(id)
+        def reload(options = {})
+          scope = self.class
+          scope = scope.script(options[:script]) if options.has_key?(:script)
+          reloaded = scope.find(id)
           self.attributes = reloaded.attributes
           self.mod_id = reloaded.mod_id
         end

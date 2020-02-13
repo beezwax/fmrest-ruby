@@ -24,7 +24,6 @@ module FmRest
 
       # @param env [Faraday::Env]
       def on_complete(env)
-        p env.body
         json = parse_json(env.body)
 
         case
@@ -35,6 +34,9 @@ module FmRest
         when create_request?(env), update_request?(env), delete_request?(env), container_upload_request?(env)
           env.body = prepare_save_response(json)
         when execute_script_request?(env)
+          env.body = build_base_hash(json)
+        else
+          # Attempt to parse unknown requests too
           env.body = build_base_hash(json)
         end
       end
@@ -75,11 +77,20 @@ module FmRest
       # @param include_errors [Boolean]
       # @return [Hash] the skeleton structure for a Spyke-formatted response
       def build_base_hash(json, include_errors = false)
-        script_metadata = {}
+        {
+          metadata: { messages: json[:messages] }.merge(script: prepare_script_results(json).presence),
+          errors:   include_errors ? prepare_errors(json) : {}
+        }
+      end
+
+      # @param json [Hash]
+      # @return [Hash] the script(s) execution results for Spyke metadata format
+      def prepare_script_results(json)
+        results = {}
 
         [:prerequest, :presort].each do |s|
           if json[:response][:"scriptError.#{s}"]
-            script_metadata[s] = {
+            results[s] = {
               result: json[:response][:"scriptResult.#{s}"],
               error:  json[:response][:"scriptError.#{s}"]
             }
@@ -87,16 +98,13 @@ module FmRest
         end
 
         if json[:response][:scriptError]
-          script_metadata[:after] = {
+          results[:after] = {
             result: json[:response][:scriptResult],
             error:  json[:response][:scriptError]
           }
         end
 
-        {
-          metadata: { messages: json[:messages] }.merge(script: script_metadata.presence),
-          errors:   include_errors ? prepare_errors(json) : {}
-        }
+        results
       end
 
       # @param json [Hash]

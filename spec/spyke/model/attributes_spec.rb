@@ -1,7 +1,5 @@
 require "spec_helper"
 
-require "fixtures/pirates"
-
 RSpec.describe FmRest::Spyke::Model::Attributes do
   let :test_class do
     fmrest_spyke_class do

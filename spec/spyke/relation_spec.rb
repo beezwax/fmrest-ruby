@@ -96,6 +96,43 @@ RSpec.describe FmRest::Spyke::Relation do
     end
   end
 
+  describe "#script" do
+    context "when given a hash with script options" do
+      it "creates a new scope with the given script options" do
+        script_scope = relation.script(after: ["script", "param"], presort: ["script", "param"], prerequest: ["script", "param"])
+
+        expect(script_scope).to_not eq(relation)
+        expect(script_scope).to be_a(FmRest::Spyke::Relation)
+        expect(script_scope.script_params).to eq(
+          script: "script",
+          "script.param": "param",
+          "script.presort": "script",
+          "script.presort.param": "param",
+          "script.prerequest": "script",
+          "script.prerequest.param": "param"
+        )
+      end
+    end
+
+    context "when chained" do
+      it "merges script options together" do
+        script_scope = relation.script(after: "after").script(presort: "presort")
+        expect(script_scope.script_params).to eq(
+          script: "after",
+          "script.presort": "presort"
+        )
+      end
+    end
+
+    context "when given nil or false" do
+      it "creates a new scope with empty script params" do
+        relation.script_params = { test: "foo" }
+        expect(relation.script(nil).script_params).to eq({})
+        expect(relation.script(false).script_params).to eq({})
+      end
+    end
+  end
+
   describe "#portal" do
     it "raises ArgumentError when given no arguments" do
       expect { relation.portal }.to raise_error(ArgumentError, "Call `portal' with at least one argument")

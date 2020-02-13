@@ -208,18 +208,31 @@ RSpec.describe FmRest::Spyke::JsonParser do
     context "when sucessful" do
       let :response_json do
         {
-          response: {},
+          response: {
+            scriptError: "0",
+            scriptResult: "hello",
+
+            "scriptError.prerequest": "0",
+            "scriptResult.prerequest": "hello prerequest",
+
+            "scriptError.presort": "0",
+            "scriptResult.presort": "hello presort"
+          },
           messages: [{code: "0", message: "OK"}]
         }
       end
 
-      it "returns a hash with just metadata" do
+      it "returns a hash with just script execution results" do
         response = faraday.get('/script/DoSomethingUseful?script.param=5')
 
         expect(response.body).to include(
           metadata: {
             messages: [{code: "0", message: "OK"}],
-            script: nil
+            script: {
+              after: { error: "0", result: "hello" },
+              presort: { error: "0", result: "hello presort" },
+              prerequest: { error: "0", result: "hello prerequest" }
+            }
           },
           errors: {}
         )
