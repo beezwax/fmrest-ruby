@@ -735,7 +735,7 @@ across multiple methods. That object format is as follows:
 }
 ```
 
-#### Script execution on record save and destroy
+#### Script execution on record save, destroy and reload
 
 A record instance's `.save` and `.destroy` methods both accept a `script:`
 option to which you can pass a script options object with
@@ -753,6 +753,9 @@ bee.save(script: { presort: "My Presort Script", after: "My Script" })
 
 # Destroy the record and execute a prerequest script with a parameter
 bee.destroy(script: { prerequest: ["My Prerequest Script", "parameter"] })
+
+# Reload the record and execute a prerequest script with a parameter
+bee.reload(script: { prerequest: ["My Prerequest Script", "parameter"] })
 ```
 
 #### Retrieving script execution results
