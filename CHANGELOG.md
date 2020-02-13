@@ -1,5 +1,12 @@
 ## Changelog
 
+### 0.5.0
+
+* Much improved script execution support
+  ([#20](https://github.com/beezwax/fmrest-ruby/issues/20))
+* Fixed bug when setting `default_limi` and trying to find a record
+  ([35](https://github.com/beezwax/fmrest-ruby/issues/35))
+
 ### 0.4.1
 
 * Prevent raising an exception when a /\_find request yields no results
