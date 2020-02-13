@@ -73,7 +73,8 @@ RSpec.describe FmRest::Spyke::JsonParser do
 
       expect(response.body).to include(
         metadata: {
-          messages: [{code: "0", message: "OK"}]
+          messages: [{code: "0", message: "OK"}],
+          script: nil
         },
         data: {
           id: 1,
@@ -91,7 +92,8 @@ RSpec.describe FmRest::Spyke::JsonParser do
 
       expect(response.body).to include(
         metadata: {
-          messages: [{code: "0", message: "OK"}]
+          messages: [{code: "0", message: "OK"}],
+          script: nil
         },
         data: [{
           id: 1,
@@ -109,7 +111,8 @@ RSpec.describe FmRest::Spyke::JsonParser do
 
       expect(response.body).to include(
         metadata: {
-          messages: [{code: "0", message: "OK"}]
+          messages: [{code: "0", message: "OK"}],
+          script: nil
         },
         data: [{
           id: 1,
@@ -136,7 +139,8 @@ RSpec.describe FmRest::Spyke::JsonParser do
         it "returns a hash with single record data" do
           expect(response.body).to include(
             metadata: {
-              messages: [{code: "0", message: "OK"}]
+              messages: [{code: "0", message: "OK"}],
+              script: nil
             },
             data: { mod_id: "2" },
             errors: {}
@@ -161,7 +165,8 @@ RSpec.describe FmRest::Spyke::JsonParser do
               messages: [
                 {code: "555", message: "Very angry validation error"},
                 {code: "800", message: "Chill non-validation error"}
-              ]
+              ],
+              script: nil
             },
             data: {},
             errors: {
@@ -189,7 +194,8 @@ RSpec.describe FmRest::Spyke::JsonParser do
 
         expect(response.body).to include(
           metadata: {
-            messages: [{code: "0", message: "OK"}]
+            messages: [{code: "0", message: "OK"}],
+            script: nil
           },
           data: {},
           errors: {}
@@ -212,7 +218,8 @@ RSpec.describe FmRest::Spyke::JsonParser do
 
         expect(response.body).to include(
           metadata: {
-            messages: [{code: "0", message: "OK"}]
+            messages: [{code: "0", message: "OK"}],
+            script: nil
           },
           errors: {}
         )

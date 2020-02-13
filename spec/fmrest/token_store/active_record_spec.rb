@@ -1,5 +1,6 @@
 require "spec_helper"
 require "fmrest/token_store/active_record"
+require "sqlite3"
 
 require_relative "token_store_examples"
 
