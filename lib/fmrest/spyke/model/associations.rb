@@ -64,7 +64,7 @@ module FmRest
           end
         end
 
-        def reload
+        def reload(*_)
           super.tap { @loaded_portals = nil }
         end
 

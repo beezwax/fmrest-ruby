@@ -36,7 +36,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
     end
   end
 
-  [:limit, :offset, :sort, :order, :query, :omit, :portal, :portals, :includes, :without_portals, :with_all_portals].each do |delegator|
+  [:limit, :offset, :sort, :order, :query, :omit, :portal, :portals, :includes, :without_portals, :with_all_portals, :script].each do |delegator|
     describe ".#{delegator}" do
       let(:scope) { double("Relation") }
 
@@ -78,7 +78,13 @@ RSpec.describe FmRest::Spyke::Model::Orm do
         expect(request).to have_been_requested
       end
 
-      it "applies portal URI param" do
+      it "applies script JSON param" do
+        request.with(body: { script: "runme", "script.param": "with param", query: [{ name: "foo" }] })
+        Pirate.query(name: "foo").script(["runme", "with param"]).fetch
+        expect(request).to have_been_requested
+      end
+
+      it "applies portal JSON param" do
         request = stub_request(:post, fm_url(layout: "Ships") + "/_find")
           .with(body: hash_including(portal: ["PiratesTable", "Flags"]))
           .to_return_fm
@@ -86,7 +92,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
         expect(request).to have_been_requested
       end
 
-      it "applies no portal URI param when portal(true) was called" do
+      it "applies no portal JSON param when portal(true) was called" do
         request = stub_request(:post, fm_url(layout: "Ships") + "/_find")
           .with(body: { query: [{ name: "Mary Celeste" }] })
           .to_return_fm
@@ -94,7 +100,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
         expect(request).to have_been_requested
       end
 
-      it "applies empty portal URI param" do
+      it "applies empty portal JSON param" do
         request = stub_request(:post, fm_url(layout: "Ships") + "/_find")
           .with(body: hash_including(portal: []))
           .to_return_fm
@@ -178,6 +184,12 @@ RSpec.describe FmRest::Spyke::Model::Orm do
         expect(request).to have_been_requested
       end
 
+      it "applies script JSON param" do
+        request.with(query: { script: "runme", "script.param": "with param" })
+        Pirate.script(["runme", "with param"]).fetch
+        expect(request).to have_been_requested
+      end
+
       it "applies portal URI param" do
         request = stub_request(:get, fm_url(layout: "Ships") + "/records")
           .with(query: { portal: ["PiratesTable", "Flags"].to_json })
@@ -194,7 +206,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
         expect(request).to have_been_requested
       end
 
-      it "applies portal limit param" do
+      it "applies portal limit URI param" do
         request = stub_request(:get, fm_url(layout: "Ships") + "/records")
           .with(query: { portal: ["PiratesTable", "Flags"].to_json, "_limit.PiratesTable" => 10 })
           .to_return_fm
@@ -202,7 +214,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
         expect(request).to have_been_requested
       end
 
-      it "applies portal offset param" do
+      it "applies portal offset URI param" do
         request = stub_request(:get, fm_url(layout: "Ships") + "/records")
           .with(query: { portal: ["PiratesTable"].to_json, "_offset.PiratesTable" => 10 })
           .to_return_fm
@@ -210,7 +222,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
         expect(request).to have_been_requested
       end
 
-      it "applies both portal offset and limit params" do
+      it "applies both portal offset and limit URI params" do
         request = stub_request(:get, fm_url(layout: "Ships") + "/records")
           .with(query: {
             portal: ["PiratesTable"].to_json,
@@ -297,47 +309,70 @@ RSpec.describe FmRest::Spyke::Model::Orm do
     before { stub_session_login }
 
     context "with passing validations" do
-      before do
-        allow(ship).to receive(:valid?).and_return(true)
-      end
-
       context "when the server responds with a validation error" do
-        before do
+        it "returns false" do
+          allow(ship).to receive(:valid?).and_return(true)
+
           stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_json(
             response: {},
             messages: [{ code: 500, message: "Date validation error"}]
           )
-        end
 
-        it "returns false" do
           expect(ship.save).to eq(false)
         end
       end
     end
 
     context "with a successful save" do
-      before do
+      it "resets changes information for self and portal records" do
         stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_fm(
           recordId: "1",
           modId: "0"
         )
-      end
 
-      it "resets changes information for self and portal records" do
         expect { ship.save }.to change { ship.changed? }.from(true).to(false)
       end
     end
 
     context "with an unsuccessful save (server side validation error)" do
-      before do
+      it "doesn't resets changes information" do
         stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_json(
           response: {},
           messages: [{ code: 500, message: "Date validation error"}]
         )
-      end
 
-      it "doesn't resets changes information" do
         expect { ship.save }.to_not change { ship.changed? }.from(true)
+      end
+    end
+
+    context "when called with script options" do
+      it "sends script params in request body" do
+        request = stub_request(:post, fm_url(layout: "Ships") + "/records")
+          .with(body: /"script":"runme"/)
+          .to_return_fm
+
+        ship.save(script: "runme")
+
+        expect(request).to have_been_requested
+      end
+    end
+  end
+
+  describe "#destroy" do
+    let(:ship) { Ship.new name: "Mary Celeste", id: 1 }
+
+    before { stub_session_login }
+
+    context "when called with script options" do
+      it "adds script options to the query string" do
+        request =
+          stub_request(:delete, fm_url(layout: "Ships", id: ship.id))
+          .with(query: { "script" => "script", "script.param" => "param" })
+          .to_return_fm
+
+        ship.destroy(script: ["script", "param"])
+
+        expect(request).to have_been_requested
       end
     end
   end
@@ -347,18 +382,34 @@ RSpec.describe FmRest::Spyke::Model::Orm do
 
     before { stub_session_login }
 
-    before do
-      stub_request(:get, fm_url(layout: "Ships") + "/records/1").to_return_fm(
-        data: [{ recordId: "1", modId: "2", fieldData: { name: "Obra Dinn Reloaded" } }]
-      )
+    context "when called with no options" do
+      before do
+        stub_request(:get, fm_url(layout: "Ships") + "/records/1").to_return_fm(
+          data: [{ recordId: "1", modId: "2", fieldData: { name: "Obra Dinn Reloaded" } }]
+        )
+      end
+
+      it "reloads the record" do
+        expect { ship.reload }.to change { ship.name }.to("Obra Dinn Reloaded")
+      end
+
+      it "sets the mod_id" do
+        expect { ship.reload }.to change { ship.mod_id }.from(nil).to("2")
+      end
     end
 
-    it "reloads the record" do
-      expect { ship.reload }.to change { ship.name }.to("Obra Dinn Reloaded")
-    end
+    context "when called with script options" do
+      it "sends the script options in the request" do
+        request = stub_request(:get, fm_url(layout: "Ships") + "/records/1")
+          .with(query: { script: "runme" })
+          .to_return_fm(
+            data: [{ recordId: "1", modId: "2", fieldData: { name: "Obra Dinn Reloaded" } }]
+          )
 
-    it "sets the mod_id" do
-      expect { ship.reload }.to change { ship.mod_id }.from(nil).to("2")
+        ship.reload(script: "runme")
+
+        expect(request).to have_been_requested
+      end
     end
   end
 

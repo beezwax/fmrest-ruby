@@ -12,7 +12,7 @@ module FmRest
 
 
       attr_accessor :limit_value, :offset_value, :sort_params, :query_params,
-                    :included_portals, :portal_params
+                    :included_portals, :portal_params, :script_params
 
       def initialize(*_args)
         super
@@ -27,6 +27,42 @@ module FmRest
 
         @included_portals = nil
         @portal_params = {}
+        @script_params = {}
+      end
+
+      # @param options [String, Array, Hash, nil, false] sets script params to
+      #   execute in the next get or find request
+      #
+      # @example
+      #   # Find records and run the script named "My script"
+      #   Person.script("My script").find_some
+      #
+      #   # Find records and run the script named "My script" with param "the param"
+      #   Person.script(["My script", "the param"]).find_some
+      #
+      #   # Find records and run a prerequest, presort and after (normal) script
+      #   Person.script(after: "Script", prerequest: "Prereq script", presort: "Presort script").find_some
+      #
+      #   # Same as above, but passing parameters too
+      #   Person.script(
+      #     after:      ["After script", "the param"],
+      #     prerequest: ["Prereq script", "the param"],
+      #     presort: o  ["Presort script", "the param"]
+      #   ).find_some
+      #
+      #   Person.script(nil).find_some # Disable script execution
+      #   Person.script(false).find_some # Disable script execution
+      #
+      # @return [FmRest::Spyke::Relation] a new relation with the script
+      #   options applied
+      def script(options)
+        with_clone do |r|
+          if options.eql?(false) || options.eql?(nil)
+            r.script_params = {}
+          else
+            r.script_params = script_params.merge(FmRest::V1.convert_script_params(options))
+          end
+        end
       end
 
       # @param value_or_hash [Integer, Hash] the limit value for this layout,
