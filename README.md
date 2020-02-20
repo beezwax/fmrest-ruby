@@ -857,7 +857,7 @@ FM Data API reference: https://fmhelp.filemaker.com/docs/18/en/dataapi/
 | Get layout metadata                 | Manual*                       | No                               |
 | Create a record                     | Manual*                       | Yes                              |
 | Edit a record                       | Manual*                       | Yes                              |
-| Duplicate a record                  | Manual*                       | Yes                              |
+| Duplicate a record                  | Manual*                       | No                               |
 | Delete a record                     | Manual*                       | Yes                              |
 | Get a single record                 | Manual*                       | Yes                              |
 | Get a range of records              | Manual*                       | Yes                              |
