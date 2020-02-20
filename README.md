@@ -3,19 +3,17 @@
 <a href="https://rubygems.org/gems/fmrest"><img src="https://badge.fury.io/rb/fmrest.svg?style=flat" alt="Gem Version"></a>
 
 A Ruby client for
-[FileMaker 17's Data API](https://fmhelp.filemaker.com/docs/17/en/dataapi/)
+[FileMaker 18's Data API](https://fmhelp.filemaker.com/docs/18/en/dataapi/)
 using
 [Faraday](https://github.com/lostisland/faraday) and with optional
 [Spyke](https://github.com/balvig/spyke) support (ActiveRecord-ish models).
 
-FileMaker 16's Data API is not supported (but you shouldn't be using it
-anyway).
-
 If you're looking for a Ruby client for the legacy XML/Custom Web Publishing
 API try the fabulous [ginjo-rfm gem](https://github.com/ginjo/rfm) instead.
 
-fmrest-ruby does not currently implement the full spec of FileMaker 17's Data
-API.
+fmrest-ruby only partially implements FileMaker 18's Data API.
+See the [implementation completeness table](#api-implementation-completeness-table)
+to see if a feature you need is natively supported by the gem.
 
 ## Installation
 
@@ -24,11 +22,11 @@ Add this line to your Gemfile:
 ```ruby
 gem 'fmrest'
 
-# Optional (for ORM features)
+# Optional but recommended (for ORM features)
 gem 'spyke'
 ```
 
-## Basic usage
+## Basic usage (without ORM)
 
 To get a Faraday connection that can handle FM's Data API auth workflow:
 
@@ -234,13 +232,15 @@ class Honeybee < FmRest::Spyke::Base
 end
 ```
 
-In this case you can pass the `fmrest_config` hash as an argument to `Base()`:
+In this case you can pass the [`fmrest_config`](#modelfmrest_config) hash as an
+argument to `Base()`:
 
 ```ruby
 class Honeybee < FmRest::Spyke::Base(host: "...", database: "...", username: "...", password: "...")
 end
 
-Honeybee.fmrest_config # => { host: "...", database: "...", username: "...", password: "..." }
+Honeybee.fmrest_config
+# => { host: "...", database: "...", username: "...", password: "..." }
 ```
 
 All of Spyke's basic ORM operations work:
@@ -838,6 +838,37 @@ class LoggyBee < FmRest::Spyke::Base
   end
 end
 ```
+
+## API implementation completeness table
+
+FM Data API reference: https://fmhelp.filemaker.com/docs/18/en/dataapi/
+
+| FM 18 Data API feature              | Supported by basic connection | Supported by FmRest::Spyke::Base |
+|-------------------------------------|-------------------------------|----------------------------------|
+| Log in using HTTP Basic Auth        | Yes                           | Yes                              |
+| Log in using OAuth                  | No                            | No                               |
+| Log in to an external data source   | No                            | No                               |
+| Log in using a FileMaker ID account | No                            | No                               |
+| Log out                             | Manual*                       | No                               |
+| Get product information             | Manual*                       | No                               |
+| Get database names                  | Manual*                       | No                               |
+| Get script names                    | Manual*                       | No                               |
+| Get layout names                    | Manual*                       | No                               |
+| Get layout metadata                 | Manual*                       | No                               |
+| Create a record                     | Manual*                       | Yes                              |
+| Edit a record                       | Manual*                       | Yes                              |
+| Duplicate a record                  | Manual*                       | Yes                              |
+| Delete a record                     | Manual*                       | Yes                              |
+| Get a single record                 | Manual*                       | Yes                              |
+| Get a range of records              | Manual*                       | Yes                              |
+| Get container data                  | Manual*                       | Yes                              |
+| Upload container data               | Manual*                       | Yes                              |
+| Perform a find request              | Manual*                       | Yes                              |
+| Set global field values             | Manual*                       | No                               |
+| Run a script                        | Manual*                       | Yes                              |
+| Run a script with another request   | Manual*                       | Yes                              |
+
+(*) You can manually supply the URL and JSON to a `FmRest` connection.
 
 ## TODO
 
