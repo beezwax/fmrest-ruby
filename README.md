@@ -868,7 +868,7 @@ FM Data API reference: https://fmhelp.filemaker.com/docs/18/en/dataapi/
 | Run a script                        | Manual*                       | Yes                              |
 | Run a script with another request   | Manual*                       | Yes                              |
 
-(*) You can manually supply the URL and JSON to a `FmRest` connection.
+\* You can manually supply the URL and JSON to a `FmRest` connection.
 
 ## TODO
 
