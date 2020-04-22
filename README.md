@@ -77,8 +77,11 @@ FmRest::V1.build_connection(
 )
 ```
 
-You can use the `:log` option for basic request logging, see the section on
+You can also pass a `:log` option for basic request logging, see the section on
 [Logging](#Logging) below.
+
+`:username` is also aliased as `:account_name` to provide cross-compatibility
+with the ginjo-rfm gem.
 
 ### Default connection settings
 

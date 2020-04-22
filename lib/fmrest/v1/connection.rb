@@ -14,6 +14,10 @@ module FmRest
       # error handling. A block can be optionally given for additional
       # middleware configuration
       #
+      # @option options [String] :username The username for DAPI authentication
+      # @option options [String] :account_name Alias of :username for
+      #   compatibility with Rfm gem
+      # @option options [String] :password The password for DAPI authentication
       # @option (see #base_connection)
       # @return (see #base_connection)
       def build_connection(options = FmRest.default_connection_settings, &block)
@@ -49,8 +53,6 @@ module FmRest
       #
       # @option options [String] :host The hostname for the FM server
       # @option options [String] :database The FM database name
-      # @option options [String] :username The username for DAPI authentication
-      # @option options [String] :password The password for DAPI authentication
       # @option options [String] :ssl SSL options to forward to the Faraday
       #   connection
       # @option options [String] :proxy Proxy options to forward to the Faraday

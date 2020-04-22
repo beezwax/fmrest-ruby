@@ -66,6 +66,22 @@ RSpec.describe FmRest::V1::TokenSession do
         faraday.get("/")
         expect(@retry_request).to have_been_requested.once
       end
+
+      context "without :username or :account_name options given" do
+        it "raises an exception" do
+          config.delete(:username)
+          config.delete(:account_name)
+          expect { faraday.get("/") }.to raise_error(KeyError, /:username/)
+        end
+      end
+
+      context "with :account_name option given instead of :username" do
+        it "doesn't raise an exception" do
+          config[:account_name] = config[:username]
+          config.delete(:username)
+          expect { faraday.get("/") }.not_to raise_error
+        end
+      end
     end
 
     context "with an invalid token" do

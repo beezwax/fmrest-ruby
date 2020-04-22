@@ -96,7 +96,9 @@ module FmRest
 
       def auth_connection
         @auth_connection ||= V1.base_connection(@options) do |conn|
-          conn.basic_auth @options.fetch(:username), @options.fetch(:password)
+          username = @options.fetch(:account_name) { @options.fetch(:username) }
+
+          conn.basic_auth username, @options.fetch(:password)
 
           if @options[:log]
             conn.response :logger, nil, bodies: true, headers: true
