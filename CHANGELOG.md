@@ -1,5 +1,10 @@
 ## Changelog
 
+### 0.5.1
+
+* Alias `:username` option as `:account_name` for ginjo-rfm gem
+  cross-compatibility
+
 ### 0.5.0
 
 * Much improved script execution support
