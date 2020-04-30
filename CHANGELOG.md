@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.5.2
+
+* Improved support for legacy ActiveModel 4.x
+
 ### 0.5.1
 
 * Alias `:username` option as `:account_name` for ginjo-rfm gem
