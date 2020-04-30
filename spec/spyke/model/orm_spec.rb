@@ -265,7 +265,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
       end
 
       it "raises ActiveModel::ValidationError when called with no options" do
-        expect { ship.save! }.to raise_error(ActiveModel::ValidationError)
+        expect { ship.save! }.to raise_error(FmRest::Spyke::ValidationError)
       end
 
       it "returns true if successfully saved when called with validate: false" do

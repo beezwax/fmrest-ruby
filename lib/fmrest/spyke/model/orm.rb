@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "fmrest/spyke/relation"
+require "fmrest/spyke/validation_error"
 
 module FmRest
   module Spyke
@@ -155,6 +156,14 @@ module FmRest
           self.mod_id = reloaded.mod_id
         end
 
+        # ActiveModel 5+ implements this method, so we only needed if we're in
+        # the older AM4
+        if ActiveModel::VERSION::MAJOR == 4
+          def validate!(context = nil)
+            valid?(context) || raise_validation_error
+          end
+        end
+
         private
 
         def perform_save_validations(context, options)
@@ -189,6 +198,12 @@ module FmRest
               params.merge!(FmRest::V1.convert_script_params(options[:script]))
             end
           end
+        end
+
+        # Overwrite ActiveModel's raise_validation_error to use our own class
+        #
+        def raise_validation_error # :doc:
+          raise(ValidationError.new(self))
         end
       end
     end

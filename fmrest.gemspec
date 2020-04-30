@@ -29,8 +29,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "spyke"
   spec.add_development_dependency "webmock"
   spec.add_development_dependency "pry-byebug"
-  spec.add_development_dependency "activerecord"
-  spec.add_development_dependency "sqlite3"
+  spec.add_development_dependency "activerecord", ENV["ACTIVE_RECORD_VERSION"]
+  spec.add_development_dependency "sqlite3", ENV["SQLITE3_VERSION"]
   spec.add_development_dependency "mock_redis"
   spec.add_development_dependency "moneta"
   spec.add_development_dependency "yard"

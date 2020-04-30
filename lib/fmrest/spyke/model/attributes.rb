@@ -71,7 +71,16 @@ module FmRest
             # In case of an existing Spyke object return it as is so that we
             # don't accidentally remove dirty data from associations
             return super if attributes_or_object.is_a?(::Spyke::Base)
-            super.tap { |record| record.clear_changes_information }
+            super.tap do |record|
+              # In ActiveModel 4.x #clear_changes_information is a private
+              # method, so we need to call it with send() in that case, but
+              # keep calling it normally for AM5+
+              if record.respond_to?(:clear_changes_information)
+                record.clear_changes_information
+              else
+                record.send(:clear_changes_information)
+              end
+            end
           end
 
           def _fmrest_attribute_methods_container
