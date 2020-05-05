@@ -81,7 +81,7 @@ connection.delete "sessions/this-will-be-replaced-with-the-actual-token"
 ```
 
 If you're using the ORM features this becomes much easier, see
-`[Model.logout](#model-logout)` below.
+[Model.logout](#modellogout) below.
 
 ## Connection settings
 
