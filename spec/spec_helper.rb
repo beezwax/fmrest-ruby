@@ -15,6 +15,15 @@ RSpec.configure do |config|
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
+
+  # Reset fixture models' connections
+  config.after(:all) do
+    if defined?(FixtureBase)
+      [FixtureBase, *FixtureBase.descendants].each do |klass|
+        klass.instance_variable_set(:@fmrest_connection, nil)
+      end
+    end
+  end
 end
 
 # Require support files

@@ -1,12 +1,18 @@
 # frozen_string_literal: true
 
+require "fmrest/v1/connection"
+require "fmrest/errors"
+
 module FmRest
   module V1
     # FM Data API authentication middleware using the credentials strategy
     #
     class TokenSession < Faraday::Middleware
+      class NoSessionTokenSet < FmRest::Error; end
+
       HEADER_KEY = "Authorization".freeze
       TOKEN_STORE_INTERFACE = [:load, :store, :delete].freeze
+      LOGOUT_PATH_MATCHER = %r{\A(#{FmRest::V1::Connection::BASE_PATH}/[^/]+/sessions/)[^/]+\Z}.freeze
 
       def initialize(app, options = FmRest.default_connection_settings)
         super(app)
@@ -16,6 +22,8 @@ module FmRest
       # Entry point for the middleware when sending a request
       #
       def call(env)
+        return handle_logout(env) if is_logout_request?(env)
+
         set_auth_header(env)
 
         request_body = env[:body] # After failure env[:body] is set to the response body
@@ -31,6 +39,25 @@ module FmRest
       end
 
       private
+
+      def handle_logout(env)
+        token = token_store.load(token_store_key)
+
+        raise NoSessionTokenSet, "Couldn't send logout request because no session token was set" unless token
+
+        env.url.path = env.url.path.gsub(LOGOUT_PATH_MATCHER, "\\1#{token}")
+
+        @app.call(env).on_complete do |response_env|
+          if response_env[:status] == 200
+            token_store.delete(token_store_key)
+          end
+        end
+      end
+
+      def is_logout_request?(env)
+        return false unless env.method == :delete
+        return env.url.path.match?(LOGOUT_PATH_MATCHER)
+      end
 
       def set_auth_header(env)
         env.request_headers[HEADER_KEY] = "Bearer #{token}"

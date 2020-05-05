@@ -8,6 +8,7 @@ require "fmrest/spyke/model/associations"
 require "fmrest/spyke/model/orm"
 require "fmrest/spyke/model/container_fields"
 require "fmrest/spyke/model/http"
+require "fmrest/spyke/model/auth"
 
 module FmRest
   module Spyke
@@ -22,6 +23,7 @@ module FmRest
       include Orm
       include ContainerFields
       include Http
+      include Auth
 
       included do
         # @return [Integer] the record's modId

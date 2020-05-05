@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 require "uri"
-require "fmrest/v1/token_session"
-require "fmrest/v1/raise_errors"
 
 module FmRest
   module V1
@@ -21,6 +19,7 @@ module FmRest
       # @option (see #base_connection)
       # @return (see #base_connection)
       def build_connection(options = FmRest.default_connection_settings, &block)
+
         base_connection(options) do |conn|
           conn.use RaiseErrors
           conn.use TokenSession, options
@@ -84,3 +83,6 @@ module FmRest
     end
   end
 end
+
+require "fmrest/v1/token_session"
+require "fmrest/v1/raise_errors"

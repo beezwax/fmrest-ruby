@@ -9,7 +9,7 @@ RSpec.describe FmRest::V1::TokenSession do
   let(:config) do
     {
       host:        "https://#{hostname}",
-      database:    "My DB",
+      database:    "MyDB",
       username:    "bobby",
       password:    "cubictrousers",
       token_store: token_store
@@ -104,6 +104,44 @@ RSpec.describe FmRest::V1::TokenSession do
         faraday.get("/")
         expect(@init_request).to have_been_requested.once
         expect(@retry_request).to have_been_requested.once
+      end
+    end
+
+    context "when requesting a logout" do
+      let(:token) { "THE_ACTUAL_TOKEN" }
+
+      before do
+        @logout_request_with_auth_header =
+          stub_request(:delete, fm_url(host: hostname, database: config[:database]) + "/sessions/#{token}")
+            .with(headers: { Authorization: "Bearer #{token}" })
+
+        @logout_request =
+          stub_request(:delete, fm_url(host: hostname, database: config[:database]) + "/sessions/#{token}").to_return_fm
+      end
+
+      it "doesn't set the token header" do
+        faraday.delete("/fmi/data/v1/databases/#{config[:database]}/sessions/REPLACEABLE")
+        expect(@logout_request_with_auth_header).to_not have_been_requested
+      end
+
+      it "replaces the dummy token in the path with the actual session token" do
+        faraday.delete("/fmi/data/v1/databases/#{config[:database]}/sessions/REPLACEABLE")
+        expect(@logout_request).to have_been_requested
+      end
+
+      it "deletes the token from the token store" do
+        expect(token_store).to receive(:delete)
+        faraday.delete("/fmi/data/v1/databases/#{config[:database]}/sessions/REPLACEABLE")
+      end
+
+      context "with no token set" do
+        let(:token) { nil }
+
+        it "raises an exception" do
+          expect { faraday.delete("/fmi/data/v1/databases/#{config[:database]}/sessions/REPLACEABLE") }.to(
+            raise_error(FmRest::V1::TokenSession::NoSessionTokenSet)
+          )
+        end
       end
     end
   end

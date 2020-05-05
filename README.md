@@ -61,6 +61,28 @@ end
 For each request fmrest-ruby will first request a session token (using the
 provided username and password) if it doesn't yet have one in store.
 
+### Logging out of the database session
+
+The Data API requires sending a DELETE request to
+`/fmi/data/:version/databases/:database_name/sessions/:session_token`
+in order to log out from the session
+([see docs](https://fmhelp.filemaker.com/docs/18/en/dataapi/#connect-database_log-out)).
+
+Since fmrest-ruby handles the storage of session tokens internally, and the
+token is required to build the logout URL, this becomes a non-trivial action.
+
+To remedy this, fmrest-ruby connections recognize when you're trying to logout
+and substitute whatever is in the `:session_token` section of the logout path
+with the actual session token:
+
+```ruby
+# Logout from the database session
+connection.delete "sessions/this-will-be-replaced-with-the-actual-token"
+```
+
+If you're using the ORM features this becomes much easier, see
+`[Model.logout](#model-logout)` below.
+
 ## Connection settings
 
 In addition to the required `:host`, `:database`, `:username` and `:password`
@@ -334,6 +356,15 @@ Data API models.
 
 Note that you only need to set this if the name of the model and the name of
 the layout differ, otherwise the default will just work.
+
+### Model.logout
+
+Use `logout` to log out from the database session (you may call it on any model
+that uses the database session you want to log out from).
+
+```ruby
+Honeybee.logout
+```
 
 ### Mapped Model.attributes
 
@@ -852,7 +883,7 @@ FM Data API reference: https://fmhelp.filemaker.com/docs/18/en/dataapi/
 | Log in using OAuth                  | No                            | No                               |
 | Log in to an external data source   | No                            | No                               |
 | Log in using a FileMaker ID account | No                            | No                               |
-| Log out                             | Manual*                       | No                               |
+| Log out                             | Yes                           | Yes
 | Get product information             | Manual*                       | No                               |
 | Get database names                  | Manual*                       | No                               |
 | Get script names                    | Manual*                       | No                               |
