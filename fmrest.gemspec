@@ -34,4 +34,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "mock_redis"
   spec.add_development_dependency "moneta"
   spec.add_development_dependency "yard"
+  spec.add_development_dependency "yard-activesupport-concern"
 end

@@ -1,1 +1,2 @@
 --markup markdown
+--plugin activesupport-concern
