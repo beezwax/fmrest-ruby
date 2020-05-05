@@ -1,5 +1,10 @@
 ## Changelog
 
+### 0.6.0
+
+* Implemented session logout
+  ([#16](https://github.com/beezwax/fmrest-ruby/issues/16))
+
 ### 0.5.2
 
 * Improved support for legacy ActiveModel 4.x
