@@ -38,15 +38,25 @@ module FmRest
           private
 
           def fmrest_connection
-            @fmrest_connection ||= FmRest::V1.build_connection(fmrest_config || FmRest.default_connection_settings) do |conn|
-              faraday_block.call(conn) if faraday_block
+            @fmrest_connection ||=
+              begin
+                config = fmrest_config || FmRest.default_connection_settings
 
-              # Pass the class to JsonParser's initializer so it can have
-              # access to extra context defined in the model, e.g. a portal
-              # where name of the portal and the attributes prefix don't match
-              # and need to be specified as options to `portal`
-              conn.use FmRest::Spyke::JsonParser, self
-            end
+                FmRest::V1.build_connection(config) do |conn|
+                  faraday_block.call(conn) if faraday_block
+
+                  # Pass the class to SpykeFormatter's initializer so it can have
+                  # access to extra context defined in the model, e.g. a portal
+                  # where name of the portal and the attributes prefix don't match
+                  # and need to be specified as options to `portal`
+                  conn.use FmRest::Spyke::SpykeFormatter, self
+
+                  conn.use FmRest::V1::TypeCoercer, config
+
+                  # FmRest::Spyke::JsonParse expects symbol keys
+                  conn.response :json, parser_options: { symbolize_names: true }
+                end
+              end
           end
         end
       end

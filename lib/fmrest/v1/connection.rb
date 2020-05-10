@@ -5,7 +5,7 @@ require "uri"
 module FmRest
   module V1
     module Connection
-      BASE_PATH = "/fmi/data/v1/databases".freeze
+      BASE_PATH = "/fmi/data/v1/databases"
 
       # Builds a complete DAPI Faraday connection with middleware already
       # configured to handle authentication, JSON parsing, logging and DAPI
@@ -19,7 +19,6 @@ module FmRest
       # @option (see #base_connection)
       # @return (see #base_connection)
       def build_connection(options = FmRest.default_connection_settings, &block)
-
         base_connection(options) do |conn|
           conn.use RaiseErrors
           conn.use TokenSession, options
@@ -38,8 +37,9 @@ module FmRest
 
           # Allow overriding the default response middleware
           if block_given?
-            yield conn
+            yield conn, options
           else
+            conn.use TypeCoercer, options
             conn.response :json
           end
 
@@ -86,3 +86,4 @@ end
 
 require "fmrest/v1/token_session"
 require "fmrest/v1/raise_errors"
+require "fmrest/v1/type_coercer"

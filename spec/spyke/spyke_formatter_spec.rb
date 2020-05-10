@@ -1,6 +1,6 @@
 require "spec_helper"
 
-RSpec.describe FmRest::Spyke::JsonParser do
+RSpec.describe FmRest::Spyke::SpykeFormatter do
   let :model do
     fmrest_spyke_class do
       has_portal :portal1, attribute_prefix: "PortalOne"
@@ -34,6 +34,7 @@ RSpec.describe FmRest::Spyke::JsonParser do
   let :faraday do
     Faraday.new do |conn|
       conn.use described_class, model
+      conn.response :json, parser_options: { symbolize_names: true }
 
       conn.adapter :test do |stub|
         stub.get '/records/1' do

@@ -6,7 +6,7 @@ module FmRest
   module Spyke
     # Response Faraday middleware for converting FM API's response JSON into
     # Spyke's expected format
-    class JsonParser < ::Faraday::Response::Middleware
+    class SpykeFormatter < ::Faraday::Response::Middleware
       SINGLE_RECORD_RE = %r(/records/\d+\z).freeze
       MULTIPLE_RECORDS_RE = %r(/records\z).freeze
       CONTAINER_RE = %r(/records/\d+/containers/[^/]+/\d+\z).freeze
@@ -24,7 +24,9 @@ module FmRest
 
       # @param env [Faraday::Env]
       def on_complete(env)
-        json = parse_json(env.body)
+        return unless env.body.is_a?(Hash)
+
+        json = env.body
 
         case
         when single_record_request?(env)
@@ -228,12 +230,6 @@ module FmRest
 
       def execute_script_request?(env)
         env.method == :get && env.url.path.match(SCRIPT_REQUEST_RE)
-      end
-
-      # @param source [String] a JSON string
-      # @return [Hash] the parsed JSON
-      def parse_json(source)
-        JSON.parse(source, symbolize_names: true)
       end
     end
   end

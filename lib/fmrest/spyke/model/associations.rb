@@ -10,7 +10,7 @@ module FmRest
 
         included do
           # Keep track of portal options by their FM keys as we could need it
-          # to parse the portalData JSON in JsonParser
+          # to parse the portalData JSON in SpykeFormatter
           class_attribute :portal_options, instance_accessor: false, instance_predicate: false
 
           # class_attribute supports a :default option since ActiveSupport 5.2,
@@ -37,7 +37,7 @@ module FmRest
           def has_portal(name, options = {})
             create_association(name, Portal, options)
 
-            # Store options for JsonParser to use if needed
+            # Store options for SpykeFormatter to use if needed
             portal_key = options[:portal_key] || name
             self.portal_options = portal_options.merge(portal_key.to_s => options.dup.merge(name: name.to_s)).freeze
 

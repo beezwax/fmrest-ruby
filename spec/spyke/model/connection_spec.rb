@@ -22,9 +22,18 @@ RSpec.describe FmRest::Spyke::Model::Connection do
       expect(subject.builder.handlers).to include(FaradayMiddleware::EncodeJson)
     end
 
-    it "uses the FmRest::Spyke::JsonParser middleware" do
-      expect(subject.builder.handlers).to include(FmRest::Spyke::JsonParser)
+    it "uses the FmRest::Spyke::SpykeFormatter middleware" do
+      expect(subject.builder.handlers).to include(FmRest::Spyke::SpykeFormatter)
     end
+
+    it "uses the TypeCoercer middleware" do
+      expect(subject.builder.handlers).to include(FmRest::V1::TypeCoercer)
+    end
+
+    it "uses the ParseJson middleware" do
+      expect(subject.builder.handlers).to include(FaradayMiddleware::ParseJson)
+    end
+
   end
 
   describe ".faraday" do

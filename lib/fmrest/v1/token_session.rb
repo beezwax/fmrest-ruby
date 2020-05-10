@@ -14,6 +14,8 @@ module FmRest
       TOKEN_STORE_INTERFACE = [:load, :store, :delete].freeze
       LOGOUT_PATH_MATCHER = %r{\A(#{FmRest::V1::Connection::BASE_PATH}/[^/]+/sessions/)[^/]+\Z}.freeze
 
+      # @param app [#call]
+      # @param options [Hash]
       def initialize(app, options = FmRest.default_connection_settings)
         super(app)
         @options = options
