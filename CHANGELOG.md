@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.7.0
+
+* Added date coercion feature
+
 ### 0.6.0
 
 * Implemented session logout
