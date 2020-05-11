@@ -107,19 +107,19 @@ with the ginjo-rfm gem.
 
 ### Full list of available options
 
-| Option              | Description                                | Format                      | Default    |
-|---------------------|--------------------------------------------|-----------------------------|------------|
-| `:host`             | The hostname with optional port, e.g. `"example.com:9000"` | String      | None       |
-| `:database`         |                                            | String                      | None       |
-| `:username`         |                                            | String                      | None       |
-| `:password`         |                                            | String                      | None       |
-| `:ssl`              | SSL options to be forwarded to Faraday     | Faraday SSL options         | None       |
-| `:proxy`            | Proxy options to be forwarded to Faraday   | Faraday proxy options       | None       |
-| `:log`              | Log JSON responses to STDOUT               | Boolean                     | `false`    |
-| `:coerce_dates`     | See section on [date fields](#date-fields) | Boolean\|`:hybrid`\|`:full` | `false`    |
-| `:date_format`      | Date parsing format                        | String (FM date format)     | `"MM/dd/yyyy"`          |
-| `:timestamp_format` | Timestmap parsing format                   | String (FM date format)     | `"MM/dd/yyyy HH:mm:ss"` |
-| `:time_format`      | Time parsing format                        | String (FM date format)     | `"HH:mm:ss"`            |
+Option              | Description                                | Format                      | Default
+--------------------|--------------------------------------------|-----------------------------|--------
+`:host`             | Hostname with optional port, e.g. `"example.com:9000"` | String          | None
+`:database`         |                                            | String                      | None
+`:username`         |                                            | String                      | None
+`:password`         |                                            | String                      | None
+`:ssl`              | SSL options to be forwarded to Faraday     | Faraday SSL options         | None
+`:proxy`            | Proxy options to be forwarded to Faraday   | Faraday proxy options       | None
+`:log`              | Log JSON responses to STDOUT               | Boolean                     | `false`
+`:coerce_dates`     | See section on [date fields](#date-fields) | Boolean \| `:hybrid` \| `:full` | `false`
+`:date_format`      | Date parsing format                        | String (FM date format)     | `"MM/dd/yyyy"`
+`:timestamp_format` | Timestmap parsing format                   | String (FM date format)     | `"MM/dd/yyyy HH:mm:ss"`
+`:time_format`      | Time parsing format                        | String (FM date format)     | `"HH:mm:ss"`
 
 ### Default connection settings
 
@@ -239,18 +239,16 @@ you'll have to add it to your Gemfile.
 ## Date fields
 
 Since the Data API uses JSON (wich doesn't provide a native date/time object),
-dates and timestamps are received in string format.
-
-By default fmrest-ruby leaves those fields untouched as strings, but it
-provides an opt-in feature to try to automatically "coerce" them into Ruby date
-objects.
+dates and timestamps are received in string format. By default fmrest-ruby
+leaves those string fields untouched, but it provides an opt-in feature to try
+to automatically "coerce" them into Ruby date objects.
 
 The connection option `:coerce_dates` controls this feature. Possible values
 are:
 
 * `:full`: whenever a string matches the given date/timestamp/time format,
   convert them to `Date` or `DateTime` objects as appropriate
-* `:hybrid`/`true`: similar as above, but instead of converting to regular
+* `:hybrid` or `true`: similar as above, but instead of converting to regular
   `Date`/`DateTime` it converts strings to `FmRest::StringDate` and
   `FmRest::StringDateTime`, "hybrid" classes provided by fmrest-ruby that
   retain the functionality of `String` while also providing most the
@@ -897,6 +895,7 @@ same metadata hash with script execution results. Note that this does not apply
 to retrieving single records, in that case you'll have to use
 `.last_request_metadata`.
 
+
 ## Logging
 
 If using fmrest-ruby + Spyke in a Rails app pretty log output will be set up
@@ -950,7 +949,7 @@ FM Data API reference: https://fmhelp.filemaker.com/docs/18/en/dataapi/
 | Log in using OAuth                  | No                            | No                               |
 | Log in to an external data source   | No                            | No                               |
 | Log in using a FileMaker ID account | No                            | No                               |
-| Log out                             | Yes                           | Yes
+| Log out                             | Yes                           | Yes                              |
 | Get product information             | Manual*                       | No                               |
 | Get database names                  | Manual*                       | No                               |
 | Get script names                    | Manual*                       | No                               |
@@ -971,19 +970,6 @@ FM Data API reference: https://fmhelp.filemaker.com/docs/18/en/dataapi/
 
 \* You can manually supply the URL and JSON to a `FmRest` connection.
 
-## TODO
-
-- [ ] Support for FM18 features
-- [ ] Better/simpler-to-use core Ruby API
-- [ ] Better API documentation and README
-- [ ] Oauth support
-- [x] Support for portal limit and offset
-- [x] More options for token storage
-- [x] Support for container fields
-- [x] Optional logging
-- [x] FmRest::Spyke::Base class for single inheritance (as alternative for mixin)
-- [x] Specs
-- [x] Support for portal data
 
 ## Gem development
 
@@ -998,6 +984,7 @@ release a new version, update the version number in `version.rb`, and then run
 git commits and tags, and push the `.gem` file to
 [rubygems.org](https://rubygems.org).
 
+
 ## Contributing
 
 Bug reports and pull requests are welcome. This project is intended to be a
@@ -1005,20 +992,16 @@ safe, welcoming space for collaboration, and contributors are expected to
 adhere to the [Contributor Covenant](http://contributor-covenant.org) code of
 conduct.
 
+
 ## License
 
 The gem is available as open source under the terms of the
 [MIT License](https://opensource.org/licenses/MIT).
 See [LICENSE.txt](LICENSE.txt).
 
+
 ## Disclaimer
 
 This project is not sponsored by or otherwise affiliated with FileMaker, Inc,
 an Apple subsidiary. FileMaker is a trademark of FileMaker, Inc., registered in
 the U.S. and other countries.
-
-## Code of Conduct
-
-Everyone interacting in the fmrest-ruby project’s codebases, issue trackers,
-chat rooms and mailing lists is expected to follow the [code of
-conduct](CODE_OF_CONDUCT.md).
