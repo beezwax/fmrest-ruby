@@ -105,6 +105,22 @@ You can also pass a `:log` option for basic request logging, see the section on
 `:username` is also aliased as `:account_name` to provide cross-compatibility
 with the ginjo-rfm gem.
 
+### Full list of available options
+
+| Option              | Description                                | Format                      | Default    |
+|---------------------|--------------------------------------------|-----------------------------|------------|
+| `:host`             | The hostname with optional port, e.g. `"example.com:9000"` | String      | None       |
+| `:database`         |                                            | String                      | None       |
+| `:username`         |                                            | String                      | None       |
+| `:password`         |                                            | String                      | None       |
+| `:ssl`              | SSL options to be forwarded to Faraday     | Faraday SSL options         | None       |
+| `:proxy`            | Proxy options to be forwarded to Faraday   | Faraday proxy options       | None       |
+| `:log`              | Log JSON responses to STDOUT               | Boolean                     | `false`    |
+| `:coerce_dates`     | See section on [date fields](#date-fields) | Boolean\|`:hybrid`\|`:full` | `false`    |
+| `:date_format`      | Date parsing format                        | String (FM date format)     | `"MM/dd/yyyy"`          |
+| `:timestamp_format` | Timestmap parsing format                   | String (FM date format)     | `"MM/dd/yyyy HH:mm:ss"` |
+| `:time_format`      | Time parsing format                        | String (FM date format)     | `"HH:mm:ss"`            |
+
 ### Default connection settings
 
 If you're only connecting to a single FM database you can configure it globally
@@ -121,6 +137,7 @@ FmRest.default_connection_settings = {
 
 This configuration will be used by default by `FmRest::V1.build_connection` as
 well as your models whenever you don't pass a configuration hash explicitly.
+
 
 ## Session token store
 
@@ -217,6 +234,56 @@ FmRest.token_store = FmRest::TokenStore::Moneta.new(
 
 **NOTE:** the moneta gem is not included as a dependency of fmrest-ruby, so
 you'll have to add it to your Gemfile.
+
+
+## Date fields
+
+Since the Data API uses JSON (wich doesn't provide a native date/time object),
+dates and timestamps are received in string format.
+
+By default fmrest-ruby leaves those fields untouched as strings, but it
+provides an opt-in feature to try to automatically "coerce" them into Ruby date
+objects.
+
+The connection option `:coerce_dates` controls this feature. Possible values
+are:
+
+* `:full`: whenever a string matches the given date/timestamp/time format,
+  convert them to `Date` or `DateTime` objects as appropriate
+* `:hybrid`/`true`: similar as above, but instead of converting to regular
+  `Date`/`DateTime` it converts strings to `FmRest::StringDate` and
+  `FmRest::StringDateTime`, "hybrid" classes provided by fmrest-ruby that
+  retain the functionality of `String` while also providing most the
+  functionality of `Date`/`DateTime` (more on this below)
+* `false`: disable date coercion entirely (default), leave original string
+  values untouched
+
+Enabling date coercion works with both basic fmrest-ruby connections and Spyke
+models (ORM).
+
+The connection options `:date_format`, `:timestamp_format` and `:time_format`
+control how to match and parse dates. You only need to provide these if you use
+a date/time localization different from American format (the default).
+
+Future versions of fmrest-ruby will provide better (and less heuristic) ways of
+specifying and/or detecting date fields (e.g. by requesting layout metadata or
+a DSL in model classes).
+
+### Hybrid string/date objects
+
+`FmRest::StringDate` and `FmRest::StringDateTime` are special classes that
+inherit from `String`, but internally parse and store a `Date`/`DateTime`
+(respectively), and delegate any methods not provided by `String` to those
+objects. In other words, they quack like a duck *and* bark like a dog.
+
+You can use these when you want fmrest-ruby to provide you with date objects,
+but you don't want to worry about date coercion of false positives (i.e. a
+string field that gets converted to `Date` because it just so matched the given
+date format).
+
+Be warned however that these classes come with a fair share of known gotchas
+(see GitHub wiki for more info).
+
 
 ## Spyke support (ActiveRecord-like ORM)
 
