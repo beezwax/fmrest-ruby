@@ -246,14 +246,14 @@ to automatically "coerce" them into Ruby date objects.
 The connection option `:coerce_dates` controls this feature. Possible values
 are:
 
-* `:full`: whenever a string matches the given date/timestamp/time format,
+* `:full` - whenever a string matches the given date/timestamp/time format,
   convert them to `Date` or `DateTime` objects as appropriate
-* `:hybrid` or `true`: similar as above, but instead of converting to regular
+* `:hybrid` or `true` - similar as above, but instead of converting to regular
   `Date`/`DateTime` it converts strings to `FmRest::StringDate` and
   `FmRest::StringDateTime`, "hybrid" classes provided by fmrest-ruby that
   retain the functionality of `String` while also providing most the
   functionality of `Date`/`DateTime` (more on this below)
-* `false`: disable date coercion entirely (default), leave original string
+* `false` - disable date coercion entirely (default), leave original string
   values untouched
 
 Enabling date coercion works with both basic fmrest-ruby connections and Spyke
