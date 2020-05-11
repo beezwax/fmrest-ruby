@@ -78,6 +78,10 @@ module FmRest
 
     class InvalidDate < ArgumentError; end
 
+    class << self
+      alias_method :strptime, :new
+    end
+
     def initialize(str, date_format, **str_args)
       super(str, **str_args)
 

@@ -13,6 +13,12 @@ RSpec.shared_examples "a StringDateish" do
     end
   end
 
+  describe ".strptime" do
+    it "is an alias of .new" do
+      expect(described_class.method(:strptime)).to eq(described_class.method(:new))
+    end
+  end
+
   describe "#is_a?" do
     it "returns true if given String" do
       expect(subject.is_a?(String)).to eq(true)

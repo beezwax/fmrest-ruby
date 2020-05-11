@@ -8,6 +8,9 @@ module FmRest
       # We use this date to represent a time for consistency with ginjo-rfm
       JULIAN_ZERO_DAY = "-4712/1/1"
 
+      COERCE_HYBRID = [:hybrid, "hybrid", true].freeze
+      COERCE_FULL = [:full, "full"].freeze
+
       # @param app [#call]
       # @param options [Hash]
       def initialize(app, options = FmRest.default_connection_settings)
@@ -35,37 +38,59 @@ module FmRest
             end
           end
 
-          enum.each do |hash|
-            hash.each do |k, v|
-              next unless v.is_a?(String)
-              next if k == "recordId" || k == :recordId || k == "modId" || k == :modId
-
-              begin
-                str_timestamp = StringDateTime.new(v, datetime_format)
-                hash[k] = str_timestamp
-                next
-              rescue StringDate::InvalidDate
-              end
-
-              begin
-                str_date = StringDate.new(v, date_format)
-                hash[k] = str_date
-                next
-              rescue StringDate::InvalidDate
-              end
-
-              begin
-                str_time = StringDateTime.new("#{JULIAN_ZERO_DAY} #{v}", time_format)
-                hash[k] = str_time
-                next
-              rescue StringDate::InvalidDate
-              end
-            end
-          end
+          enum.each { |hash| coerce_fields(hash) }
         end
       end
 
       private
+
+      def coerce_fields(hash)
+        hash.each do |k, v|
+          next unless v.is_a?(String)
+          next if k == "recordId" || k == :recordId || k == "modId" || k == :modId
+
+          begin
+            str_timestamp = datetime_class.strptime(v, datetime_format)
+            hash[k] = str_timestamp
+            next
+          rescue ArgumentError
+          end
+
+          begin
+            str_date = date_class.strptime(v, date_format)
+            hash[k] = str_date
+            next
+          rescue ArgumentError
+          end
+
+          begin
+            str_time = datetime_class.strptime("#{JULIAN_ZERO_DAY} #{v}", time_format)
+            hash[k] = str_time
+            next
+          rescue ArgumentError
+          end
+        end
+      end
+
+      def date_class
+        @date_class ||=
+          case coerce_dates
+          when *COERCE_HYBRID
+            StringDate
+          when *COERCE_FULL
+            Date
+          end
+      end
+
+      def datetime_class
+        @datetime_class ||=
+          case coerce_dates
+          when *COERCE_HYBRID
+            StringDateTime
+          when *COERCE_FULL
+            DateTime
+          end
+      end
 
       def date_format
         @date_format ||=
@@ -82,9 +107,11 @@ module FmRest
           "%Y/%m/%d " + FmRest::V1.convert_date_time_format(@options[:time_format] || DEFAULT_TIME_FORMAT)
       end
 
-      def enabled?
+      def coerce_dates
         @options.fetch(:coerce_dates, false)
       end
+
+      alias_method :enabled?, :coerce_dates
     end
   end
 end
