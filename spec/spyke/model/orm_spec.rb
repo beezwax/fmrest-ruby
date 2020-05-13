@@ -36,7 +36,10 @@ RSpec.describe FmRest::Spyke::Model::Orm do
     end
   end
 
-  [:limit, :offset, :sort, :order, :query, :omit, :portal, :portals, :includes, :without_portals, :with_all_portals, :script].each do |delegator|
+  %i[
+    limit offset sort order query omit portal portals includes
+    without_portals with_all_portals script find_one find_some
+  ].each do |delegator|
     describe ".#{delegator}" do
       let(:scope) { double("Relation") }
 

@@ -24,7 +24,7 @@ module FmRest
           # Methods delegated to FmRest::Spyke::Relation
           delegate :limit, :offset, :sort, :order, :query, :omit, :portal,
                    :portals, :includes, :with_all_portals, :without_portals,
-                   :script, to: :all
+                   :script, :find_one, :find_some, to: :all
 
           def all
             # Use FmRest's Relation instead of Spyke's vanilla one
