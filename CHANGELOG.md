@@ -1,5 +1,10 @@
 ## Changelog
 
+### 0.7.1
+
+* Made sure `Model.find_one` and `Model.find_some` work without needing to call
+  `Model.all` in between
+
 ### 0.7.0
 
 * Added date coercion feature
