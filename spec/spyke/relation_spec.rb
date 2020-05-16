@@ -264,6 +264,110 @@ RSpec.describe FmRest::Spyke::Relation do
         expect { scope.find_one }.to change { scope.instance_variable_get(:@find_one) }.from(nil).to(record)
       end
     end
+
+    it "is aliased as #first" do
+      expect(described_class.instance_method(:first)).to eq(described_class.instance_method(:find_one))
+    end
+
+    it "is aliased as #any" do
+      expect(described_class.instance_method(:any)).to eq(described_class.instance_method(:find_one))
+    end
+  end
+
+  describe "#find_in_batches" do
+    context "when called with a block" do
+      it "calls the block with each batch, not yielding if the last batch is empty" do
+        batch_size = 2
+        batches = 3 # the last one will be empty
+        fetch_calls = 0
+
+        expect(test_class).to receive(:fetch) do
+          fetch_calls += 1
+
+          expected_offset = (fetch_calls - 1) * batch_size + 1
+
+          expect(test_class.current_scope.limit_value).to eq(batch_size)
+          expect(test_class.current_scope.offset_value).to eq(expected_offset)
+
+          double(
+            data: (batches - fetch_calls).zero? ? [] : [{ id: 1 }, { id: 2 }],
+            metadata: double(data_info: nil)
+          )
+        end.exactly(batches).times
+
+        expect { |b| relation.find_in_batches(batch_size: 2, &b) }.to yield_successive_args(
+          an_instance_of(Spyke::Collection),
+          an_instance_of(Spyke::Collection)
+        )
+      end
+
+      it "prevents the last request if the found count is a multiple of the batch size" do
+        expect(test_class).to receive(:fetch) do
+          double(
+            data: [{ id: 1 }, { id: 2 }],
+            metadata: double(data_info: double(found_count: 2))
+          )
+        end.once
+
+        expect { |b| relation.find_in_batches(batch_size: 2, &b) }.to yield_control.once
+      end
+    end
+
+    context "when called without a block" do
+      it "returns an Enumerator" do
+        expect(relation.find_in_batches).to be_an(Enumerator)
+      end
+
+      it "calculates the size of the returned Enumerator through metadata" do
+        enum = relation.find_in_batches(batch_size: 10)
+
+        expect(test_class).to receive(:fetch) do
+          expect(test_class.current_scope.limit_value).to eq(1)
+          double(
+            data: [],
+            metadata: double(data_info: double(found_count: 90))
+          )
+        end
+
+        expect(enum.size).to eq(9)
+      end
+    end
+  end
+
+  describe "#find_each" do
+    context "when called with a block" do
+      it "yields each record independently" do
+        allow(relation).to receive(:find_in_batches).and_yield([1, 2]).and_yield([3, 4])
+
+        expect { |b| relation.find_each(&b) }.to yield_successive_args(1, 2, 3, 4)
+      end
+
+      it "passes the batch_size option to find_in_batches" do
+        expect(relation).to receive(:find_in_batches).with(batch_size: 3)
+
+        relation.find_each(batch_size: 3) {}
+      end
+    end
+
+    context "when called without a block" do
+      it "returns an Enumerator" do
+        expect(relation.find_each).to be_an(Enumerator)
+      end
+
+      it "calculates the size of the returned Enumerator through metadata" do
+        enum = relation.find_each
+
+        expect(test_class).to receive(:fetch) do
+          expect(test_class.current_scope.limit_value).to eq(1)
+          double(
+            data: [],
+            metadata: double(data_info: double(found_count: 90))
+          )
+        end
+
+        expect(enum.size).to eq(90)
+      end
+    end
   end
 
   # TODO: Testing private methods is generally considered bad practice, but

@@ -190,6 +190,79 @@ module FmRest
       rescue ::Spyke::ConnectionError => error
         fallback_or_reraise(error, default: nil)
       end
+      alias_method :first, :find_one
+      alias_method :any, :find_one
+
+      # Yields each batch of records that was found by the find options.
+      #
+      # NOTE: By its nature, batch processing is subject to race conditions if
+      # other processes are modifying the database
+      #
+      # @param batch_size [Integer] Specifies the size of the batch.
+      # @return [Enumerator] if called without a block.
+      def find_in_batches(batch_size: 1000)
+        unless block_given?
+          return to_enum(:find_in_batches, batch_size: batch_size) do
+            total = limit(1).find_some.metadata.data_info.found_count
+            (total - 1).div(batch_size) + 1
+          end
+        end
+
+        offset = 1 # DAPI offset is 1-based
+
+        loop do
+          relation = offset(offset).limit(batch_size)
+
+          records = relation.find_some
+
+          yield records if records.length > 0
+
+          break if records.length < batch_size
+
+          # Save one iteration if the total is a multiple of batch_size
+          if found_count = records.metadata.data_info && records.metadata.data_info.found_count
+            break if found_count == (offset - 1) + batch_size
+          end
+
+          offset += batch_size
+        end
+      end
+
+      # Looping through a collection of records from the database (using the
+      # #all method, for example) is very inefficient since it will fetch and
+      # instantiate all the objects at once.
+      #
+      # In that case, batch processing methods allow you to work with the
+      # records in batches, thereby greatly reducing memory consumption and be
+      # lighter on the Data API server.
+      #
+      # The find_each method uses #find_in_batches with a batch size of 1000
+      # (or as specified by the :batch_size option).
+      #
+      # NOTE: By its nature, batch processing is subject to race conditions if
+      # other processes are modifying the database
+      #
+      # @param (see #find_in_batches)
+      # @example
+      #   Person.find_each do |person|
+      #     person.greet
+      #   end
+      #
+      #   Person.query(name: "==Mitch").find_each do |person|
+      #     person.say_hi
+      #   end
+      # @return (see #find_in_batches)
+      def find_each(batch_size: 1000)
+        unless block_given?
+          return to_enum(:find_each, batch_size: batch_size) do
+            limit(1).find_some.metadata.data_info.found_count
+          end
+        end
+
+        find_in_batches(batch_size: batch_size) do |records|
+          records.each { |r| yield r }
+        end
+      end
 
       protected
 

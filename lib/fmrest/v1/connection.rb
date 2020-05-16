@@ -31,16 +31,16 @@ module FmRest
           conn.request :multipart
           conn.request :json
 
-          if options[:log]
-            conn.response :logger, nil, bodies: true, headers: true
-          end
-
           # Allow overriding the default response middleware
           if block_given?
             yield conn, options
           else
             conn.use TypeCoercer, options
             conn.response :json
+          end
+
+          if options[:log]
+            conn.response :logger, nil, bodies: true, headers: true
           end
 
           conn.adapter Faraday.default_adapter
