@@ -1,5 +1,12 @@
 ## Changelog
 
+### 0.8.0
+
+* Improved metadata when using `FmRest::Spyke::Model`. Metadata now uses
+  Struct/OpenStruct, so properties are accessible through `.property`, as well
+  as `[:property]`
+* Implemented `.find_in_batches` and `.find_each` for `FmRest::Spyke::Model`
+
 ### 0.7.1
 
 * Made sure `Model.find_one` and `Model.find_some` work without needing to call
