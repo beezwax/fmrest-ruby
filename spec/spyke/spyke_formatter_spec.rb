@@ -1,10 +1,96 @@
 require "spec_helper"
 
+# Custom matcher module for comparing Metadata objects
+#
+# See examples in specs below for usage
+#
+module MetadataMatchers
+  extend RSpec::Matchers::DSL
+
+  matcher :a_metadata_object do |expected|
+    match do |actual|
+      matches = actual.kind_of?(FmRest::Spyke::Metadata)
+
+      if @messages
+        matches &&=
+          @messages.all? do |expecm|
+            actual.messages.any? do |m|
+              expecm[:code] === m.code && expecm[:message] === m.message
+            end
+          end
+      end
+
+      if @script_results
+        matches &&=
+          @script_results.all? { |k, v| v === actual.script[k].to_h }
+      end
+
+      if @data_info
+        matches &&= (@data_info === actual.data_info.to_h)
+      end
+
+      matches
+    end
+
+    chain :with_messages do |*messages|
+      @messages = messages
+    end
+
+    chain :with_ok_message do
+      @messages = [{ code: "0", message: "OK" }]
+    end
+
+    chain :with_script_results do |results|
+      @script_results = results
+    end
+
+    chain :with_data_info do |data_info|
+      @data_info = data_info
+    end
+  end
+end
+
+RSpec.describe FmRest::Spyke::Metadata do
+  it "aliases script as scripts" do
+    expect(described_class.instance_method(:scripts)).to eq(described_class.instance_method(:script))
+  end
+end
+
+RSpec.describe FmRest::Spyke::DataInfo do
+  let(:instance) { described_class.new(totalRecordCount: 10, foundCount: 5, returnedCount: 2) }
+
+  it "aliases totalRecordCount as total_record_count" do
+    expect(instance.total_record_count).to eq(10)
+  end
+
+  it "aliases foundCount as found_count" do
+    expect(instance.found_count).to eq(5)
+  end
+
+  it "aliases returnedCount as returned_count" do
+    expect(instance.returned_count).to eq(2)
+  end
+end
+
+
 RSpec.describe FmRest::Spyke::SpykeFormatter do
+  include MetadataMatchers
+
   let :model do
     fmrest_spyke_class do
       has_portal :portal1, attribute_prefix: "PortalOne"
     end
+  end
+
+  let :data_info do
+    {
+      database: "Database",
+      layout: "Layout",
+      table: "Table",
+      totalRecordCount: 100,
+      foundCount: 50,
+      returnedCount: 20
+    }
   end
 
   let :response_json do
@@ -26,7 +112,10 @@ RSpec.describe FmRest::Spyke::SpykeFormatter do
           modId: "1",
           recordId: "1"
         }],
+
+        dataInfo: data_info
       },
+
       messages: [{ code: "0", message: "OK" }]
     }
   end
@@ -73,10 +162,7 @@ RSpec.describe FmRest::Spyke::SpykeFormatter do
       response = faraday.get('/records/1')
 
       expect(response.body).to include(
-        metadata: {
-          messages: [{code: "0", message: "OK"}],
-          script: nil
-        },
+        metadata: a_metadata_object.with_ok_message,
         data: {
           id: 1,
           mod_id: "1",
@@ -92,10 +178,9 @@ RSpec.describe FmRest::Spyke::SpykeFormatter do
       response = faraday.post('/_find')
 
       expect(response.body).to include(
-        metadata: {
-          messages: [{code: "0", message: "OK"}],
-          script: nil
-        },
+        metadata: a_metadata_object
+          .with_ok_message
+          .with_data_info(data_info),
         data: [{
           id: 1,
           mod_id: "1",
@@ -111,10 +196,9 @@ RSpec.describe FmRest::Spyke::SpykeFormatter do
       response = faraday.post('/_find')
 
       expect(response.body).to include(
-        metadata: {
-          messages: [{code: "0", message: "OK"}],
-          script: nil
-        },
+        metadata: a_metadata_object
+          .with_ok_message
+          .with_data_info(data_info),
         data: [{
           id: 1,
           mod_id: "1",
@@ -139,10 +223,7 @@ RSpec.describe FmRest::Spyke::SpykeFormatter do
 
         it "returns a hash with single record data" do
           expect(response.body).to include(
-            metadata: {
-              messages: [{code: "0", message: "OK"}],
-              script: nil
-            },
+            metadata: a_metadata_object.with_ok_message,
             data: { mod_id: "2" },
             errors: {}
           )
@@ -154,26 +235,21 @@ RSpec.describe FmRest::Spyke::SpykeFormatter do
           {
             response: {},
             messages: [
-              {code: "555", message: "Very angry validation error"},
-              {code: "800", message: "Chill non-validation error"}
+              { code: "555", message: "Very angry validation error" },
+              { code: "800", message: "Chill non-validation error" }
             ]
           }
         end
 
         it "returns a hash with validation errors" do
           expect(response.body).to include(
-            metadata: {
-              messages: [
-                {code: "555", message: "Very angry validation error"},
-                {code: "800", message: "Chill non-validation error"}
-              ],
-              script: nil
-            },
+            metadata: a_metadata_object.with_messages(
+              { code: "800", message: "Chill non-validation error" },
+              { code: "555", message: "Very angry validation error" }
+            ),
             data: {},
             errors: {
-              base: [
-                "Very angry validation error (555)"
-              ]
+              base: [ "Very angry validation error (555)" ]
             }
           )
         end
@@ -194,10 +270,7 @@ RSpec.describe FmRest::Spyke::SpykeFormatter do
         response = faraday.delete('/records/1')
 
         expect(response.body).to include(
-          metadata: {
-            messages: [{code: "0", message: "OK"}],
-            script: nil
-          },
+          metadata: a_metadata_object.with_ok_message,
           data: {},
           errors: {}
         )
@@ -227,14 +300,13 @@ RSpec.describe FmRest::Spyke::SpykeFormatter do
         response = faraday.get('/script/DoSomethingUseful?script.param=5')
 
         expect(response.body).to include(
-          metadata: {
-            messages: [{code: "0", message: "OK"}],
-            script: {
+          metadata: a_metadata_object
+            .with_ok_message
+            .with_script_results(
               after: { error: "0", result: "hello" },
               presort: { error: "0", result: "hello presort" },
               prerequest: { error: "0", result: "hello prerequest" }
-            }
-          },
+            ),
           errors: {}
         )
       end

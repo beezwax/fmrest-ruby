@@ -1,9 +1,21 @@
 # frozen_string_literal: true
 
 require "json"
+require "ostruct"
 
 module FmRest
   module Spyke
+    # Metadata class to be passed to Spyke::Collection#metadata
+    class Metadata < Struct.new(:messages, :script, :data_info)
+      alias_method :scripts, :script
+    end
+
+    class DataInfo < OpenStruct
+      def total_record_count; totalRecordCount; end
+      def found_count; foundCount; end
+      def returned_count; returnedCount; end
+    end
+
     # Response Faraday middleware for converting FM API's response JSON into
     # Spyke's expected format
     class SpykeFormatter < ::Faraday::Response::Middleware
@@ -77,36 +89,61 @@ module FmRest
 
       # @param json [Hash]
       # @param include_errors [Boolean]
-      # @return [Hash] the skeleton structure for a Spyke-formatted response
+      # @return [FmRest::Spyke::Metadata] the skeleton structure for a
+      #   Spyke-formatted response
       def build_base_hash(json, include_errors = false)
         {
-          metadata: { messages: json[:messages] }.merge(script: prepare_script_results(json).presence),
-          errors:   include_errors ? prepare_errors(json) : {}
+          metadata: Metadata.new(
+            prepare_messages(json),
+            prepare_script_results(json),
+            prepare_data_info(json)
+          ).freeze,
+          errors: include_errors ? prepare_errors(json) : {}
         }
       end
 
       # @param json [Hash]
-      # @return [Hash] the script(s) execution results for Spyke metadata format
+      # @return [Array<OpenStruct>] the skeleton structure for a
+      #   Spyke-formatted response
+      def prepare_messages(json)
+        return [] unless json[:messages]
+        json[:messages].map { |m| OpenStruct.new(m).freeze }.freeze
+      end
+
+      # @param json [Hash]
+      # @return [OpenStruct] the script(s) execution results for Spyke metadata
+      #   format
       def prepare_script_results(json)
         results = {}
 
         [:prerequest, :presort].each do |s|
           if json[:response][:"scriptError.#{s}"]
-            results[s] = {
+            results[s] = OpenStruct.new(
               result: json[:response][:"scriptResult.#{s}"],
               error:  json[:response][:"scriptError.#{s}"]
-            }
+            ).freeze
           end
         end
 
         if json[:response][:scriptError]
-          results[:after] = {
+          results[:after] = OpenStruct.new(
             result: json[:response][:scriptResult],
             error:  json[:response][:scriptError]
-          }
+          ).freeze
         end
 
-        results
+        results.present? ? OpenStruct.new(results).freeze : nil
+      end
+
+      # @param json [Hash]
+      # @return [OpenStruct] the script(s) execution results for
+      #   Spyke metadata format
+      def prepare_data_info(json)
+        data_info = json[:response] && json[:response][:dataInfo]
+
+        return nil unless data_info.present?
+
+        DataInfo.new(data_info).freeze
       end
 
       # @param json [Hash]
