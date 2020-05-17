@@ -7,6 +7,7 @@ require "fmrest/spyke/model/serialization"
 require "fmrest/spyke/model/associations"
 require "fmrest/spyke/model/orm"
 require "fmrest/spyke/model/container_fields"
+require "fmrest/spyke/model/global_fields"
 require "fmrest/spyke/model/http"
 require "fmrest/spyke/model/auth"
 
@@ -22,6 +23,7 @@ module FmRest
       include Associations
       include Orm
       include ContainerFields
+      include GlobalFields
       include Http
       include Auth
 
