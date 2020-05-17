@@ -1,11 +1,16 @@
 ## Changelog
 
+### 0.9.0
+
+* Added `FmRest::Spyke::Base.set_globals`
+
 ### 0.8.0
 
 * Improved metadata when using `FmRest::Spyke::Model`. Metadata now uses
   Struct/OpenStruct, so properties are accessible through `.property`, as well
   as `[:property]`
-* Implemented `.find_in_batches` and `.find_each` for `FmRest::Spyke::Model`
+* Added batch-finders `.find_in_batches` and `.find_each` for
+* `FmRest::Spyke::Base`
 
 ### 0.7.1
 
