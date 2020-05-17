@@ -943,6 +943,32 @@ to retrieving single records, in that case you'll have to use
 `.last_request_metadata`.
 
 
+### Setting global field values
+
+You can call `.set_globals` on any `FmRest::Spyke::Base` model to set glabal
+field values on the database that model is configured for.
+
+You can pass it either a hash of fully qualified field names
+(table_name::field_name), or 1-level-deep nested hashes, with the outer being a
+table name and the inner keys being the field names:
+
+```ruby
+Honeybee.set_globals(
+  "beeTable::myVar"      => "value",
+  "beeTable::myOtherVar" => "also a value"
+)
+
+# Equivalent to the above example
+Honeybee.set_globals(beeTable: { myVar: "value", myOtherVar: "also a value" })
+
+# Combined
+Honeybee.set_globals(
+  "beeTable::myVar" => "value",
+  beeTable: { myOtherVar: "also a value" }
+)
+```
+
+
 ## Logging
 
 If using fmrest-ruby + Spyke in a Rails app pretty log output will be set up
@@ -1011,7 +1037,7 @@ FM Data API reference: https://fmhelp.filemaker.com/docs/18/en/dataapi/
 | Get container data                  | Manual*                       | Yes                              |
 | Upload container data               | Manual*                       | Yes                              |
 | Perform a find request              | Manual*                       | Yes                              |
-| Set global field values             | Manual*                       | No                               |
+| Set global field values             | Manual*                       | Yes
 | Run a script                        | Manual*                       | Yes                              |
 | Run a script with another request   | Manual*                       | Yes                              |
 
