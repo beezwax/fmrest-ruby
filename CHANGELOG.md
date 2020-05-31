@@ -1,5 +1,13 @@
 ## Changelog
 
+### 0.10.0
+
+* Added `FmRest::StringDateAwareness` module to correct some issues when using
+  `FmRest::StringDate`
+* Added basic timezones support
+* Deprecated `class < FmRest::Spyke::Base(config_hash)` syntax in favor of
+  using `self.fmrest_config=`
+
 ### 0.9.0
 
 * Added `FmRest::Spyke::Base.set_globals`
