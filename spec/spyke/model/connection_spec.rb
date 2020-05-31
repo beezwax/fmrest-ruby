@@ -33,7 +33,6 @@ RSpec.describe FmRest::Spyke::Model::Connection do
     it "uses the ParseJson middleware" do
       expect(subject.builder.handlers).to include(FaradayMiddleware::ParseJson)
     end
-
   end
 
   describe ".faraday" do
@@ -47,6 +46,31 @@ RSpec.describe FmRest::Spyke::Model::Connection do
       end
 
       klass.connection
+    end
+  end
+
+  describe ".fmrest_config" do
+    it "defaults to FmRest.default_connection_settings" do
+      old_settings = FmRest.default_connection_settings
+      FmRest.default_connection_settings = { host: "hi imma host" }
+      expect(FmRest::Spyke::Base.fmrest_config).to eq(FmRest.default_connection_settings)
+      FmRest.default_connection_settings = old_settings
+    end
+
+    it "gets overwriten in subclasses if self.fmrest_config= is used" do
+      subclass = fmrest_spyke_class do
+        self.fmrest_config = { host: "foo" }
+      end
+      expect(subclass.fmrest_config).to eq(host: "foo")
+    end
+  end
+
+  describe "#fmrest_config" do
+    it "returns the value of the class-level .fmrest_config" do
+      subclass = fmrest_spyke_class do
+        self.fmrest_config = { host: "foo" }
+      end
+      expect(subclass.new.fmrest_config).to eq(host: "foo")
     end
   end
 end

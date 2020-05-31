@@ -4,10 +4,19 @@ module FmRest
   module Spyke
     module Model
       module Connection
-        extend ::ActiveSupport::Concern
+        extend ActiveSupport::Concern
 
         included do
-          class_attribute :fmrest_config, instance_accessor: false, instance_predicate: false
+          class_attribute :fmrest_config, instance_writer: false, instance_predicate: false
+
+          # Overrides the fmrest_config reader created by class_attribute so we
+          # can default set the default at call time.
+          #
+          # This method gets overwriten in subclasses if self.fmrest_config= is
+          # called.
+          define_singleton_method(:fmrest_config) do
+            FmRest.default_connection_settings
+          end
 
           class_attribute :faraday_block, instance_accessor: false, instance_predicate: false
           class << self; private :faraday_block, :faraday_block=; end
@@ -40,7 +49,7 @@ module FmRest
           def fmrest_connection
             @fmrest_connection ||=
               begin
-                config = fmrest_config || FmRest.default_connection_settings
+                config = fmrest_config
 
                 FmRest::V1.build_connection(config) do |conn|
                   faraday_block.call(conn) if faraday_block
