@@ -322,17 +322,6 @@ class Honeybee < FmRest::Spyke::Base
 end
 ```
 
-In this case you can pass the [`fmrest_config`](#modelfmrest_config) hash as an
-argument to `Base()`:
-
-```ruby
-class Honeybee < FmRest::Spyke::Base(host: "...", database: "...", username: "...", password: "...")
-end
-
-Honeybee.fmrest_config
-# => { host: "...", database: "...", username: "...", password: "..." }
-```
-
 All of Spyke's basic ORM operations work:
 
 ```ruby

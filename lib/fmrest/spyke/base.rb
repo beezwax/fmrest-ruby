@@ -8,6 +8,8 @@ module FmRest
 
     class << self
       def Base(config = nil)
+        warn "[DEPRECATION] Inheriting from `FmRest::Spyke::Base(config)` is deprecated and will be removed, inherit from `FmRest::Spyke::Base` (without arguments) and use `fmrest_config=` instead"
+
         if config
           return Class.new(::FmRest::Spyke::Base) do
                    self.fmrest_config = config
