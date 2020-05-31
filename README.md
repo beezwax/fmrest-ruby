@@ -3,7 +3,7 @@
 <a href="https://rubygems.org/gems/fmrest"><img src="https://badge.fury.io/rb/fmrest.svg?style=flat" alt="Gem Version"></a>
 
 A Ruby client for
-[FileMaker 18's Data API](https://fmhelp.filemaker.com/docs/18/en/dataapi/)
+[FileMaker 18 and 19's Data API](https://help.claris.com/en/data-api-guide)
 using
 [Faraday](https://github.com/lostisland/faraday) and with optional
 [Spyke](https://github.com/balvig/spyke) support (ActiveRecord-ish models).
@@ -120,7 +120,7 @@ Option              | Description                                | Format       
 `:date_format`      | Date parsing format                        | String (FM date format)     | `"MM/dd/yyyy"`
 `:timestamp_format` | Timestmap parsing format                   | String (FM date format)     | `"MM/dd/yyyy HH:mm:ss"`
 `:time_format`      | Time parsing format                        | String (FM date format)     | `"HH:mm:ss"`
-`:timezone`         | The timezone for the FM server             | `:local` \| `:utc` \: `nil` | `nil`
+`:timezone`         | The timezone for the FM server             | `:local` \| `:utc` \| `nil` | `nil`
 
 ### Default connection settings
 
