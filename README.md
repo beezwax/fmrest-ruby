@@ -120,6 +120,7 @@ Option              | Description                                | Format       
 `:date_format`      | Date parsing format                        | String (FM date format)     | `"MM/dd/yyyy"`
 `:timestamp_format` | Timestmap parsing format                   | String (FM date format)     | `"MM/dd/yyyy HH:mm:ss"`
 `:time_format`      | Time parsing format                        | String (FM date format)     | `"HH:mm:ss"`
+`:timezone`         | The timezone for the FM server             | `:local` \| `:utc` \: `nil` | `nil`
 
 ### Default connection settings
 
@@ -292,6 +293,17 @@ Which will extend the core `Date` and `DateTime` classes to be aware of
 
 If you're working with ActiveRecord models this will also make them accept
 `FmRest::StringDate` values for date fields.
+
+### Timezones
+
+fmrest-ruby has basic timezone support. You can set the `:timezone` option in
+your connection settings to one of the following values:
+
+* `:local` - dates will be converted to your system local time offset (as
+  defined by `ENV["TZ"]`), or the timezone set by `Time.zone` if you're using
+  ActiveSupport
+* `:utc` - dates will be converted to UTC offset
+* `nil` - (default) ignore timezones altogether
 
 
 ## Spyke support (ActiveRecord-like ORM)
