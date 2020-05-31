@@ -270,9 +270,9 @@ a DSL in model classes).
 ### Hybrid string/date objects
 
 `FmRest::StringDate` and `FmRest::StringDateTime` are special classes that
-inherit from `String`, but internally parse and store a `Date`/`DateTime`
-(respectively), and delegate any methods not provided by `String` to those
-objects. In other words, they quack like a duck *and* bark like a dog.
+inherit from `String`, but internally parse and store a `Date` or `DateTime`,
+and delegate any methods not provided by `String` to those objects. In other
+words, they quack like a duck *and* bark like a dog.
 
 You can use these when you want fmrest-ruby to provide you with date objects,
 but you don't want to worry about date coercion of false positives (i.e. a
@@ -280,7 +280,18 @@ string field that gets converted to `Date` because it just so matched the given
 date format).
 
 Be warned however that these classes come with a fair share of known gotchas
-(see GitHub wiki for more info).
+(see GitHub wiki for more info). Some of those gothas can be removed by calling
+
+```ruby
+FmRest::StringDateAwareness.enable
+```
+
+Which will extend the core `Date` and `DateTime` classes to be aware of
+`FmRest::StringDate`, especially when calling `Date.===`, `Date.parse` or
+`Date._parse`.
+
+If you're working with ActiveRecord models this will also make them accept
+`FmRest::StringDate` values for date fields.
 
 
 ## Spyke support (ActiveRecord-like ORM)
