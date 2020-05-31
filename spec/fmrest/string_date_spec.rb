@@ -5,17 +5,25 @@ require "fmrest/string_date"
 RSpec.shared_examples "a StringDateish" do
   describe "#initialize" do
     it "freezes the string" do
-      expect(subject).to be_frozen
+      expect(described_class.new("foo", described_class::DELEGATE_CLASS.new)).to be_frozen
     end
 
-    it "raises an FmRest::StringDate::InvalidDate if date parsing fails" do
-      expect { described_class.new("", "") }.to raise_error(FmRest::StringDate::InvalidDate)
+    it "raises an ArgumentError if the first argument isn't a string" do
+      expect { described_class.new(1, 2) }.to raise_error(ArgumentError, /class String/)
+    end
+
+    it "raises an ArgumentError if the second argument isn't a Dateish" do
+      expect { described_class.new("", 1) }.to raise_error(ArgumentError, /class Date/)
     end
   end
 
   describe ".strptime" do
-    it "is an alias of .new" do
-      expect(described_class.method(:strptime)).to eq(described_class.method(:new))
+    it "freezes the string" do
+      expect(subject).to be_frozen
+    end
+
+    it "raises an FmRest::StringDate::InvalidDate if date parsing fails" do
+      expect { described_class.strptime("", "") }.to raise_error(FmRest::StringDate::InvalidDate)
     end
   end
 
@@ -190,7 +198,7 @@ RSpec.describe FmRest::StringDate do
   let(:str_dateish) { "#{year}-#{month}-#{day}" }
   let(:format) { "%Y-%m-%d" }
 
-  subject { described_class.new(str_dateish, format) }
+  subject { described_class.strptime(str_dateish, format) }
 
   it_behaves_like "a StringDateish"
 
@@ -214,7 +222,7 @@ RSpec.describe FmRest::StringDateTime do
   let(:str_dateish) { "#{year}-#{month}-#{day} #{hour}:#{minutes}:#{seconds}" }
   let(:format) { "%Y-%m-%d %H:%M:%S" }
 
-  subject { described_class.new(str_dateish, format) }
+  subject { described_class.strptime(str_dateish, format) }
 
   it_behaves_like "a StringDateish"
 
@@ -234,6 +242,51 @@ RSpec.describe FmRest::StringDateTime do
     it "forwards to the date-time" do
       expect(subject.to_datetime).to receive(:in_time_zone)
       subject.in_time_zone
+    end
+  end
+end
+
+RSpec.describe FmRest::StringDateAwareness do
+  let(:proxy_date_class) { Class.new(Date) }
+  let(:proxy_date_time_class) { Class.new(DateTime) }
+
+  let(:strdate) { FmRest::StringDate.new("", Date.civil(2020, 1, 1)) }
+  let(:strdatetime) { FmRest::StringDateTime.new("", DateTime.civil(2020, 1, 1, 11, 11, 11)) }
+
+  describe ".enable" do
+    it "prepends the module to Date and DateTime's singleton classes" do
+      described_class.enable(classes: [proxy_date_class, proxy_date_time_class])
+      expect(proxy_date_class.singleton_class.ancestors.first).to eq(described_class)
+      expect(proxy_date_time_class.singleton_class.ancestors.first).to eq(described_class)
+    end
+  end
+
+  context "when enabled" do
+    before do
+      described_class.enable(classes: [proxy_date_class, proxy_date_time_class])
+    end
+
+    it "makes Date.=== and DateTime.=== recognize StringDates" do
+
+      expect(proxy_date_class === strdate).to eq(true)
+      expect(proxy_date_class === strdatetime).to eq(true)
+
+      expect(proxy_date_time_class === strdate).to eq(true)
+      expect(proxy_date_time_class === strdatetime).to eq(true)
+    end
+
+    it "keeps Date.=== and DateTime.=== working as before for other classes" do
+      expect(proxy_date_class === "").to eq(false)
+      expect(proxy_date_class === proxy_date_class.new).to eq(true)
+    end
+
+    it "makes Date._parse understand StringDates" do
+      expect(proxy_date_class._parse(strdate)).to eq(year: 2020, mon: 1, mday: 1)
+      expect(proxy_date_class._parse(strdatetime)).to match(hash_including(year: 2020, mon: 1, mday: 1, hour: 11, min: 11))
+    end
+
+    it "makes Date.parse understand StringDates" do
+      expect(proxy_date_class.parse(strdate)).to eq(strdate.to_date)
     end
   end
 end

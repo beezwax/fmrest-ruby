@@ -79,17 +79,24 @@ module FmRest
     class InvalidDate < ArgumentError; end
 
     class << self
-      alias_method :strptime, :new
+      def strptime(str, date_format, *_)
+        begin
+          date = self::DELEGATE_CLASS.strptime(str, date_format)
+        rescue ArgumentError
+          raise InvalidDate
+        end
+
+        new(str, date)
+      end
     end
 
-    def initialize(str, date_format, **str_args)
+    def initialize(str, date, **str_args)
+      raise ArgumentError, "str must be of class String" unless str.is_a?(String)
+      raise ArgumentError, "date must be of class #{self.class::DELEGATE_CLASS.name}" unless date.is_a?(self.class::DELEGATE_CLASS)
+
       super(str, **str_args)
 
-      begin
-        @delegate = self.class::DELEGATE_CLASS.strptime(str, date_format)
-      rescue ArgumentError
-        raise InvalidDate
-      end
+      @delegate = date
 
       freeze
     end
@@ -176,6 +183,38 @@ module FmRest
 
     def to_datetime
       @delegate
+    end
+  end
+
+  module StringDateAwareness
+    def _parse(v, *_)
+      if v.is_a?(StringDateTime)
+        return { year: v.year, mon: v.month, mday: v.mday, hour: v.hour, min: v.min, sec: v.sec, sec_fraction: v.sec_fraction, offset: v.offset }
+      end
+      if v.is_a?(StringDate)
+        return { year: v.year, mon: v.month, mday: v.mday }
+      end
+      super
+    end
+
+    def parse(v, *_)
+      if v.is_a?(StringDate)
+        return self == ::DateTime ? v.to_datetime : v.to_date
+      end
+      super
+    end
+
+    # Overriding case equality method so that it returns true for
+    # `FmRest::StringDate` instances
+    #
+    # Calls superclass method
+    #
+    def ===(other)
+      super || other.is_a?(StringDate)
+    end
+
+    def self.enable(classes: [Date, DateTime])
+      classes.each { |klass| klass.singleton_class.prepend(self) }
     end
   end
 end
