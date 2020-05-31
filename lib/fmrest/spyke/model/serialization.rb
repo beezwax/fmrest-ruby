@@ -4,8 +4,8 @@ module FmRest
   module Spyke
     module Model
       module Serialization
-        FM_DATE_FORMAT = "%m/%d/%Y".freeze
-        FM_DATETIME_FORMAT = "#{FM_DATE_FORMAT} %H:%M:%S".freeze
+        FM_DATE_FORMAT = "%m/%d/%Y"
+        FM_DATETIME_FORMAT = "#{FM_DATE_FORMAT} %H:%M:%S"
 
         # Override Spyke's to_params to return FM Data API's expected JSON
         # format, and including only modified fields
@@ -63,9 +63,9 @@ module FmRest
         def serialize_values!(params)
           params.transform_values! do |value|
             case value
-            when DateTime, Time
-              value.strftime(FM_DATETIME_FORMAT)
-            when Date
+            when DateTime, Time, FmRest::StringDateTime
+              convert_datetime_timezone(value.to_datetime).strftime(FM_DATETIME_FORMAT)
+            when Date, FmRest::StringDate
               value.strftime(FM_DATE_FORMAT)
             else
               value
@@ -73,6 +73,17 @@ module FmRest
           end
 
           params
+        end
+
+        def convert_datetime_timezone(dt)
+          case fmrest_config.fetch(:timezone, nil)
+          when :utc, "utc"
+            dt.new_offset(0)
+          when :local, "local"
+            dt.new_offset(FmRest::V1.local_offset_for_datetime(dt))
+          when nil
+            dt
+          end
         end
       end
     end

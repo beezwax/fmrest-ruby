@@ -30,7 +30,7 @@ RSpec.describe FmRest::Spyke::Base do
       end
 
       it "doesn't set fmrest_config" do
-        expect(subclass.fmrest_config).to eq(nil)
+        expect(subclass.fmrest_config).to eq(FmRest.default_connection_settings)
       end
     end
   end

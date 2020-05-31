@@ -1,7 +1,7 @@
 require "spec_helper"
 
 RSpec.describe FmRest::Spyke::Model::GlobalFields do
-  let :test_class { fmrest_spyke_class }
+  let(:test_class) { fmrest_spyke_class }
 
   describe ".set_globals" do
     before { stub_session_login }

@@ -5,17 +5,6 @@ module FmRest
     module Utils
       VALID_SCRIPT_KEYS = [:prerequest, :presort, :after].freeze
 
-      FM_DATETIME_FORMAT_MATCHER = /MM|mm|dd|HH|ss|yyyy/.freeze
-
-      FM_DATETIME_FORMAT_SUBSTITUTIONS = {
-        "MM"   => "%m",
-        "dd"   => "%d",
-        "yyyy" => "%Y",
-        "HH"   => "%H",
-        "mm"   => "%M",
-        "ss"   => "%S"
-      }.freeze
-
       # Converts custom script options to a hash with the Data API's expected
       # JSON script format.
       #
@@ -83,11 +72,6 @@ module FmRest
         params
       end
 
-      # Converts a FM date-time format to `Date.strptime` format
-      #
-      def convert_date_time_format(fm_format)
-        fm_format.gsub(FM_DATETIME_FORMAT_MATCHER, FM_DATETIME_FORMAT_SUBSTITUTIONS)
-      end
 
       private
 

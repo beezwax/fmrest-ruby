@@ -4,13 +4,14 @@ RSpec.describe FmRest::V1::TypeCoercer do
   let(:hostname) { "stub" }
 
   let(:coerce_dates) { true }
-
   let(:date_format) { nil }
+  let(:timezone) { nil }
 
   let(:config) do
     {
       coerce_dates: coerce_dates,
-      date_format:  date_format
+      date_format:  date_format,
+      timezone: nil
     }
   end
 
@@ -27,8 +28,8 @@ RSpec.describe FmRest::V1::TypeCoercer do
     let(:timestamp_field) { "04/22/2020 11:11:11" }
     let(:time_field) { "11:11:11" }
 
-    before do
-      stub_request(:get, "https://#{hostname}/").to_return_fm(
+    let(:data) {
+      {
         data: [{
           fieldData: {
             someDateField: date_field,
@@ -46,10 +47,14 @@ RSpec.describe FmRest::V1::TypeCoercer do
             }]
           }
         }]
-      )
+      }
+    }
+
+    before do
+      stub_request(:get, "https://#{hostname}/").to_return_fm(data)
     end
 
-    context "with coerce_dates set to true" do
+    context "with :coerce_dates set to true" do
       it "coerces date fields to FmRest::StringDate" do
         response = faraday.get("/")
         date_field = response.body.dig("response", "data", 0, "fieldData", "someDateField")
@@ -95,60 +100,66 @@ RSpec.describe FmRest::V1::TypeCoercer do
           expect(response.body.dig("response", "data", 0, "fieldData", "someDateField")).to eq(Date.civil(2020, 6, 19))
         end
       end
-    end
 
-    context "with coerce_dates set to :hybrid" do
-      let(:coerce_dates) { :hybrid }
+      context "when there's no portal data" do
+        let(:data) {
+          { data: [{ fieldData: { someDateField: date_field } }] }
+        }
 
-      it "coerces date fields to FmRest::StringDate" do
-        response = faraday.get("/")
-        date_field = response.body.dig("response", "data", 0, "fieldData", "someDateField")
-        expect(date_field.class).to eq(FmRest::StringDate)
+        it "doesn't complain" do
+          expect { faraday.get("/") }.to_not raise_error
+        end
+      end
+
+      context "with timezone set to :local" do
+        let(:timezone) { :local }
+
+        it "converts timestamps to the local timezone" do
+          dummy_time = double(utc_offset: 60*60*2)
+          allow(Time).to receive(:local).with(2020, 22, 4, 11, 11, 11).and_return(dummy_time)
+        end
       end
     end
 
-    context "with coerce_dates set to 'hybrid'" do
-      let(:coerce_dates) { "hybrid" }
+    [:hybrid, "hybrid"].each do |val|
+      context "with :coerce_dates set to #{val.inspect}" do
+        let(:coerce_dates) { val }
 
-      it "coerces date fields to FmRest::StringDate" do
-        response = faraday.get("/")
-        date_field = response.body.dig("response", "data", 0, "fieldData", "someDateField")
-        expect(date_field.class).to eq(FmRest::StringDate)
+        it "coerces date fields to FmRest::StringDate" do
+          response = faraday.get("/")
+          date_field = response.body.dig("response", "data", 0, "fieldData", "someDateField")
+          expect(date_field.class).to eq(FmRest::StringDate)
+        end
       end
     end
 
-    context "with coerce_dates set to :full" do
-      let(:coerce_dates) { :full }
+    [:full, "full"].each do |val|
+      context "with coerce_dates set to #{val.inspect}" do
+        let(:coerce_dates) { val }
 
-      it "coerces date fields to Date" do
-        response = faraday.get("/")
-        date_field = response.body.dig("response", "data", 0, "fieldData", "someDateField")
-        expect(date_field.class).to eq(Date)
-        expect(date_field).to eq(Date.civil(2020, 4, 22))
-      end
+        it "coerces date fields to Date" do
+          response = faraday.get("/")
+          date_field = response.body.dig("response", "data", 0, "fieldData", "someDateField")
+          expect(date_field.class).to eq(Date)
+          expect(date_field).to eq(Date.civil(2020, 4, 22))
+        end
 
-      it "coerces timestamp fields to DateTime" do
-        response = faraday.get("/")
-        date_field = response.body.dig("response", "data", 0, "fieldData", "someTimestampField")
-        expect(date_field).to be_a(DateTime)
-      end
-    end
-
-    context "with coerce_dates set to false" do
-      let(:coerce_dates) { false }
-
-      it "doesn't coerce date fields to FmRest::StringDate" do
-        response = faraday.get("/")
-        expect(response.body.dig("response", "data", 0, "fieldData", "someDateField").class).to eq(String)
+        it "coerces timestamp fields to DateTime" do
+          response = faraday.get("/")
+          date_field = response.body.dig("response", "data", 0, "fieldData", "someTimestampField")
+          expect(date_field).to be_a(DateTime)
+        end
       end
     end
 
-    context "with coerce_dates set to nil" do
-      let(:coerce_dates) { nil }
+    [false, nil].each do |val|
+      context "with coerce_dates set to #{val.inspect}" do
+        let(:coerce_dates) { val }
 
-      it "doesn't coerce date fields to FmRest::StringDate" do
-        response = faraday.get("/")
-        expect(response.body.dig("response", "data", 0, "fieldData", "someDateField").class).to eq(String)
+        it "doesn't coerce date fields to FmRest::StringDate" do
+          response = faraday.get("/")
+          expect(response.body.dig("response", "data", 0, "fieldData", "someDateField").class).to eq(String)
+        end
       end
     end
   end

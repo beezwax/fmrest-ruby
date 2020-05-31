@@ -55,14 +55,4 @@ RSpec.describe FmRest::V1::Utils do
       expect { extendee.convert_script_params(after: false) }.to raise_error(ArgumentError, /\AScript arguments/)
     end
   end
-
-  describe "#convert_date_time_format" do
-    it "converts 'MM/dd/yyyy HH:mm:ss' to '%m/%d/%Y %H:%M:%S'" do
-      expect(extendee.convert_date_time_format("MM/dd/yyyy HH:mm:ss")).to eq("%m/%d/%Y %H:%M:%S")
-    end
-
-    it "doesn't convert 'MdyHms'" do
-      expect(extendee.convert_date_time_format("MdyHms")).to eq("MdyHms")
-    end
-  end
 end
