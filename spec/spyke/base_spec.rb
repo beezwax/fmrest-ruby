@@ -18,7 +18,7 @@ RSpec.describe FmRest::Spyke::Base do
       end
 
       it "takes an argument and assigns it to fmrest_config" do
-        expect(subclass.fmrest_config).to eq(host: "example.com")
+        expect(subclass.fmrest_config.to_h).to eq(host: "example.com")
       end
     end
 

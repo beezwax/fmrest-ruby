@@ -2,6 +2,7 @@ require "bundler/setup"
 
 require "spyke"
 require "fmrest"
+require "fmrest/token_store/memory"
 require "fmrest/spyke"
 require "pry-byebug"
 
@@ -16,13 +17,9 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 
-  # Reset fixture models' connections
-  config.after(:all) do
-    if defined?(FixtureBase)
-      [FixtureBase, *FixtureBase.descendants].each do |klass|
-        klass.instance_variable_set(:@fmrest_connection, nil)
-      end
-    end
+  config.before(:all) do
+    # Keep a same instance of the token store for all examples in a group
+    FmRest.token_store = FmRest::TokenStore::Memory.new
   end
 end
 

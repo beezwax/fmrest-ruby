@@ -57,11 +57,19 @@ RSpec.describe FmRest::Spyke::Model::Connection do
       FmRest.default_connection_settings = old_settings
     end
 
-    it "gets overwriten in subclasses if self.fmrest_config= is used" do
+    it "passes on its value to subclasses" do
+      old_settings = FixtureBase.fmrest_config
+      FixtureBase.fmrest_config = { host: "dad says" }
+      child = Class.new(FixtureBase)
+      expect(child.fmrest_config.to_h).to eq(host: "dad says")
+      FixtureBase.fmrest_config = old_settings
+    end
+
+    it "gets overwriten if self.fmrest_config= is used" do
       subclass = fmrest_spyke_class do
-        self.fmrest_config = { host: "foo" }
+        self.fmrest_config = { host: "foo", database: "bar" }
       end
-      expect(subclass.fmrest_config).to eq(host: "foo")
+      expect(subclass.fmrest_config.to_h).to eq(host: "foo", database: "bar")
     end
   end
 
@@ -70,7 +78,32 @@ RSpec.describe FmRest::Spyke::Model::Connection do
       subclass = fmrest_spyke_class do
         self.fmrest_config = { host: "foo" }
       end
-      expect(subclass.new.fmrest_config).to eq(host: "foo")
+      expect(subclass.new.fmrest_config.to_h).to eq(host: "foo")
+    end
+  end
+
+  describe ".fmrest_config_override" do
+    after(:each) { FixtureBase.clear_fmrest_config_override }
+
+    it "overrides the given properties on .fmrest_config" do
+      FixtureBase.fmrest_config_override = { username: "alice" }
+      expect(FixtureBase.fmrest_config.username).to eq("alice")
+    end
+
+    it "inherits overrides from parent classes" do
+      FixtureBase.fmrest_config_override = { username: "alice" }
+      child = Class.new(FixtureBase)
+      expect(child.fmrest_config.username).to eq("alice")
+    end
+  end
+
+  describe ".with_override" do
+    it "overrides the given properties within the passed block" do
+      FixtureBase.with_override(username: "nikki") do
+        expect(FixtureBase.fmrest_config.username).to eq("nikki")
+      end
+
+      expect(FixtureBase.fmrest_config.username).not_to eq("nikki")
     end
   end
 end

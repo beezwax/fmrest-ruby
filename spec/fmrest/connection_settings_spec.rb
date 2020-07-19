@@ -84,6 +84,14 @@ RSpec.describe FmRest::ConnectionSettings do
     end
   end
 
+  describe "#merge" do
+    it "creates a new ConnectionSettings instance with properties merged with the passed settings" do
+      merged = subject.merge(username: "bobby")
+      expect(merged.username).to eq("bobby")
+      expect(merged.password).to eq("secret")
+    end
+  end
+
   FmRest::ConnectionSettings::PROPERTIES.each do |p|
     describe "##{p}" do
       it { expect(subject.send(p)).to eq(subject[p]) }

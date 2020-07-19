@@ -3,10 +3,6 @@ require "spec_helper"
 require "fixtures/pirates"
 
 RSpec.describe FmRest::Spyke::Model::Auth do
-  after(:all) do
-    Ship.instance_variable_set(:@fmrest_connection, nil)
-  end
-
   describe ".logout!" do
     context "with a token set" do
       let(:token) { "TOKEN" }

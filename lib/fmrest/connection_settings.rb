@@ -84,6 +84,11 @@ module FmRest
       end
     end
 
+    def merge(other, **keyword_args)
+      other = self.class.wrap(other, skip_validation: true)
+      self.class.new(to_h.merge(other.to_h), **keyword_args)
+    end
+
     def validate
       missing = REQUIRED.select { |r| get(r).nil? }.map { |m| "`#{m}'" }
       raise ValidationError, "Missing required: #{missing.join(', ')}" unless missing.empty?
