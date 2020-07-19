@@ -10,7 +10,7 @@ module FmRest
           class_attribute :fmrest_config, instance_writer: false, instance_predicate: false
 
           # Overrides the fmrest_config reader created by class_attribute so we
-          # can default set the default at call time.
+          # can set the default at call time.
           #
           # This method gets overwriten in subclasses if self.fmrest_config= is
           # called.
@@ -49,7 +49,7 @@ module FmRest
           def fmrest_connection
             @fmrest_connection ||=
               begin
-                config = fmrest_config
+                config = ConnectionSettings.wrap(fmrest_config)
 
                 FmRest::V1.build_connection(config) do |conn|
                   faraday_block.call(conn) if faraday_block

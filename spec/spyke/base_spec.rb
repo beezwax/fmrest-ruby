@@ -30,7 +30,9 @@ RSpec.describe FmRest::Spyke::Base do
       end
 
       it "doesn't set fmrest_config" do
-        expect(subclass.fmrest_config).to eq(FmRest.default_connection_settings)
+        dummy_settings = double("EmptyConnectionSettings")
+        allow(FmRest).to receive(:default_connection_settings).and_return(dummy_settings)
+        expect(subclass.fmrest_config).to eq(dummy_settings)
       end
     end
   end

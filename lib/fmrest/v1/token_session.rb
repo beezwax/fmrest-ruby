@@ -15,10 +15,10 @@ module FmRest
       LOGOUT_PATH_MATCHER = %r{\A(#{FmRest::V1::Connection::BASE_PATH}/[^/]+/sessions/)[^/]+\Z}.freeze
 
       # @param app [#call]
-      # @param options [Hash]
-      def initialize(app, options = FmRest.default_connection_settings)
+      # @param settings [FmRest::ConnectionSettings]
+      def initialize(app, settings)
         super(app)
-        @options = options
+        @settings = settings
       end
 
       # Entry point for the middleware when sending a request
@@ -93,15 +93,15 @@ module FmRest
         false
       end
 
-      # The key to use to store a token, uses the format host:database
+      # The key to use to store a token, uses the format host:database:username
       #
       def token_store_key
         @token_store_key ||=
           begin
             # Strip the host part to just the hostname (i.e. no scheme or port)
-            host = @options.fetch(:host)
+            host = @settings.host
             host = URI(host).hostname if host =~ /\Ahttps?:\/\//
-            "#{host}:#{@options.fetch(:database)}"
+            "#{host}:#{@settings.database}:#{@settings.username}"
           end
       end
 
@@ -120,16 +120,14 @@ module FmRest
       end
 
       def token_store_option
-        @options[:token_store] || FmRest.token_store
+        @settings.token_store || FmRest.token_store
       end
 
       def auth_connection
-        @auth_connection ||= V1.base_connection(@options) do |conn|
-          username = @options.fetch(:account_name) { @options.fetch(:username) }
+        @auth_connection ||= V1.base_connection(@settings) do |conn|
+          conn.basic_auth @settings.username, @settings.password
 
-          conn.basic_auth username, @options.fetch(:password)
-
-          if @options[:log]
+          if @settings.log
             conn.response :logger, nil, bodies: true, headers: true
           end
 

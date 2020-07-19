@@ -18,19 +18,15 @@ RSpec.describe FmRest::V1::TokenSession do
 
   let :faraday do
     Faraday.new("https://#{hostname}") do |conn|
-      conn.use FmRest::V1::TokenSession, config
+      conn.use FmRest::V1::TokenSession, FmRest::ConnectionSettings.new(config)
       conn.response :json
       conn.adapter Faraday.default_adapter
     end
   end
 
-  describe "#initialize" do
-    xit "sets options"
-  end
-
   describe "#call" do
     before do
-      token_store.store("#{hostname}:#{config[:database]}", token)
+      token_store.store("#{hostname}:#{config[:database]}:#{config[:username]}", token)
     end
 
     context "with a valid token" do
@@ -59,28 +55,12 @@ RSpec.describe FmRest::V1::TokenSession do
       it "request a new token and stores it" do
         faraday.get("/")
         expect(@session_request).to have_been_requested.once
-        expect(token_store.load("#{hostname}:#{config[:database]}")).to eq(new_token)
+        expect(token_store.load("#{hostname}:#{config[:database]}:#{config[:username]}")).to eq(new_token)
       end
 
       it "resends the request" do
         faraday.get("/")
         expect(@retry_request).to have_been_requested.once
-      end
-
-      context "without :username or :account_name options given" do
-        it "raises an exception" do
-          config.delete(:username)
-          config.delete(:account_name)
-          expect { faraday.get("/") }.to raise_error(KeyError, /:username/)
-        end
-      end
-
-      context "with :account_name option given instead of :username" do
-        it "doesn't raise an exception" do
-          config[:account_name] = config[:username]
-          config.delete(:username)
-          expect { faraday.get("/") }.not_to raise_error
-        end
       end
     end
 
@@ -97,7 +77,7 @@ RSpec.describe FmRest::V1::TokenSession do
       it "request a new token and stores it" do
         faraday.get("/")
         expect(@session_request).to have_been_requested.once
-        expect(token_store.load("#{hostname}:#{config[:database]}")).to eq(new_token)
+        expect(token_store.load("#{hostname}:#{config[:database]}:#{config[:username]}")).to eq(new_token)
       end
 
       it "resends the request" do

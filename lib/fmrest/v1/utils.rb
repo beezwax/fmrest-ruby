@@ -72,7 +72,6 @@ module FmRest
         params
       end
 
-
       private
 
       def convert_script_arguments(script_arguments, suffix = nil)
