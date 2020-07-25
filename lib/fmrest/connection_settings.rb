@@ -11,7 +11,7 @@ module FmRest
   # * Normalization (e.g. aliased settings)
   # * Useful error messages
   class ConnectionSettings
-    class ValidationError < ArgumentError; end
+    class MissingSetting < ArgumentError; end
 
     PROPERTIES = %i(
       host
@@ -29,11 +29,12 @@ module FmRest
       timezone
     ).freeze
 
+    # NOTE: password intentionally left non-required since it's only really
+    # needed when no token exists, and should only be required when logging in
     REQUIRED = %i(
       host
       database
       username
-      password
     ).freeze
 
     DEFAULT_DATE_FORMAT = "MM/dd/yyyy"
@@ -67,6 +68,12 @@ module FmRest
         get(p)
       end
 
+      define_method("#{p}!") do
+        r = get(p)
+        raise MissingSetting, "Missing required setting: `#{p}'" if r.nil?
+        r
+      end
+
       define_method("#{p}?") do
         !!get(p)
       end
@@ -91,7 +98,7 @@ module FmRest
 
     def validate
       missing = REQUIRED.select { |r| get(r).nil? }.map { |m| "`#{m}'" }
-      raise ValidationError, "Missing required: #{missing.join(', ')}" unless missing.empty?
+      raise MissingSetting, "Missing required setting(s): #{missing.join(', ')}" unless missing.empty?
     end
 
     private

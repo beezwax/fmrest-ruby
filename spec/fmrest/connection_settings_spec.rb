@@ -47,11 +47,11 @@ RSpec.describe FmRest::ConnectionSettings do
     end
 
     it "validates missing properties" do
-      expect { described_class.new({}) }.to raise_error(FmRest::ConnectionSettings::ValidationError, /`host', `database', `username', `password'/)
+      expect { described_class.new({}) }.to raise_error(FmRest::ConnectionSettings::MissingSetting, /`host', `database', `username'/)
     end
 
     it "doesn't validate if skip_validation: true is given" do
-      expect { described_class.new({}, skip_validation: true) }.to_not raise_error(FmRest::ConnectionSettings::ValidationError)
+      expect { described_class.new({}, skip_validation: true) }.to_not raise_error(FmRest::ConnectionSettings::MissingSetting)
     end
 
     it "creates a copy if given a ConnectionSettings object" do

@@ -1,13 +1,17 @@
+# frozen_string_literal: true
+
 require "support/webmock"
 require "uri"
 
 module RequestStubs
   def fm_url(host: FMREST_DUMMY_CONFIG[:host], database: FMREST_DUMMY_CONFIG[:database], layout: nil, id: nil)
-    "https://#{host}/fmi/data/v1/databases/#{URI.escape(database)}".tap do |url|
+    String.new("https://#{host}/fmi/data/v1/databases/#{URI.escape(database)}").tap do |url|
       if layout
         url << "/layouts/#{URI.escape(layout)}"
         url << "/records/#{id}" if id
       end
+
+      url.freeze
     end
   end
 

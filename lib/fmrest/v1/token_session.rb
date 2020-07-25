@@ -99,9 +99,9 @@ module FmRest
         @token_store_key ||=
           begin
             # Strip the host part to just the hostname (i.e. no scheme or port)
-            host = @settings.host
+            host = @settings.host!
             host = URI(host).hostname if host =~ /\Ahttps?:\/\//
-            "#{host}:#{@settings.database}:#{@settings.username}"
+            "#{host}:#{@settings.database!}:#{@settings.username!}"
           end
       end
 
@@ -125,7 +125,7 @@ module FmRest
 
       def auth_connection
         @auth_connection ||= V1.base_connection(@settings) do |conn|
-          conn.basic_auth @settings.username, @settings.password
+          conn.basic_auth @settings.username!, @settings.password!
 
           if @settings.log
             conn.response :logger, nil, bodies: true, headers: true
