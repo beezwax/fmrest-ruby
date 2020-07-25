@@ -36,14 +36,14 @@ RSpec.describe FmRest::Spyke::Model::Connection do
       expect(subject.builder.handlers).to include(FaradayMiddleware::ParseJson)
     end
 
-    it "recycles the same connection when there's no override" do
+    it "recycles the same connection when there's no overlay" do
       expect(FixtureBase.connection).to equal(FixtureBase.connection)
     end
 
-    it "returns a new connection each time if there's an override" do
-      FixtureBase.fmrest_config_override = { host: "foo.bar.qux" }
+    it "returns a new connection each time if there's an overlay" do
+      FixtureBase.fmrest_config_overlay = { host: "foo.bar.qux" }
       expect(FixtureBase.connection).to_not equal(FixtureBase.connection)
-      FixtureBase.clear_fmrest_config_override
+      FixtureBase.clear_fmrest_config_overlay
     end
   end
 
@@ -94,24 +94,24 @@ RSpec.describe FmRest::Spyke::Model::Connection do
     end
   end
 
-  describe ".fmrest_config_override" do
-    after(:each) { FixtureBase.clear_fmrest_config_override }
+  describe ".fmrest_config_overlay" do
+    after(:each) { FixtureBase.clear_fmrest_config_overlay }
 
-    it "overrides the given properties on .fmrest_config" do
-      FixtureBase.fmrest_config_override = { username: "alice" }
+    it "overlays the given properties on .fmrest_config" do
+      FixtureBase.fmrest_config_overlay = { username: "alice" }
       expect(FixtureBase.fmrest_config.username).to eq("alice")
     end
 
-    it "inherits overrides from parent classes" do
-      FixtureBase.fmrest_config_override = { username: "alice" }
+    it "inherits overlays from parent classes" do
+      FixtureBase.fmrest_config_overlay = { username: "alice" }
       child = Class.new(FixtureBase)
       expect(child.fmrest_config.username).to eq("alice")
     end
   end
 
-  describe ".with_override" do
-    it "overrides the given properties within the passed block" do
-      FixtureBase.with_override(username: "nikki") do
+  describe ".with_overlay" do
+    it "overlays the given properties within the passed block" do
+      FixtureBase.with_overlay(username: "nikki") do
         expect(FixtureBase.fmrest_config.username).to eq("nikki")
       end
 

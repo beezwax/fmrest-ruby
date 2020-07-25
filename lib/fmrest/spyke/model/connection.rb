@@ -16,8 +16,8 @@ module FmRest
 
         class_methods do
           def fmrest_config
-            if fmrest_config_override
-              return FmRest.default_connection_settings.merge(fmrest_config_override, skip_validation: true)
+            if fmrest_config_overlay
+              return FmRest.default_connection_settings.merge(fmrest_config_overlay, skip_validation: true)
             end
 
             FmRest.default_connection_settings
@@ -30,8 +30,8 @@ module FmRest
             settings = ConnectionSettings.new(settings, skip_validation: true)
 
             redefine_singleton_method(:fmrest_config) do
-              override = fmrest_config_override
-              return settings.merge(override, skip_validation: true) if override
+              overlay = fmrest_config_overlay
+              return settings.merge(overlay, skip_validation: true) if overlay
               settings
             end
           end
@@ -41,29 +41,29 @@ module FmRest
           # same database using different accounts (e.g. credentials provided
           # by users in a web app context)
           #
-          def fmrest_config_override=(settings)
-            Thread.current[fmrest_config_override_key] = settings
+          def fmrest_config_overlay=(settings)
+            Thread.current[fmrest_config_overlay_key] = settings
           end
 
-          def fmrest_config_override
-            Thread.current[fmrest_config_override_key] || begin
-              superclass.fmrest_config_override
+          def fmrest_config_overlay
+            Thread.current[fmrest_config_overlay_key] || begin
+              superclass.fmrest_config_overlay
             rescue NoMethodError
               nil
             end
           end
 
-          def clear_fmrest_config_override
-            Thread.current[fmrest_config_override_key] = nil
+          def clear_fmrest_config_overlay
+            Thread.current[fmrest_config_overlay_key] = nil
           end
 
-          def with_override(settings, &block)
+          def with_overlay(settings, &block)
             Fiber.new do
               begin
-                self.fmrest_config_override = settings
+                self.fmrest_config_overlay = settings
                 yield
               ensure
-                self.clear_fmrest_config_override
+                self.clear_fmrest_config_overlay
               end
             end.resume
           end
@@ -91,9 +91,9 @@ module FmRest
           def fmrest_connection
             memoize = false
 
-            # Don't memoize the connection if there's an override, since
-            # overrides are thread-local and so should be the connection
-            unless fmrest_config_override
+            # Don't memoize the connection if there's an overlay, since
+            # overlays are thread-local and so should be the connection
+            unless fmrest_config_overlay
               return @fmrest_connection if @fmrest_connection
               memoize = true
             end
@@ -121,8 +121,8 @@ module FmRest
             connection
           end
 
-          def fmrest_config_override_key
-            :"#{object_id}.fmrest_config_override"
+          def fmrest_config_overlay_key
+            :"#{object_id}.fmrest_config_overlay"
           end
         end
 
