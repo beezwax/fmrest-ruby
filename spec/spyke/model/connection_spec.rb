@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "spec_helper"
 
 require "fixtures/base"
@@ -32,6 +34,16 @@ RSpec.describe FmRest::Spyke::Model::Connection do
 
     it "uses the ParseJson middleware" do
       expect(subject.builder.handlers).to include(FaradayMiddleware::ParseJson)
+    end
+
+    it "recycles the same connection when there's no override" do
+      expect(FixtureBase.connection).to equal(FixtureBase.connection)
+    end
+
+    it "returns a new connection each time if there's an override" do
+      FixtureBase.fmrest_config_override = { host: "foo.bar.qux" }
+      expect(FixtureBase.connection).to_not equal(FixtureBase.connection)
+      FixtureBase.clear_fmrest_config_override
     end
   end
 

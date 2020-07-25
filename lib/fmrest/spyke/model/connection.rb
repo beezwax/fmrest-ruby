@@ -30,7 +30,8 @@ module FmRest
             settings = ConnectionSettings.new(settings, skip_validation: true)
 
             redefine_singleton_method(:fmrest_config) do
-              return settings.merge(fmrest_config_override, skip_validation: true) if fmrest_config_override
+              override = fmrest_config_override
+              return settings.merge(override, skip_validation: true) if override
               settings
             end
           end
@@ -88,32 +89,36 @@ module FmRest
           private
 
           def fmrest_connection
-            # NOTE: this method is intentionally unmemoized to prevent multiple
-            # threads using the same connection (whether that would be a real
-            # problem is not clear, but https://github.com/balvig/spyke/pull/63
-            # suggests it might).
-            #
-            # Instead, each call will create a new connection. This could
-            # probably be memoized with thread-local variables, but the
-            # memoization would also need to be invalidated any time
-            # .fmrest_config_override= is used on this or any parent class.
+            memoize = false
+
+            # Don't memoize the connection if there's an override, since
+            # overrides are thread-local and so should be the connection
+            unless fmrest_config_override
+              return @fmrest_connection if @fmrest_connection
+              memoize = true
+            end
 
             config = ConnectionSettings.wrap(fmrest_config)
 
-            FmRest::V1.build_connection(config) do |conn|
-              faraday_block.call(conn) if faraday_block
+            connection =
+              FmRest::V1.build_connection(config) do |conn|
+                faraday_block.call(conn) if faraday_block
 
-              # Pass the class to SpykeFormatter's initializer so it can have
-              # access to extra context defined in the model, e.g. a portal
-              # where name of the portal and the attributes prefix don't match
-              # and need to be specified as options to `portal`
-              conn.use FmRest::Spyke::SpykeFormatter, self
+                # Pass the class to SpykeFormatter's initializer so it can have
+                # access to extra context defined in the model, e.g. a portal
+                # where name of the portal and the attributes prefix don't match
+                # and need to be specified as options to `portal`
+                conn.use FmRest::Spyke::SpykeFormatter, self
 
-              conn.use FmRest::V1::TypeCoercer, config
+                conn.use FmRest::V1::TypeCoercer, config
 
-              # FmRest::Spyke::JsonParse expects symbol keys
-              conn.response :json, parser_options: { symbolize_names: true }
-            end
+                # FmRest::Spyke::JsonParse expects symbol keys
+                conn.response :json, parser_options: { symbolize_names: true }
+              end
+
+            @fmrest_connection = connection if memoize
+
+            connection
           end
 
           def fmrest_config_override_key
