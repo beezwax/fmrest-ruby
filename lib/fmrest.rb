@@ -4,10 +4,12 @@ require "faraday"
 require "faraday_middleware"
 
 require "fmrest/version"
-require "fmrest/v1"
 require "fmrest/connection_settings"
 
 module FmRest
+  autoload :V1,         "fmrest/v1"
+  autoload :TokenStore, "fmrest/token_store"
+
   class << self
     attr_accessor :token_store
 
