@@ -47,7 +47,8 @@ RSpec.describe FmRest::ConnectionSettings do
     end
 
     it "validates missing properties" do
-      expect { described_class.new({}) }.to raise_error(FmRest::ConnectionSettings::MissingSetting, /`host', `database', `username'/)
+      expect { described_class.new({}) }.to raise_error(FmRest::ConnectionSettings::MissingSetting, /`host', `database'/)
+      expect { described_class.new({host: "foo", database: "bar"}) }.to raise_error(FmRest::ConnectionSettings::MissingSetting, /`username' or `token'/)
     end
 
     it "doesn't validate if skip_validation: true is given" do
@@ -67,10 +68,19 @@ RSpec.describe FmRest::ConnectionSettings do
       expect(subject[:date_format]).to eq(FmRest::ConnectionSettings::DEFAULT_DATE_FORMAT)
       expect(subject[:time_format]).to eq(FmRest::ConnectionSettings::DEFAULT_TIME_FORMAT)
       expect(subject[:timestamp_format]).to eq(FmRest::ConnectionSettings::DEFAULT_TIMESTAMP_FORMAT)
+      expect(subject[:autologin]).to eq(true)
+    end
+
+    it "returns the requested property's default only if it was not given explicitly" do
+      config = described_class.new(host: "host", username: "bob", database: "xyz")
+      expect(config[:autologin]).to eq(true)
+
+      config = described_class.new(host: "host", username: "bob", database: "xyz", autologin: false)
+      expect(config[:autologin]).to eq(false)
     end
 
     it "raises an exception if the requested property is not recognized" do
-      expect { subject[:peekaboo] }.to raise_error(ArgumentError, "Unknown property `peekaboo'")
+      expect { subject[:peekaboo] }.to raise_error(ArgumentError, "Unknown setting `peekaboo'")
     end
   end
 

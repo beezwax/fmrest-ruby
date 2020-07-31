@@ -18,7 +18,9 @@ module FmRest
       database
       username
       password
+      token
       token_store
+      autologin
       ssl
       proxy
       log
@@ -34,7 +36,6 @@ module FmRest
     REQUIRED = %i(
       host
       database
-      username
     ).freeze
 
     DEFAULT_DATE_FORMAT = "MM/dd/yyyy"
@@ -42,6 +43,7 @@ module FmRest
     DEFAULT_TIMESTAMP_FORMAT = "#{DEFAULT_DATE_FORMAT} #{DEFAULT_TIME_FORMAT}"
 
     DEFAULTS = {
+      autologin:        true,
       log:              false,
       date_format:      DEFAULT_DATE_FORMAT,
       time_format:      DEFAULT_TIME_FORMAT,
@@ -80,7 +82,7 @@ module FmRest
     end
 
     def [](key)
-      raise ArgumentError, "Unknown property `#{key}'" unless PROPERTIES.include?(key.to_sym)
+      raise ArgumentError, "Unknown setting `#{key}'" unless PROPERTIES.include?(key.to_sym)
       get(key)
     end
 
@@ -99,12 +101,18 @@ module FmRest
     def validate
       missing = REQUIRED.select { |r| get(r).nil? }.map { |m| "`#{m}'" }
       raise MissingSetting, "Missing required setting(s): #{missing.join(', ')}" unless missing.empty?
+
+      unless username? || token?
+        raise MissingSetting, "A minimum of `username' or `token' are required to be able to establish a connection"
+      end
     end
 
     private
 
     def get(key)
-      @settings[key.to_sym] || @settings[key.to_s] || DEFAULTS[key.to_sym]
+      return @settings[key.to_sym] if @settings.has_key?(key.to_sym)
+      return @settings[key.to_s] if @settings.has_key?(key.to_s)
+      DEFAULTS[key.to_sym]
     end
 
     def normalize

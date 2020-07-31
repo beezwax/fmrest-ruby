@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "spec_helper"
 
 RSpec.describe FmRest::V1::Connection do
@@ -68,6 +70,50 @@ RSpec.describe FmRest::V1::Connection do
         connection = extendee.build_connection(conn_settings) {}
         expect(connection.builder.handlers).to_not include(FaradayMiddleware::ParseJson)
       end
+    end
+
+    context "with log: true" do
+      let :conn_settings do
+        {
+          host: "example.com",
+          database: "Test DB",
+          username: "bob",
+          password: "secret",
+          log:      true
+        }
+      end
+
+      it "uses the logger Faraday middleware" do
+        expect(connection.builder.handlers).to include(Faraday::Response::Logger)
+      end
+    end
+
+    context "without log: true" do
+      it "doesn't use the logger Faraday middleware" do
+        expect(connection.builder.handlers).to_not include(Faraday::Response::Logger)
+      end
+    end
+  end
+
+  describe "#auth_connection" do
+    let :connection do
+      extendee.auth_connection(conn_settings)
+    end
+
+    it "returns a Faraday::Connection that sets the content-type to application/json" do
+      expect(connection.headers).to include("Content-Type"=>"application/json")
+    end
+
+    it "returns a Faraday::Connection that sets HTTP basic auth headers" do
+      expect(connection.headers).to include("Authorization" => /\ABasic .+\Z/)
+    end
+
+    it "returns a Faraday::Connection that uses RaiseErrors" do
+      expect(connection.builder.handlers).to include(FmRest::V1::RaiseErrors)
+    end
+
+    it "returns a Faraday::Connection that parses responses as JSON" do
+      expect(connection.builder.handlers).to include(FaradayMiddleware::ParseJson)
     end
 
     context "with log: true" do

@@ -6,13 +6,16 @@ RSpec.describe FmRest::V1::TokenSession do
 
   let(:hostname) { "stub" }
 
+  let(:autologin) { true }
+
   let(:config) do
     {
       host:        "https://#{hostname}",
       database:    "MyDB",
       username:    "bobby",
       password:    "cubictrousers",
-      token_store: token_store
+      token_store: token_store,
+      autologin:   autologin
     }
   end
 
@@ -52,15 +55,27 @@ RSpec.describe FmRest::V1::TokenSession do
         @session_request = stub_request(:post, fm_url(host: hostname, database: config[:database]) + "/sessions").to_return_fm(token: new_token)
       end
 
-      it "request a new token and stores it" do
-        faraday.get("/")
-        expect(@session_request).to have_been_requested.once
-        expect(token_store.load("#{hostname}:#{config[:database]}:#{config[:username]}")).to eq(new_token)
+      context "when :autologin is true" do
+        it "request a new token and stores it" do
+          faraday.get("/")
+          expect(@session_request).to have_been_requested.once
+          expect(token_store.load("#{hostname}:#{config[:database]}:#{config[:username]}")).to eq(new_token)
+        end
+
+        it "resends the request" do
+          faraday.get("/")
+          expect(@retry_request).to have_been_requested.once
+        end
       end
 
-      it "resends the request" do
-        faraday.get("/")
-        expect(@retry_request).to have_been_requested.once
+      context "when autologin is false" do
+        let(:autologin) { false }
+
+        it "does not request a new token" do
+          stub_request(:get, "https://#{hostname}/").to_return_fm
+          faraday.get("/")
+          expect(@session_request).to_not have_been_requested
+        end
       end
     end
 
@@ -84,6 +99,15 @@ RSpec.describe FmRest::V1::TokenSession do
         faraday.get("/")
         expect(@init_request).to have_been_requested.once
         expect(@retry_request).to have_been_requested.once
+      end
+
+      context "when autologin is false" do
+        let(:autologin) { false }
+
+        it "does not request a new token" do
+          faraday.get("/")
+          expect(@session_request).to_not have_been_requested
+        end
       end
     end
 
