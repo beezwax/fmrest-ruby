@@ -21,6 +21,8 @@ module FmRest
   class APIError::NoMatchingRecordsError < APIError::ParameterError; end
   class APIError::ValidationError < APIError; end      # error codes 500..599
   class APIError::SystemError < APIError; end          # error codes 800..899
+  class APIError::InvalidToken < APIError; end         # error code 952
+  class APIError::MaximumDataAPICallsExceeded < APIError; end # error code 953
   class APIError::ScriptError < APIError; end          # error codes 1200..1299
   class APIError::ODBCError < APIError; end            # error codes 1400..1499
 
