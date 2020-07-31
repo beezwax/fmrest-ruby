@@ -4,7 +4,7 @@ RSpec.describe FmRest::V1::TypeCoercer do
   let(:hostname) { "stub" }
 
   let(:coerce_dates) { true }
-  let(:date_format) { nil }
+  let(:date_format) { FmRest::ConnectionSettings::DEFAULT_DATE_FORMAT }
   let(:timezone) { nil }
 
   let(:config) do
