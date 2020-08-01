@@ -3,6 +3,7 @@ require "fmrest/token_store/memory"
 
 RSpec.describe FmRest::V1::TokenSession do
   let(:token_store) { FmRest::TokenStore::Memory.new }
+  let(:config_token) { nil }
 
   let(:hostname) { "stub" }
 
@@ -15,6 +16,7 @@ RSpec.describe FmRest::V1::TokenSession do
       username:    "bobby",
       password:    "cubictrousers",
       token_store: token_store,
+      token:       config_token,
       autologin:   autologin
     }
   end
@@ -74,6 +76,16 @@ RSpec.describe FmRest::V1::TokenSession do
         it "does not request a new token" do
           stub_request(:get, "https://#{hostname}/").to_return_fm
           faraday.get("/")
+          expect(@session_request).to_not have_been_requested
+        end
+      end
+
+      context "when a token is given in connection settings" do
+        let(:config_token) { new_token }
+
+        it "uses that token instead of requesting one" do
+          faraday.get("/")
+          expect(@retry_request).to have_been_requested.once
           expect(@session_request).to_not have_been_requested
         end
       end
