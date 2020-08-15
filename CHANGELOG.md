@@ -1,5 +1,11 @@
 ## Changelog
 
+### 0.10.1
+
+* Fix `URI.escape` obsolete warning messages in Ruby 2.7 by replacing it with
+  `URI.encode_www_form_component`
+  ([PR#40](https://github.com/beezwax/fmrest-ruby/pull/40))
+
 ### 0.10.0
 
 * Added `FmRest::StringDateAwareness` module to correct some issues when using
