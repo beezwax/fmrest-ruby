@@ -74,8 +74,10 @@ module FmRest
         faraday_options[:ssl] = options[:ssl] if options.key?(:ssl)
         faraday_options[:proxy] = options[:proxy] if options.key?(:proxy)
 
+        database = URI.encode_www_form_component(options.fetch(:database))
+
         Faraday.new(
-          "#{scheme}://#{host}#{BASE_PATH}/#{URI.escape(options.fetch(:database))}/".freeze,
+          "#{scheme}://#{host}#{BASE_PATH}/#{database}/".freeze,
           faraday_options,
           &block
         )
