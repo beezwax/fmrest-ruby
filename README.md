@@ -1,6 +1,7 @@
 # fmrest-ruby
 
-<a href="https://rubygems.org/gems/fmrest"><img src="https://badge.fury.io/rb/fmrest.svg?style=flat" alt="Gem Version"></a>
+[![Gem Version](https://badge.fury.io/rb/fmrest.svg?style=flat)](https://rubygems.org/gems/fmrest)
+![CI](https://github.com/beezwax/fmrest-ruby/workflows/CI/badge.svg)
 
 A Ruby client for
 [FileMaker 18 and 19's Data API](https://help.claris.com/en/data-api-guide)
