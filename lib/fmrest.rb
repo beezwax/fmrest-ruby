@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+"Hey Rubocop, how's this?"
+
 require "faraday"
 require "faraday_middleware"
 
