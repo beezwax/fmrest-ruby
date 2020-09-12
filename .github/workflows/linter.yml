@@ -24,6 +24,6 @@ jobs:
       # uses: AdWerx/pronto-ruby@a29a1cedf394e71f8774ca539bf87d256888cd39
       uses: AdWerx/pronto-ruby@v2.5
       with:
-        target: origin/master~20
+        target: origin/master~5
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
