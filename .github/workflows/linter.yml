@@ -1,0 +1,38 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# This workflow will download a prebuilt Ruby version, install dependencies and run tests with Rake
+# For more information see: https://github.com/marketplace/actions/setup-ruby-jruby-and-truffleruby
+
+name: Linter
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Ruby
+    # To automatically get bug fixes and new Ruby versions for ruby/setup-ruby,
+    # change this to (see https://github.com/ruby/setup-ruby#versioning):
+    # uses: ruby/setup-ruby@v1
+      uses: ruby/setup-ruby@ec106b438a1ff6ff109590de34ddc62c540232e0
+      with:
+        ruby-version: 2.6
+    - name: Pronto Ruby
+      # You may pin to the exact commit or the version.
+      # uses: AdWerx/pronto-ruby@a29a1cedf394e71f8774ca539bf87d256888cd39
+      uses: AdWerx/pronto-ruby@v2.5
+      with:
+        # Space-separated list of pronto runners to run. Must be the preinstalled runners (ruby only).
+        runners: # optional, default is rubocop
+        # The git object to diff against when running pronto. Use this if you have a specific branch you'd like to always use as a target for the diff to be reviewed and that branch is not master. This defaults to origin/master or the target of the pull request being opened (when the event is pull_request).
+        target: # optional, default is origin/master
