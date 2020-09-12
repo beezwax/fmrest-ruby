@@ -9,9 +9,9 @@ name: Linter
 
 on:
   push:
-    branches: [ master, ga-linter ]
+    branches: [ ga-linter ]
   pull_request:
-    branches: [ master, ga-linter ]
+    branches: [ ga-linter ]
 
 jobs:
   rubocop:
@@ -23,5 +23,6 @@ jobs:
       # You may pin to the exact commit or the version.
       # uses: AdWerx/pronto-ruby@a29a1cedf394e71f8774ca539bf87d256888cd39
       uses: AdWerx/pronto-ruby@v2.5
+      target: origin/ga-linter
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
