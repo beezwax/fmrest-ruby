@@ -9,9 +9,9 @@ name: Linter
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, ga-linter ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, ga-linter ]
 
 jobs:
   test:
