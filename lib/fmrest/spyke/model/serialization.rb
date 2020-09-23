@@ -76,7 +76,7 @@ module FmRest
         end
 
         def convert_datetime_timezone(dt)
-          case fmrest_config.fetch(:timezone, nil)
+          case fmrest_config.timezone
           when :utc, "utc"
             dt.new_offset(0)
           when :local, "local"

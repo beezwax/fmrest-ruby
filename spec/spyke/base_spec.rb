@@ -18,7 +18,7 @@ RSpec.describe FmRest::Spyke::Base do
       end
 
       it "takes an argument and assigns it to fmrest_config" do
-        expect(subclass.fmrest_config).to eq(host: "example.com")
+        expect(subclass.fmrest_config.to_h).to eq(host: "example.com")
       end
     end
 
@@ -30,7 +30,9 @@ RSpec.describe FmRest::Spyke::Base do
       end
 
       it "doesn't set fmrest_config" do
-        expect(subclass.fmrest_config).to eq(FmRest.default_connection_settings)
+        dummy_settings = double("EmptyConnectionSettings")
+        allow(FmRest).to receive(:default_connection_settings).and_return(dummy_settings)
+        expect(subclass.fmrest_config).to eq(dummy_settings)
       end
     end
   end

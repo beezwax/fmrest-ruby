@@ -10,15 +10,15 @@ module FmRest
     class TokenSession < Faraday::Middleware
       class NoSessionTokenSet < FmRest::Error; end
 
-      HEADER_KEY = "Authorization".freeze
+      HEADER_KEY = "Authorization"
       TOKEN_STORE_INTERFACE = [:load, :store, :delete].freeze
       LOGOUT_PATH_MATCHER = %r{\A(#{FmRest::V1::Connection::BASE_PATH}/[^/]+/sessions/)[^/]+\Z}.freeze
 
       # @param app [#call]
-      # @param options [Hash]
-      def initialize(app, options = FmRest.default_connection_settings)
+      # @param settings [FmRest::ConnectionSettings]
+      def initialize(app, settings)
         super(app)
-        @options = options
+        @settings = settings
       end
 
       # Entry point for the middleware when sending a request
@@ -32,27 +32,37 @@ module FmRest
 
         @app.call(env).on_complete do |response_env|
           if response_env[:status] == 401 # Unauthorized
-            env[:body] = request_body
-            token_store.delete(token_store_key)
-            set_auth_header(env)
-            return @app.call(env)
+            delete_token_store_key
+
+            if @settings.autologin
+              env[:body] = request_body
+              set_auth_header(env)
+              return @app.call(env)
+            end
           end
         end
       end
 
       private
 
+      def delete_token_store_key
+        token_store.delete(token_store_key)
+        # Sometimes we may want to pass the :token in settings manually, and
+        # refrain from passing a :username. In that case the call to
+        # #token_store_key above would fail as it tries to fetch :username, so
+        # we purposely ignore that error.
+      rescue FmRest::ConnectionSettings::MissingSetting
+      end
+
       def handle_logout(env)
-        token = token_store.load(token_store_key)
+        token = @settings.token? ? @settings.token : token_store.load(token_store_key)
 
         raise NoSessionTokenSet, "Couldn't send logout request because no session token was set" unless token
 
         env.url.path = env.url.path.gsub(LOGOUT_PATH_MATCHER, "\\1#{token}")
 
         @app.call(env).on_complete do |response_env|
-          if response_env[:status] == 200
-            token_store.delete(token_store_key)
-          end
+          delete_token_store_key if response_env[:status] == 200
         end
       end
 
@@ -65,43 +75,33 @@ module FmRest
         env.request_headers[HEADER_KEY] = "Bearer #{token}"
       end
 
-      # Tries to get an existing token from the token store,
+      # Uses the token given in connection settings if available,
+      # otherwisek tries to get an existing token from the token store,
       # otherwise requests one through basic auth,
       # otherwise raises an exception.
       #
       def token
+        return @settings.token if @settings.token?
+
         token = token_store.load(token_store_key)
         return token if token
 
-        if token = request_token
-          token_store.store(token_store_key, token)
-          return token
-        end
+        return nil unless @settings.autologin
 
-        # TODO: Make this a custom exception class
-        raise "Filemaker auth failed"
+        token = V1.request_auth_token!(auth_connection)
+        token_store.store(token_store_key, token)
+        token
       end
 
-      # Requests a token through basic auth
-      #
-      def request_token
-        resp = auth_connection.post do |req|
-          req.url V1.session_path
-          req.headers["Content-Type"] = "application/json"
-        end
-        return resp.body["response"]["token"] if resp.success?
-        false
-      end
-
-      # The key to use to store a token, uses the format host:database
+      # The key to use to store a token, uses the format host:database:username
       #
       def token_store_key
         @token_store_key ||=
           begin
             # Strip the host part to just the hostname (i.e. no scheme or port)
-            host = @options.fetch(:host)
+            host = @settings.host!
             host = URI(host).hostname if host =~ /\Ahttps?:\/\//
-            "#{host}:#{@options.fetch(:database)}"
+            "#{host}:#{@settings.database!}:#{@settings.username!}"
           end
       end
 
@@ -111,31 +111,23 @@ module FmRest
             if TOKEN_STORE_INTERFACE.all? { |method| token_store_option.respond_to?(method) }
               token_store_option
             elsif token_store_option.kind_of?(Class)
-              token_store_option.new
+              if token_store_option.respond_to?(:instance)
+                token_store_option.instance
+              else
+                token_store_option.new
+              end
             else
-              require "fmrest/token_store/memory"
-              TokenStore::Memory.new
+              FmRest::TokenStore::Memory.new
             end
           end
       end
 
       def token_store_option
-        @options[:token_store] || FmRest.token_store
+        @settings.token_store || FmRest.token_store
       end
 
       def auth_connection
-        @auth_connection ||= V1.base_connection(@options) do |conn|
-          username = @options.fetch(:account_name) { @options.fetch(:username) }
-
-          conn.basic_auth username, @options.fetch(:password)
-
-          if @options[:log]
-            conn.response :logger, nil, bodies: true, headers: true
-          end
-
-          conn.response :json
-          conn.adapter Faraday.default_adapter
-        end
+        @auth_connection ||= V1.auth_connection(@settings)
       end
     end
   end

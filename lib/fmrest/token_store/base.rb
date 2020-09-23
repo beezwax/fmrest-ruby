@@ -10,15 +10,15 @@ module FmRest
       end
 
       def load(key)
-        raise "Not implemented"
+        raise NotImplementedError
       end
 
       def store(key, value)
-        raise "Not implemented"
+        raise NotImplementedError
       end
 
       def delete(key)
-        raise "Not implemented"
+        raise NotImplementedError
       end
     end
   end

@@ -7,21 +7,21 @@ module FmRest
     module Connection
       BASE_PATH = "/fmi/data/v1/databases"
 
+      AUTH_HEADERS = { "Content-Type" => "application/json" }.freeze
+
       # Builds a complete DAPI Faraday connection with middleware already
       # configured to handle authentication, JSON parsing, logging and DAPI
       # error handling. A block can be optionally given for additional
       # middleware configuration
       #
-      # @option options [String] :username The username for DAPI authentication
-      # @option options [String] :account_name Alias of :username for
-      #   compatibility with Rfm gem
-      # @option options [String] :password The password for DAPI authentication
       # @option (see #base_connection)
       # @return (see #base_connection)
-      def build_connection(options = FmRest.default_connection_settings, &block)
-        base_connection(options) do |conn|
+      def build_connection(settings = FmRest.default_connection_settings, &block)
+        settings = ConnectionSettings.wrap(settings)
+
+        base_connection(settings) do |conn|
           conn.use RaiseErrors
-          conn.use TokenSession, options
+          conn.use TokenSession, settings
 
           # The EncodeJson and Multipart middlewares only encode the request
           # when the content type matches, so we can have them both here and
@@ -33,13 +33,13 @@ module FmRest
 
           # Allow overriding the default response middleware
           if block_given?
-            yield conn, options
+            yield conn, settings
           else
-            conn.use TypeCoercer, options
+            conn.use TypeCoercer, settings
             conn.response :json
           end
 
-          if options[:log]
+          if settings.log
             conn.response :logger, nil, bodies: true, headers: true
           end
 
@@ -47,18 +47,46 @@ module FmRest
         end
       end
 
-      # Builds a base Faraday connection with base URL constructed from
-      # connection options and passes it the given block
+      # Builds a Faraday connection to use for DAPI basic auth login
       #
-      # @option options [String] :host The hostname for the FM server
-      # @option options [String] :database The FM database name
-      # @option options [String] :ssl SSL options to forward to the Faraday
+      # @option (see #base_connection)
+      # @return (see #base_connection)
+      def auth_connection(settings = FmRest.default_connection_settings)
+        settings = ConnectionSettings.wrap(settings)
+
+        base_connection(settings, { headers: AUTH_HEADERS }) do |conn|
+          conn.use RaiseErrors
+
+          conn.basic_auth settings.username!, settings.password!
+
+          if settings.log
+            conn.response :logger, nil, bodies: true, headers: true
+          end
+
+          conn.response :json
+          conn.adapter Faraday.default_adapter
+        end
+      end
+
+      # Builds a base Faraday connection with base URL constructed from
+      # connection settings and passes it the given block
+      #
+      # @option settings [String] :host The hostname for the FM server
+      # @option settings [String] :database The FM database name
+      # @option settings [String] :username The username for DAPI authentication
+      # @option settings [String] :account_name Alias of :username for
+      #   compatibility with Rfm gem
+      # @option settings [String] :password The password for DAPI authentication
+      # @option settings [String] :ssl SSL settings to forward to the Faraday
       #   connection
-      # @option options [String] :proxy Proxy options to forward to the Faraday
+      # @option settings [String] :proxy Proxy options to forward to the Faraday
       #   connection
+      # @param faraday_options [Hash] additional options for Faraday object
       # @return [Faraday] The new Faraday connection
-      def base_connection(options = FmRest.default_connection_settings, &block)
-        host = options.fetch(:host)
+      def base_connection(settings = FmRest.default_connection_settings, faraday_options = nil, &block)
+        settings = ConnectionSettings.wrap(settings)
+
+        host = settings.host!
 
         # Default to HTTPS
         scheme = "https"
@@ -70,11 +98,11 @@ module FmRest
           scheme = uri.scheme
         end
 
-        faraday_options = {}
-        faraday_options[:ssl] = options[:ssl] if options.key?(:ssl)
-        faraday_options[:proxy] = options[:proxy] if options.key?(:proxy)
+        faraday_options = (faraday_options || {}).dup
+        faraday_options[:ssl] = settings.ssl if settings.ssl?
+        faraday_options[:proxy] = settings.proxy if settings.proxy?
 
-        database = URI.encode_www_form_component(options.fetch(:database))
+        database = URI.encode_www_form_component(settings.database!)
 
         Faraday.new(
           "#{scheme}://#{host}#{BASE_PATH}/#{database}/".freeze,
@@ -85,7 +113,3 @@ module FmRest
     end
   end
 end
-
-require "fmrest/v1/token_session"
-require "fmrest/v1/raise_errors"
-require "fmrest/v1/type_coercer"

@@ -28,6 +28,14 @@ module FmRest
           rescue FmRest::V1::TokenSession::NoSessionTokenSet
             false
           end
+
+          def request_auth_token
+            FmRest::V1.request_auth_token(FmRest::V1.auth_connection(fmrest_config))
+          end
+
+          def request_auth_token!
+            FmRest::V1.request_auth_token!(FmRest::V1.auth_connection(fmrest_config))
+          end
         end
       end
     end

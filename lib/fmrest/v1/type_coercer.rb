@@ -13,10 +13,10 @@ module FmRest
       COERCE_FULL = [:full, "full"].freeze
 
       # @param app [#call]
-      # @param options [Hash]
-      def initialize(app, options = FmRest.default_connection_settings)
+      # @param settings [FmRest::ConnectionSettings]
+      def initialize(app, settings)
         super(app)
-        @options = options
+        @settings = settings
       end
 
       def on_complete(env)
@@ -112,15 +112,15 @@ module FmRest
       end
 
       def date_fm_format
-        @options[:date_format] || DEFAULT_DATE_FORMAT
+        @settings.date_format
       end
 
       def timestamp_fm_format
-        @options[:timestamp_format] || DEFAULT_TIMESTAMP_FORMAT
+        @settings.timestamp_format
       end
 
       def time_fm_format
-        @options[:time_format] || DEFAULT_TIME_FORMAT
+        @settings.time_format
       end
 
       def date_strptime_format
@@ -179,11 +179,11 @@ module FmRest
       end
 
       def local_timezone?
-        @local_timezone ||= @options.fetch(:timezone, nil).try(:to_sym) == :local
+        @local_timezone ||= @settings.timezone.try(:to_sym) == :local
       end
 
       def coerce_dates
-        @options.fetch(:coerce_dates, false)
+        @settings.coerce_dates
       end
 
       alias_method :enabled?, :coerce_dates

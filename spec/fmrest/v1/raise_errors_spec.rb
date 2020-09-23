@@ -105,6 +105,22 @@ RSpec.describe FmRest::V1::RaiseErrors do
       end
     end
 
+    context "with message code 952" do
+      let(:error_code) { 952 }
+
+      it "raises a InvalidToken" do
+        expect { faraday.post("/") }.to raise_error(FmRest::APIError::InvalidToken)
+      end
+    end
+
+    context "with message code 953" do
+      let(:error_code) { 953 }
+
+      it "raises a MaximumDataAPICallsExceeded" do
+        expect { faraday.post("/") }.to raise_error(FmRest::APIError::MaximumDataAPICallsExceeded)
+      end
+    end
+
     context "with message code between 1200-1299" do
       let(:error_code) { 1200 }
 

@@ -3,8 +3,11 @@ require "fmrest/token_store/memory"
 
 RSpec.describe FmRest::V1::TokenSession do
   let(:token_store) { FmRest::TokenStore::Memory.new }
+  let(:config_token) { nil }
 
   let(:hostname) { "stub" }
+
+  let(:autologin) { true }
 
   let(:config) do
     {
@@ -12,25 +15,23 @@ RSpec.describe FmRest::V1::TokenSession do
       database:    "MyDB",
       username:    "bobby",
       password:    "cubictrousers",
-      token_store: token_store
+      token_store: token_store,
+      token:       config_token,
+      autologin:   autologin
     }
   end
 
   let :faraday do
     Faraday.new("https://#{hostname}") do |conn|
-      conn.use FmRest::V1::TokenSession, config
+      conn.use FmRest::V1::TokenSession, FmRest::ConnectionSettings.new(config)
       conn.response :json
       conn.adapter Faraday.default_adapter
     end
   end
 
-  describe "#initialize" do
-    xit "sets options"
-  end
-
   describe "#call" do
     before do
-      token_store.store("#{hostname}:#{config[:database]}", token)
+      token_store.store("#{hostname}:#{config[:database]}:#{config[:username]}", token)
     end
 
     context "with a valid token" do
@@ -56,30 +57,36 @@ RSpec.describe FmRest::V1::TokenSession do
         @session_request = stub_request(:post, fm_url(host: hostname, database: config[:database]) + "/sessions").to_return_fm(token: new_token)
       end
 
-      it "request a new token and stores it" do
-        faraday.get("/")
-        expect(@session_request).to have_been_requested.once
-        expect(token_store.load("#{hostname}:#{config[:database]}")).to eq(new_token)
-      end
+      context "when :autologin is true" do
+        it "request a new token and stores it" do
+          faraday.get("/")
+          expect(@session_request).to have_been_requested.once
+          expect(token_store.load("#{hostname}:#{config[:database]}:#{config[:username]}")).to eq(new_token)
+        end
 
-      it "resends the request" do
-        faraday.get("/")
-        expect(@retry_request).to have_been_requested.once
-      end
-
-      context "without :username or :account_name options given" do
-        it "raises an exception" do
-          config.delete(:username)
-          config.delete(:account_name)
-          expect { faraday.get("/") }.to raise_error(KeyError, /:username/)
+        it "resends the request" do
+          faraday.get("/")
+          expect(@retry_request).to have_been_requested.once
         end
       end
 
-      context "with :account_name option given instead of :username" do
-        it "doesn't raise an exception" do
-          config[:account_name] = config[:username]
-          config.delete(:username)
-          expect { faraday.get("/") }.not_to raise_error
+      context "when autologin is false" do
+        let(:autologin) { false }
+
+        it "does not request a new token" do
+          stub_request(:get, "https://#{hostname}/").to_return_fm
+          faraday.get("/")
+          expect(@session_request).to_not have_been_requested
+        end
+      end
+
+      context "when a token is given in connection settings" do
+        let(:config_token) { new_token }
+
+        it "uses that token instead of requesting one" do
+          faraday.get("/")
+          expect(@retry_request).to have_been_requested.once
+          expect(@session_request).to_not have_been_requested
         end
       end
     end
@@ -97,13 +104,22 @@ RSpec.describe FmRest::V1::TokenSession do
       it "request a new token and stores it" do
         faraday.get("/")
         expect(@session_request).to have_been_requested.once
-        expect(token_store.load("#{hostname}:#{config[:database]}")).to eq(new_token)
+        expect(token_store.load("#{hostname}:#{config[:database]}:#{config[:username]}")).to eq(new_token)
       end
 
       it "resends the request" do
         faraday.get("/")
         expect(@init_request).to have_been_requested.once
         expect(@retry_request).to have_been_requested.once
+      end
+
+      context "when autologin is false" do
+        let(:autologin) { false }
+
+        it "does not request a new token" do
+          faraday.get("/")
+          expect(@session_request).to_not have_been_requested
+        end
       end
     end
 

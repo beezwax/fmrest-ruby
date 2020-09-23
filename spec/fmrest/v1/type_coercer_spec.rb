@@ -4,7 +4,7 @@ RSpec.describe FmRest::V1::TypeCoercer do
   let(:hostname) { "stub" }
 
   let(:coerce_dates) { true }
-  let(:date_format) { nil }
+  let(:date_format) { FmRest::ConnectionSettings::DEFAULT_DATE_FORMAT }
   let(:timezone) { nil }
 
   let(:config) do
@@ -17,7 +17,7 @@ RSpec.describe FmRest::V1::TypeCoercer do
 
   let :faraday do
     Faraday.new("https://#{hostname}") do |conn|
-      conn.use described_class, config
+      conn.use described_class, FmRest::ConnectionSettings.new(config, skip_validation: true)
       conn.response :json
       conn.adapter Faraday.default_adapter
     end

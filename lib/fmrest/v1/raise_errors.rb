@@ -23,9 +23,11 @@ module FmRest
         402..499   => APIError::ParameterError,
         500..599   => APIError::ValidationError,
         800..899   => APIError::SystemError,
+        952        => APIError::InvalidToken,
+        953        => APIError::MaximumDataAPICallsExceeded,
         1200..1299 => APIError::ScriptError,
         1400..1499 => APIError::ODBCError
-      }
+      }.freeze
 
       def on_complete(env)
         # Sniff for either straight JSON parsing or Spyke's format
