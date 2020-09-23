@@ -1,5 +1,16 @@
 ## Changelog
 
+### 0.11.0
+
+* Added custom class for connection settings, providing indifferent access
+  (i.e. keys can be strings or symbols), and centralized default values and
+  validations
+* Added `:autologin`, `:token` and `:token_store` connection settings
+* Added `FmRest::Base.fmrest_config_overlay=` and related methods
+* Added `FmRest::V1.request_auth_token` and
+  `FmRest::Spyke::Base.request_auth_token` (as well as `!`-suffixed versions
+  which raise exceptions on failure)
+
 ### 0.10.1
 
 * Fix `URI.escape` obsolete warning messages in Ruby 2.7 by replacing it with
