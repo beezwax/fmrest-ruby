@@ -63,9 +63,9 @@ module FmRest
         def serialize_values!(params)
           params.transform_values! do |value|
             case value
-            when DateTime, Time, FmRest::StringDateTime
+            when *datetime_classes
               convert_datetime_timezone(value.to_datetime).strftime(FM_DATETIME_FORMAT)
-            when Date, FmRest::StringDate
+            when *date_classes
               value.strftime(FM_DATE_FORMAT)
             else
               value
@@ -84,6 +84,14 @@ module FmRest
           when nil
             dt
           end
+        end
+
+        def datetime_classes
+          [DateTime, Time, defined?(FmRest::StringDateTime) && FmRest::StringDateTime].compact
+        end
+
+        def date_classes
+          [Date, defined?(FmRest::StringDate) && FmRest::StringDate].compact
         end
       end
     end
