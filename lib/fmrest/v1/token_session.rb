@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "fmrest/v1/connection"
-require "fmrest/errors"
 
 module FmRest
   module V1

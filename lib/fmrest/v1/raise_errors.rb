@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "fmrest/errors"
-
 module FmRest
   module V1
     # FM Data API response middleware for raising exceptions on API response
