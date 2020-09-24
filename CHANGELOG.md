@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.11.1
+
+* Fix a couple crashes due to missing constants
+
 ### 0.11.0
 
 * Added custom class for connection settings, providing indifferent access
