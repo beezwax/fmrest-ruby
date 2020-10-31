@@ -125,21 +125,11 @@ module FmRest
           super.tap { |r| changes_applied_after_save if r }
         end
 
-        # ActiveModel::Dirty since version 5.2 assumes that if there's an
-        # @attributes instance variable set we must be using ActiveRecord, so
-        # we override the instance variable name used by Spyke to avoid issues.
-        #
-        # TODO: Submit a pull request to Spyke so this isn't needed
-        #
-        def attributes
-          @_spyke_attributes
-        end
-
-        # In addition to the comments above on `attributes`, this also adds
-        # support for forbidden attributes
+        # This adds support for forbidden attributes (i.e. Rails'
+        # params.permit, etc.)
         #
         def attributes=(new_attributes)
-          @_spyke_attributes ||= ::Spyke::Attributes.new(scope.params)
+          @spyke_attributes ||= ::Spyke::Attributes.new(scope.params)
           use_setters(sanitize_for_mass_assignment(new_attributes)) if new_attributes && !new_attributes.empty?
         end
 
