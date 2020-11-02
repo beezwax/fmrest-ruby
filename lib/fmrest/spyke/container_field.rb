@@ -42,7 +42,7 @@ module FmRest
           )
 
         # Update mod id on record
-        @base.mod_id = response.body[:data][:mod_id]
+        @base.__mod_id = response.body[:data][:__mod_id]
 
         true
       end
@@ -52,7 +52,7 @@ module FmRest
       # @param repetition [Integer]
       # @return [String] the path for uploading a file to the container
       def upload_path(repetition)
-        FmRest::V1.container_field_path(@base.class.layout, @base.id, name, repetition)
+        FmRest::V1.container_field_path(@base.class.layout, @base.__record_id, name, repetition)
       end
     end
   end

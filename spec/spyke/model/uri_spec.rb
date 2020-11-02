@@ -20,7 +20,7 @@ RSpec.describe FmRest::Spyke::Model::Uri do
 
   describe ".uri" do
     it "when called without args and a set layout it returns the FM Data URI" do
-      expect(test_class.uri).to eq("layouts/TestClass/records(/:id)")
+      expect(test_class.uri).to eq("layouts/TestClass/records(/:__record_id)")
     end
 
     it "when called with an arg it sets the URI" do

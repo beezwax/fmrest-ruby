@@ -6,7 +6,7 @@ RSpec.describe FmRest::Spyke::ContainerField do
 
   let(:record) do
     double(FmRest::Spyke::Base, attributes: { "container" => url },
-                                id: 1,
+                                __record_id: 1,
                                 persisted?: true,
                                 class: model_class)
   end
@@ -45,8 +45,8 @@ RSpec.describe FmRest::Spyke::ContainerField do
     let(:io) { double(IO) }
 
     before do
-      allow(FmRest::V1).to receive(:upload_container_data).and_return(double("Response", body: { data: { mod_id: 99 } }))
-      allow(record).to receive(:mod_id=)
+      allow(FmRest::V1).to receive(:upload_container_data).and_return(double("Response", body: { data: { __mod_id: 99 } }))
+      allow(record).to receive(:__mod_id=)
     end
 
     context "with an unpersisted record" do
@@ -63,12 +63,12 @@ RSpec.describe FmRest::Spyke::ContainerField do
     end
 
     it "updates mod_id" do
-      expect(record).to receive(:mod_id=).with(99)
+      expect(record).to receive(:__mod_id=).with(99)
       container.upload(io)
     end
 
     it "returns true when successful" do
-      allow(record).to receive(:mod_id=)
+      allow(record).to receive(:__mod_id=)
       expect(container.upload(io)).to eq(true)
     end
   end

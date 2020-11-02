@@ -242,7 +242,7 @@ RSpec.describe FmRest::Spyke::Relation do
     end
 
     context "when the primary key is set" do
-      let(:scope) { relation.limit(10).offset(1).sort(:foo).query(foo: 1).where(id: 1) }
+      let(:scope) { relation.limit(10).offset(1).sort(:foo).query(foo: 1).where(__record_id: 1) }
 
       it "ignores collection parameters and doesn't set limit = 1" do
         expect(scope).to receive(:without_collection_params)

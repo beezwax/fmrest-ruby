@@ -2,6 +2,7 @@
 
 require "fmrest/spyke/model/connection"
 require "fmrest/spyke/model/uri"
+require "fmrest/spyke/model/record_id"
 require "fmrest/spyke/model/attributes"
 require "fmrest/spyke/model/serialization"
 require "fmrest/spyke/model/associations"
@@ -18,6 +19,7 @@ module FmRest
 
       include Connection
       include Uri
+      include RecordID
       include Attributes
       include Serialization
       include Associations
@@ -26,11 +28,6 @@ module FmRest
       include GlobalFields
       include Http
       include Auth
-
-      included do
-        # @return [Integer] the record's modId
-        attr_accessor :mod_id
-      end
     end
   end
 end

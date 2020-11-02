@@ -106,6 +106,16 @@ module FmRest
 
             scope.where(where_options)
           end
+
+          # Spyke override
+          def destroy(id = nil)
+            new(__record_id: id).destroy
+          end
+        end
+
+        # Spyke override
+        def persisted?
+          record_id?
         end
 
         # Overwrite Spyke's save to provide a number of features:
@@ -152,9 +162,9 @@ module FmRest
         def reload(options = {})
           scope = self.class
           scope = scope.script(options[:script]) if options.has_key?(:script)
-          reloaded = scope.find(id)
+          reloaded = scope.find(record_id)
           self.attributes = reloaded.attributes
-          self.mod_id = reloaded.mod_id
+          self.__mod_id = reloaded.mod_id
         end
 
         # ActiveModel 5+ implements this method, so we only needed if we're in

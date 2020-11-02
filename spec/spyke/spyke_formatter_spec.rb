@@ -164,10 +164,10 @@ RSpec.describe FmRest::Spyke::SpykeFormatter do
       expect(response.body).to include(
         metadata: a_metadata_object.with_ok_message,
         data: {
-          id: 1,
-          mod_id: "1",
+          __record_id: 1,
+          __mod_id: "1",
           foo: "Foo",
-          portal1: [{ bar: "Bar", id: 1, mod_id: "1" }]
+          portal1: [{ bar: "Bar", __record_id: 1, __mod_id: "1" }]
         }
       )
     end
@@ -182,10 +182,10 @@ RSpec.describe FmRest::Spyke::SpykeFormatter do
           .with_ok_message
           .with_data_info(data_info),
         data: [{
-          id: 1,
-          mod_id: "1",
+          __record_id: 1,
+          __mod_id: "1",
           foo: "Foo",
-          portal1: [{ bar: "Bar", id: 1, mod_id: "1" }]
+          portal1: [{ bar: "Bar", __record_id: 1, __mod_id: "1" }]
         }]
       )
     end
@@ -200,10 +200,10 @@ RSpec.describe FmRest::Spyke::SpykeFormatter do
           .with_ok_message
           .with_data_info(data_info),
         data: [{
-          id: 1,
-          mod_id: "1",
+          __record_id: 1,
+          __mod_id: "1",
           foo: "Foo",
-          portal1: [{ bar: "Bar", id: 1, mod_id: "1" }]
+          portal1: [{ bar: "Bar", __record_id: 1, __mod_id: "1" }]
         }]
       )
     end
@@ -224,7 +224,7 @@ RSpec.describe FmRest::Spyke::SpykeFormatter do
         it "returns a hash with single record data" do
           expect(response.body).to include(
             metadata: a_metadata_object.with_ok_message,
-            data: { mod_id: "2" },
+            data: { __mod_id: "2" },
             errors: {}
           )
         end

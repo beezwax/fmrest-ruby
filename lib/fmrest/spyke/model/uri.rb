@@ -18,7 +18,7 @@ module FmRest
           #
           def uri(uri_template = nil)
             if @uri.nil? && uri_template.nil?
-              return FmRest::V1.record_path(layout) + "(/:id)"
+              return FmRest::V1.record_path(layout) + "(/:#{primary_key})"
             end
 
             super

@@ -363,14 +363,14 @@ RSpec.describe FmRest::Spyke::Model::Orm do
   end
 
   describe "#destroy" do
-    let(:ship) { Ship.new name: "Mary Celeste", id: 1 }
+    let(:ship) { Ship.new name: "Mary Celeste", __record_id: 1 }
 
     before { stub_session_login }
 
     context "when called with script options" do
       it "adds script options to the query string" do
         request =
-          stub_request(:delete, fm_url(layout: "Ships", id: ship.id))
+          stub_request(:delete, fm_url(layout: "Ships", id: ship.record_id))
           .with(query: { "script" => "script", "script.param" => "param" })
           .to_return_fm
 
@@ -382,7 +382,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
   end
 
   describe "#reload" do
-    let(:ship) { Ship.new(id: 1) }
+    let(:ship) { Ship.new(__record_id: 1) }
 
     before { stub_session_login }
 

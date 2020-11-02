@@ -15,6 +15,7 @@ module FmRest
           # execution results after a save, etc.
 
 
+          # Spyke overwrite
           def request(*args)
             super.tap do |r|
               Thread.current[last_request_metadata_key] = r.metadata
@@ -31,6 +32,26 @@ module FmRest
             "#{to_s}.last_request_metadata"
           end
         end
+      end
+
+      # Spyke overwrite
+      def uri
+        ::Spyke::Path.new(@uri_template, fmrest_uri_attributes) if @uri_template
+      end
+
+      private
+
+      # Spyke overwrite
+      def resolve_path_from_action(action)
+        case action
+        when Symbol then uri.join(action)
+        when String then ::Spyke::Path.new(action, fmrest_uri_attributes)
+        else uri
+        end
+      end
+
+      def fmrest_uri_attributes
+        persisted? ? { __record_id: record_id } : attributes.slice(:__record_id)
       end
     end
   end

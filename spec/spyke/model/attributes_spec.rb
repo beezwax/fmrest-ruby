@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 require "spec_helper"
+require "fixtures/pirates"
 
 RSpec.describe FmRest::Spyke::Model::Attributes do
   let :test_class do
@@ -36,14 +39,6 @@ RSpec.describe FmRest::Spyke::Model::Attributes do
       expect(instance).to respond_to(:foo_will_change!)
       expect(instance.foo_changed?).to be(true)
     end
-
-    it "raises an error, if attempting to set an attribute named id" do
-      expect do
-        fmrest_spyke_class do
-          attributes id: "Foo", bar: "Bar"
-        end
-      end.to raise_error("attribute name `id' is reserved for the recordId")
-    end
   end
 
   describe ".mapped_attributes" do
@@ -53,34 +48,6 @@ RSpec.describe FmRest::Spyke::Model::Attributes do
 
     it "defaults to a HashWithIndifferentAccess" do
       expect(fmrest_spyke_class.mapped_attributes).to be_a(ActiveSupport::HashWithIndifferentAccess)
-    end
-  end
-
-  describe "#id_will_change!" do
-    it "is defined" do
-      expect(test_class.new).to respond_to(:id_will_change!)
-    end
-  end
-
-  describe "#id=" do
-    it "calls id_will_change!" do
-      instance = test_class.new
-      expect(instance).to receive(:id_will_change!)
-      instance.id = 1
-    end
-  end
-
-  describe "#mod_id" do
-    it "returns the current mod_id" do
-      expect(test_class.new.mod_id).to eq(nil)
-    end
-  end
-
-  describe "#mod_id=" do
-    it "sets the current mod_id" do
-      instance = test_class.new
-      instance.mod_id = 1
-      expect(instance.mod_id).to eq(1)
     end
   end
 
@@ -95,7 +62,7 @@ RSpec.describe FmRest::Spyke::Model::Attributes do
   end
 
   describe "#reload" do
-    let(:ship) { Ship.new id: 1, name: "Obra Djinn" }
+    let(:ship) { Ship.new __record_id: 1, name: "Obra Djinn" }
 
     before { stub_session_login }
 
@@ -113,7 +80,6 @@ RSpec.describe FmRest::Spyke::Model::Attributes do
       end
 
       it "resets changes information" do
-        ship = Ship.new id: 1, name: "Obra Djinn"
         expect { ship.reload }.to change { ship.changed? }.from(true).to(false)
       end
     end

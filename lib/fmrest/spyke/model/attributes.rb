@@ -20,9 +20,6 @@ module FmRest
           # by Spyke
           self.attribute_method_matchers.shift
 
-          # ActiveModel::Dirty methods for id
-          define_attribute_method(:id)
-
           # Keep track of attribute mappings so we can get the FM field names
           # for changed attributes
           class_attribute :mapped_attributes, instance_writer: false, instance_predicate: false
@@ -88,8 +85,6 @@ module FmRest
           end
 
           def _fmrest_define_attribute(from, to)
-            raise ArgumentError, "attribute name `id' is reserved for the recordId" if from.to_s == "id"
-
             # We use a setter here instead of injecting the hash key/value pair
             # directly with #[]= so that we don't change the mapped_attributes
             # hash on the parent class. The resulting hash is frozen for the
@@ -112,11 +107,6 @@ module FmRest
           end
         end
 
-        def id=(value)
-          id_will_change! unless value == id
-          super
-        end
-
         def reload(*args)
           super.tap { |r| clear_changes_information }
         end
@@ -130,7 +120,8 @@ module FmRest
         #
         def attributes=(new_attributes)
           @spyke_attributes ||= ::Spyke::Attributes.new(scope.params)
-          use_setters(sanitize_for_mass_assignment(new_attributes)) if new_attributes && !new_attributes.empty?
+          return unless new_attributes && !new_attributes.empty?
+          use_setters(sanitize_for_mass_assignment(new_attributes))
         end
 
         private
