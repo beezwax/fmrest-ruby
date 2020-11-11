@@ -5,6 +5,8 @@ require "fmrest/spyke/portal"
 module FmRest
   module Spyke
     module Model
+      # This module adds portal support to Spyke models.
+      #
       module Associations
         extend ::ActiveSupport::Concern
 
@@ -22,17 +24,18 @@ module FmRest
         end
 
         class_methods do
-          # Based on +has_many+, but creates a special Portal association
+          # Based on `has_many`, but creates a special Portal association
           # instead.
           #
-          # Custom options:
+          # @option :portal_key [String] The key used for the portal in the FM
+          #   Data JSON portalData
+          # @option :attribute_prefix [String] The prefix used for portal
+          #   attributes in the FM Data JSON
           #
-          # * <tt>:portal_key</tt> - The key used for the portal in the FM Data JSON portalData.
-          # * <tt>:attribute_prefix</tt> - The prefix used for portal attributes in the FM Data JSON.
-          #
-          # Example:
-          #
-          #   has_portal :jobs, portal_key: "JobsTable", attribute_prefix: "Job"
+          # @example
+          #   class Person < FmRest::Spyke::Base
+          #     has_portal :jobs, portal_key: "JobsTable", attribute_prefix: "Job"
+          #   end
           #
           def has_portal(name, options = {})
             create_association(name, Portal, options)
@@ -47,9 +50,8 @@ module FmRest
           end
         end
 
-        # Override Spyke's association reader to keep a cache of loaded
-        # portals. Spyke's default behavior is to reload the association
-        # each time.
+        # Spyke override -- Keep a cache of loaded portals. Spyke's default
+        # behavior is to reload the association each time.
         #
         def association(name)
           @loaded_portals ||= {}
@@ -64,6 +66,8 @@ module FmRest
           end
         end
 
+        # Spyke override -- Add portals awareness
+        #
         def reload(*_)
           super.tap { @loaded_portals = nil }
         end

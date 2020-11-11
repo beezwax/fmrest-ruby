@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "fmrest/spyke/relation"
-
 module FmRest
   module Spyke
     module Model
@@ -15,7 +13,8 @@ module FmRest
           # execution results after a save, etc.
 
 
-          # Spyke overwrite
+          # Spyke override -- Keeps metadata in thread-local class variable.
+          #
           def request(*args)
             super.tap do |r|
               Thread.current[last_request_metadata_key] = r.metadata
@@ -34,14 +33,16 @@ module FmRest
         end
       end
 
-      # Spyke overwrite
+      # Spyke override -- Uses `__record_id` for building the record URI.
+      #
       def uri
         ::Spyke::Path.new(@uri_template, fmrest_uri_attributes) if @uri_template
       end
 
       private
 
-      # Spyke overwrite
+      # Spyke override (private) -- Use `__record_id` instead of `id`
+      #
       def resolve_path_from_action(action)
         case action
         when Symbol then uri.join(action)
@@ -51,7 +52,25 @@ module FmRest
       end
 
       def fmrest_uri_attributes
-        persisted? ? { __record_id: record_id } : attributes.slice(:__record_id)
+        if persisted?
+          { __record_id: __record_id }
+        else
+          # NOTE: it seems silly to be calling attributes.slice(:__record_id)
+          # when the record is supposed to not have a record_id set (since
+          # persisted? is false here), but it makes sense in the context of how
+          # Spyke works:
+          #
+          # When calling Model.find(id), Spyke will internally create a scope
+          # with .where(primary_key => id) and call .find_one on it. Then,
+          # somewhere down the line Spyke creates a new empty instance of the
+          # current model class to get its .uri property (the one we're
+          # partially building through this method and which contains these URI
+          # attributes). When initializing a record Spyke first forcefully
+          # assigns the .where()-set attributes from the current scope onto
+          # that instance's attributes hash, which then leads us right here,
+          # where we might have __record_id assigned as a scope attribute:
+          attributes.slice(:__record_id)
+        end
       end
     end
   end

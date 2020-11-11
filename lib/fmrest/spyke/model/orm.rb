@@ -6,6 +6,10 @@ require "fmrest/spyke/validation_error"
 module FmRest
   module Spyke
     module Model
+      # This module adds and extends various ORM features in Spyke models,
+      # including custom query methods, remote script execution and
+      # exception-raising persistence methods.
+      #
       module Orm
         extend ::ActiveSupport::Concern
 
@@ -21,22 +25,25 @@ module FmRest
         end
 
         class_methods do
-          # Methods delegated to FmRest::Spyke::Relation
+          # Methods delegated to `FmRest::Spyke::Relation`
           delegate :limit, :offset, :sort, :order, :query, :omit, :portal,
                    :portals, :includes, :with_all_portals, :without_portals,
                    :script, :find_one, :first, :any, :find_some,
                    :find_in_batches, :find_each, to: :all
 
+          # Spyke override -- Use FmRest's Relation instead of Spyke's vanilla
+          # one
+          #
           def all
-            # Use FmRest's Relation instead of Spyke's vanilla one
             current_scope || Relation.new(self, uri: uri)
           end
 
-          # Extended fetch to allow properly setting limit, offset and other
+          # Spyke override -- allows properly setting limit, offset and other
           # options, as well as using the appropriate HTTP method/URL depending
-          # on whether there's a query present in the current scope, e.g.:
+          # on whether there's a query present in the current scope.
           #
-          #     Person.query(first_name: "Stefan").fetch # POST .../_find
+          # @example
+          #   Person.query(first_name: "Stefan").fetch # -> POST .../_find
           #
           def fetch
             if current_scope.has_query?
@@ -62,12 +69,21 @@ module FmRest
             self.current_scope = previous
           end
 
-          # API-error-raising version of #create
+          # Exception-raising version of `#create`
+          #
+          # @param attributes [Hash] the attributes to initialize the
+          #   record with
           #
           def create!(attributes = {})
             new(attributes).tap(&:save!)
           end
 
+          # Requests execution of a FileMaker script.
+          #
+          # @param script_name [String] the name of the FileMaker script to
+          #   execute
+          # @param param [String] an optional paramater for the script
+          #
           def execute_script(script_name, param: nil)
             params = {}
             params = {"script.param" => param} unless param.nil?
@@ -106,23 +122,21 @@ module FmRest
 
             scope.where(where_options)
           end
-
-          # Spyke override
-          def destroy(id = nil)
-            new(__record_id: id).destroy
-          end
         end
 
-        # Spyke override
-        def persisted?
-          record_id?
-        end
-
-        # Overwrite Spyke's save to provide a number of features:
+        # Spyke override -- Adds a number of features to original `#save`:
         #
         # * Validations
         # * Data API scripts execution
         # * Refresh of dirty attributes
+        #
+        # @option options [String] :script the name of a FileMaker script to execute
+        #   upon saving
+        # @option options [Boolean] :raise_validation_errors whether to raise an
+        #   exception if validations fail
+        #
+        # @return [true] if saved successfully
+        # @return [false] if validations or persistence failed
         #
         def save(options = {})
           callback = persisted? ? :update : :create
@@ -133,11 +147,34 @@ module FmRest
           true
         end
 
+        # Exception-raising version of `#save`.
+        #
+        # @option (see #save)
+        #
+        # @return [true] if saved successfully
+        #
+        # @raise if validations or presistence failed
+        #
         def save!(options = {})
           save(options.merge(raise_validation_errors: true))
         end
 
-        # Overwrite Spyke's destroy to provide Data API script execution
+        # Exception-raising version of `#update`.
+        #
+        # @param new_attributes [Hash] a hash of record attributes to update
+        #   the record with
+        #
+        # @option (see #save)
+        #
+        def update!(new_attributes, options = {})
+          self.attributes = new_attributes
+          save!(options)
+        end
+
+        # Spyke override -- Adds support for Data API script execution.
+        #
+        # @option options [String] :script the name of a FileMaker script to execute
+        #   upon deletion
         #
         def destroy(options = {})
           # For whatever reason the Data API wants the script params as query
@@ -152,22 +189,19 @@ module FmRest
           self.attributes = delete(uri.to_s + script_query_string)
         end
 
-        # API-error-raising version of #update
+        # (see #destroy)
         #
-        def update!(new_attributes, options = {})
-          self.attributes = new_attributes
-          save!(options)
-        end
-
+        # @option (see #destroy)
+        #
         def reload(options = {})
           scope = self.class
           scope = scope.script(options[:script]) if options.has_key?(:script)
-          reloaded = scope.find(record_id)
+          reloaded = scope.find(__record_id)
           self.attributes = reloaded.attributes
           self.__mod_id = reloaded.mod_id
         end
 
-        # ActiveModel 5+ implements this method, so we only needed if we're in
+        # ActiveModel 5+ implements this method, so we only need it if we're in
         # the older AM4
         if ActiveModel::VERSION::MAJOR == 4
           def validate!(context = nil)

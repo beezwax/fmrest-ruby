@@ -7,8 +7,8 @@ module FmRest
         FM_DATE_FORMAT = "%m/%d/%Y"
         FM_DATETIME_FORMAT = "#{FM_DATE_FORMAT} %H:%M:%S"
 
-        # Override Spyke's to_params to return FM Data API's expected JSON
-        # format, and including only modified fields
+        # Spyke override -- Return FM Data API's expected JSON format,
+        # including only modified fields.
         #
         def to_params
           params = {

@@ -5,6 +5,10 @@ require "fmrest/spyke/model/orm"
 module FmRest
   module Spyke
     module Model
+      # Extends Spyke models with support for mapped attributes,
+      # `ActiveModel::Dirty` and forbidden attributes (e.g. Rails'
+      # `params.permit`).
+      #
       module Attributes
         extend ::ActiveSupport::Concern
 
@@ -33,10 +37,12 @@ module FmRest
         end
 
         class_methods do
+          # Spyke override
+          #
           # Similar to Spyke::Base.attributes, but allows defining attribute
           # methods that map to FM attributes with different names.
           #
-          # Example:
+          # @example
           #
           #   class Person < Spyke::Base
           #     include FmRest::Spyke::Model
@@ -58,9 +64,10 @@ module FmRest
 
           private
 
-          # Override Spyke::Base.new_or_return (private), called whenever
-          # loading records from the HTTP API, so we can reset dirty info on
-          # freshly loaded records
+          # Spyke override (private)
+          #
+          # Called whenever loading records from the HTTP API, so we can reset
+          # dirty info on freshly loaded records
           #
           # See: https://github.com/balvig/spyke/blob/master/lib/spyke/http.rb
           #
@@ -107,16 +114,20 @@ module FmRest
           end
         end
 
+        # Spyke override -- Adds AM::Dirty support
+        #
         def reload(*args)
           super.tap { |r| clear_changes_information }
         end
 
+        # Spyke override -- Adds AM::Dirty support
+        #
         def save(*args)
           super.tap { |r| changes_applied_after_save if r }
         end
 
-        # This adds support for forbidden attributes (i.e. Rails'
-        # params.permit, etc.)
+        # Spyke override -- Adds support for forbidden attributes (i.e. Rails'
+        # `params.permit`, etc.)
         #
         def attributes=(new_attributes)
           @spyke_attributes ||= ::Spyke::Attributes.new(scope.params)
@@ -134,7 +145,7 @@ module FmRest
           mapped_attributes.values_at(*changed)
         end
 
-        # Use known mapped_attributes for inspect
+        # Spyke override (private) -- Use known mapped_attributes for inspect
         #
         def inspect_attributes
           mapped_attributes.except(primary_key).map do |k, v|
