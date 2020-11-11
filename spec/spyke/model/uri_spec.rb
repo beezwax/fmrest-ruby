@@ -1,8 +1,9 @@
-require "spec_helper"
+# frozen_string_literal: true
 
+require "spec_helper"
 require "fixtures/pirates"
 
-RSpec.describe FmRest::Spyke::Model::Uri do
+RSpec.describe FmRest::Spyke::Model::URI do
   let :test_class do
     fmrest_spyke_class
   end

@@ -18,7 +18,7 @@ module FmRest
       extend ::ActiveSupport::Concern
 
       include Connection
-      include Uri
+      include URI
       include RecordID
       include Attributes
       include Serialization
