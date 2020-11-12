@@ -1,0 +1,15 @@
+=======================================
+ Notes on upgrading from fmrest < 0.12
+=======================================
+
+There's a small breaking change in fmrest 0.12 that will most likely not affect
+you, but you may want to be aware of:
+
+Previous to this version the record ID on an FmRest::Spyke::Base instance could
+be set with `id=`. This caused problems in cases where a FileMaker layout had a
+field named `id`, so `id=` got renamed to `__record_id=`. Setting the record ID
+by hand however isn't something useful or that should be done at all, so it's
+very unlikely that this change will affect your existing code at all.
+
+Thanks for using fmrest-ruby!
+
