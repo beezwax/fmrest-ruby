@@ -4,6 +4,7 @@
 
 * Rename `FmRest::Spyke::Base#id=` to `FmRest::Spyke::Base#__record_id=` to
   prevent clobbering of FileMaker layout-defined fields
+* Removed previously deprecated `FmRest::Spyke::Base(config)` syntax
 * Better yard documentation
 
 ### 0.11.1
