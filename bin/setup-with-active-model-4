@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-IFS=$'\n\t'
-set -vx
-
-ACTIVE_RECORD_VERSION="~> 4.2" SQLITE3_VERSION="~> 1.3.0" bundle update
-
-# Do any other automated setup that you need to do here

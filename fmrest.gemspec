@@ -30,7 +30,14 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "webmock"
   spec.add_development_dependency "pry-byebug"
   spec.add_development_dependency "activerecord", ENV["ACTIVE_RECORD_VERSION"]
-  spec.add_development_dependency "sqlite3", ENV["SQLITE3_VERSION"]
+
+  sqlite3_version = if (4.2..5.2).include?(ENV["ACTIVE_RECORD_VERSION"].to_s.gsub(/[^\d.]/, "").to_f)
+                      "~> 1.3.0"
+                    else
+                      "~> 1.4.0"
+                    end
+
+  spec.add_development_dependency "sqlite3", sqlite3_version
   spec.add_development_dependency "mock_redis"
   spec.add_development_dependency "moneta"
   spec.add_development_dependency "yard"

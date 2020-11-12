@@ -36,7 +36,7 @@ module FmRest
           def fmrest_config=(settings)
             settings = ConnectionSettings.new(settings, skip_validation: true)
 
-            redefine_singleton_method(:fmrest_config) do
+            singleton_class.redefine_method(:fmrest_config) do
               overlay = fmrest_config_overlay
               return settings.merge(overlay, skip_validation: true) if overlay
               settings
