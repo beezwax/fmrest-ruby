@@ -1,5 +1,11 @@
 ## Changelog
 
+### 0.12.0
+
+* Rename `FmRest::Spyke::Base#id=` to `FmRest::Spyke::Base#__record_id=` to
+  prevent clobbering of FileMaker layout-defined fields
+* Better yard documentation
+
 ### 0.11.1
 
 * Fix a couple crashes due to missing constants
