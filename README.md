@@ -7,7 +7,7 @@ A Ruby client for
 [FileMaker 18 and 19's Data API](https://help.claris.com/en/data-api-guide)
 using
 [Faraday](https://github.com/lostisland/faraday) and with optional
-[Spyke](https://github.com/balvig/spyke) support (ActiveRecord-ish models).
+ActiveRecord-ish ORM features through [Spyke](https://github.com/balvig/spyke).
 
 If you're looking for a Ruby client for the legacy XML/Custom Web Publishing
 API try the fabulous [ginjo-rfm gem](https://github.com/ginjo/rfm) instead.
@@ -15,6 +15,15 @@ API try the fabulous [ginjo-rfm gem](https://github.com/ginjo/rfm) instead.
 fmrest-ruby only partially implements FileMaker 18's Data API.
 See the [implementation completeness table](#api-implementation-completeness-table)
 to see if a feature you need is natively supported by the gem.
+
+## Supported Ruby versions
+
+fmrest-ruby aims to support and is [tested against](https://github.com/beezwax/fmrest-ruby/actions?query=workflow%3ACI)
+the following Ruby implementations:
+
+* Ruby 2.5
+* Ruby 2.6
+* Ruby 2.7
 
 ## Installation
 
@@ -309,55 +318,42 @@ your connection settings to one of the following values:
 * `nil` - (default) ignore timezones altogether
 
 
-## Spyke support (ActiveRecord-like ORM)
+## ActiveRecord-like ORM (through Spyke)
 
 [Spyke](https://github.com/balvig/spyke) is an ActiveRecord-like gem for
-building REST models. fmrest-ruby has Spyke support out of the box, although
-Spyke itself is not a dependency of fmrest-ruby, so you'll need to add it to
-your Gemfile yourself:
+building REST ORM models. fmrest-ruby builds its ORM features atop Spyke,
+although Spyke itself is not a dependency of fmrest-ruby, so you'll need to add
+it to your Gemfile yourself:
 
 ```ruby
 gem 'spyke'
 ```
 
-Then require fmrest-ruby's Spyke support:
+Then require fmrest-ruby's Spyke integration:
 
 ```ruby
 # Put this in config/initializers/fmrest.rb if it's a Rails project
 require "fmrest/spyke"
 ```
 
-And finally extend your Spyke models with `FmRest::Spyke`:
-
-```ruby
-class Honeybee < Spyke::Base
-  include FmRest::Spyke
-end
-```
-
-This will make your Spyke model send all its requests in Data API format, with
-token session auth. Find, create, update and destroy actions should all work
-as expected.
-
-Alternatively you can inherit directly from the shorthand
-`FmRest::Spyke::Base`, which is in itself a subclass of `Spyke::Base` with
-`FmRest::Spyke` already included:
+To create a model you can inherit directly from `FmRest::Spyke::Base`, which is
+itself a subclass of `Spyke::Base` with the `FmRest::Spyke` mixin included:
 
 ```ruby
 class Honeybee < FmRest::Spyke::Base
 end
 ```
 
-All of Spyke's basic ORM operations work:
+All of Spyke's basic ORM operations work as expected:
 
 ```ruby
 bee = Honeybee.new
 
 bee.name = "Hutch"
-bee.save # POST request
+bee.save # POST request (creates new record)
 
 bee.name = "ハッチ"
-bee.save # PATCH request
+bee.save # PATCH request (updates existing record)
 
 bee.reload # GET request
 
@@ -366,28 +362,19 @@ bee.destroy # DELETE request
 bee = Honeybee.find(9) # GET request
 ```
 
-Read Spyke's documentation for more information on these basic features.
+It's recommended that you read Spyke's documentation for more information on
+these basic features. If you've used ActiveRecord or similar ORM libraries
+however you'll find it quite familiar.
 
-In addition `FmRest::Spyke` extends `Spyke::Base` subclasses with the following
+In addition, `FmRest::Spyke::Base` extends `Spyke::Base` with the following
 features:
 
 ### Model.fmrest_config=
 
-Usually to tell a Spyke object to use a certain Faraday connection you'd use:
+This allows you to set your Data API connection settings on your model:
 
 ```ruby
-class Honeybee < Spyke::Base
-  self.connection = Faraday.new(...)
-end
-```
-
-fmrest-ruby simplfies the process of setting up your Spyke model with a Faraday
-connection by allowing you to just set your Data API connection settings:
-
-```ruby
-class Honeybee < Spyke::Base
-  include FmRest::Spyke
-
+class Honeybee < FmRest::Spyke::Base
   self.fmrest_config = {
     host:     "example.com",
     database: "My Database",
@@ -397,17 +384,15 @@ class Honeybee < Spyke::Base
 end
 ```
 
-This will automatically create a proper Faraday connection for those connection
-settings.
+This will automatically create a proper Faraday connection using those
+connection settings, so you don't have to worry about setting that up.
 
 Note that these settings are inheritable, so you could create a base class that
 does the initial connection setup and then inherit from it in models using that
 same connection. E.g.:
 
 ```ruby
-class BeeBase < Spyke::Base
-  include FmRest::Spyke
-
+class BeeBase < FmRest::Spyke::Base
   self.fmrest_config = {
     host:     "example.com",
     database: "My Database",
@@ -437,9 +422,7 @@ credentials without having them leak into other users of your web application.
 E.g.:
 
 ```ruby
-class BeeBase < Spyke::Base
-  include FmRest::Spyke
-
+class BeeBase < FmRest::Spyke::Base
   # Host and database provided as base settings
   self.fmrest_config = {
     host:     "example.com",
