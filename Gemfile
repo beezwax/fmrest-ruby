@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
 source "https://rubygems.org"
 
-gemspec
+gemspec name: "fmrest"
+gemspec name: "fmrest-core"
+gemspec name: "fmrest-spyke"

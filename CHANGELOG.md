@@ -1,5 +1,10 @@
 ## Changelog
 
+### 0.13.0
+
+* Split `fmrest` gem into `fmrest-core` and `fmrest-spyke`. `fmrest` becomes a
+  wrapper for the two new gems.
+
 ### 0.12.0
 
 * Rename `FmRest::Spyke::Base#id=` to `FmRest::Spyke::Base#__record_id=` to

@@ -1,6 +1,22 @@
-require "bundler/gem_tasks"
+# frozen_string_literal: true
+
+require "bundler/gem_helper"
 require "rspec/core/rake_task"
 
-RSpec::Core::RakeTask.new(:spec)
+gems = %w[fmrest fmrest-core fmrest-spyke]
 
-task :default => :spec
+gems.each do |gem|
+  namespace gem do
+    Bundler::GemHelper.install_tasks(name: gem)
+  end
+end
+
+namespace :all do
+  %w[build install install:local release].each do |t|
+    desc "Run `#{t}` for all gems"
+    task t => gems.map {|gem| "#{gem}:#{t}" }
+  end
+end
+
+RSpec::Core::RakeTask.new(:spec)
+task default: :spec

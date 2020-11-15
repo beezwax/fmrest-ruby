@@ -1,4 +1,19 @@
 =======================================
+ Notes on upgrading from fmrest < 0.13
+=======================================
+
+From v0.13 onward fmrest becomes a wrapper for two other gems: fmrest-core and
+fmrest-spyke.
+
+If you're using FmRest::Spyke::Base in your project then you no
+longer need to explicitly include spyke in your Gemfile, as it's now a hard
+dependency of fmrest-spyke.
+
+If you're not using FmRest::Spyke::Base and just want to use the Faraday
+connection you may want to change your Gemfile to depend on fmrest-core
+instead, to avoid including spyke as an useless dependency in your project.
+
+=======================================
  Notes on upgrading from fmrest < 0.12
 =======================================
 

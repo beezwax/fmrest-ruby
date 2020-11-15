@@ -24,8 +24,8 @@ module FmRest
         end
 
         class_methods do
-          # Based on `has_many`, but creates a special Portal association
-          # instead.
+          # Based on Spyke's `has_many`, but creates a special Portal
+          # association instead.
           #
           # @option :portal_key [String] The key used for the portal in the FM
           #   Data JSON portalData
