@@ -9,54 +9,85 @@ using
 [Faraday](https://github.com/lostisland/faraday) and with optional
 ActiveRecord-ish ORM features through [Spyke](https://github.com/balvig/spyke).
 
-If you're looking for a Ruby client for the legacy XML/Custom Web Publishing
-API try the fabulous [ginjo-rfm gem](https://github.com/ginjo/rfm) instead.
-
 fmrest-ruby only partially implements FileMaker 18's Data API.
 See the [implementation completeness table](#api-implementation-completeness-table)
 to see if a feature you need is natively supported by the gem.
 
-## Supported Ruby versions
+## Gems
 
-fmrest-ruby aims to support and is [tested against](https://github.com/beezwax/fmrest-ruby/actions?query=workflow%3ACI)
-the following Ruby implementations:
+The `fmrest` gem is a wrapper for two other gems:
 
-* Ruby 2.5
-* Ruby 2.6
-* Ruby 2.7
+* `fmrest-core`, which provides the core Faraday connection builder, session
+  management, and other core utilities.
+* `fmrest-spyke`, which provides an ActiveRecord-like ORM library built on top
+  of `fmrest-core` and Spyke.
 
 ## Installation
 
-Add this line to your Gemfile:
+Add this to your Gemfile:
 
 ```ruby
 gem 'fmrest'
-
-# Optional but recommended (for ORM features)
-gem 'spyke'
 ```
 
-## Basic usage (without ORM)
+Or if you just want to use the Faraday connection without the ORM features, do:
 
-To get a Faraday connection that can handle FM's Data API auth workflow:
+```ruby
+gem 'fmrest-core'
+```
+
+## Simple examples
+
+### ORM example
+
+Most people would want to use the ORM features provided by `fmrest-spyke`:
+
+```ruby
+class Honeybee < FmRest::Spyke::Base
+  # Connection settings
+  self.fmrest_config = {
+    host:     "…",
+    database: "…",
+    username: "…",
+    password: "…"
+  }
+
+  # Mapped attributes
+  attributes name: "Bee Name", age: "Bee Age"
+
+  # Portals
+  has_portal :flowers
+
+  # File container
+  container :photo, field_name: "Bee Photo"
+end
+
+# Find a record by id
+bee = Honeybee.find(9)
+
+bee.name = "Hutch"
+
+# Add a record to portal
+bee.flowers << Flower.find(1)
+
+bee.save
+```
+
+### Barebones connection example (without ORM)
+
+In case you don't need the advanced ORM features (e.g. if you only need minimal
+Data API interaction and just want a lightweight solution) you can simply use
+the Faraday connection provided by `fmrest-core`:
 
 ```ruby
 connection = FmRest::V1.build_connection(
-  host:     "example.com",
-  database: "database name",
-  username: "username",
-  password: "password"
+  host:     "…",
+  database: "…",
+  username: "…",
+  password: "…"
 )
-```
 
-The returned connection will prefix any non-absolute paths with
-`"/fmi/data/v1/databases/:database/"`, so you only need to supply the
-meaningful part of the path.
-
-To send a request to the Data API use Faraday's standard methods, e.g.:
-
-```ruby
-# Get all records
+# Get all records (as parsed JSON)
 connection.get("layouts/MyFancyLayout/records")
 
 # Create new record
@@ -64,56 +95,33 @@ connection.post do |req|
   req.url "layouts/MyFancyLayout/records"
 
   # You can just pass a hash for the JSON body
-  req.body = { ... }
+  req.body = { … }
 end
 ```
 
-For each request fmrest-ruby will first request a session token (using the
-provided username and password) if it doesn't yet have one in store.
-
-### Logging out of the database session
-
-The Data API requires sending a DELETE request to
-`/fmi/data/:version/databases/:database_name/sessions/:session_token`
-in order to log out from the session
-([see docs](https://fmhelp.filemaker.com/docs/18/en/dataapi/#connect-database_log-out)).
-
-Since fmrest-ruby handles the storage of session tokens internally, and the
-token is required to build the logout URL, this becomes a non-trivial action.
-
-To remedy this, fmrest-ruby connections recognize when you're trying to logout
-and substitute whatever is in the `:session_token` section of the logout path
-with the actual session token:
-
-```ruby
-# Logout from the database session
-connection.delete "sessions/this-will-be-replaced-with-the-actual-token"
-```
-
-If you're using the ORM features this becomes much easier, see
-[Model.logout](#modellogout) below.
+See the [main document on using the base
+connection](docs/BaseConnectionUsage.md) for more.
 
 ## Connection settings
 
-In addition to the required `:host`, `:database`, `:username` and `:password`
-connection options, you can also pass `:ssl` and `:proxy`, which are passed to
-the underlying [Faraday](https://github.com/lostisland/faraday) connection.
+The minimum required connection settings are `:host`, `:database`, `:username`
+and `:password`, but fmrest-ruby has many other options you can pass when
+setting up a connection (see [full list](#full-list-of-available-options) below).
 
-You can use this to, for instance, disable SSL verification:
+`:ssl` and `:proxy` are forwarded to the underlying
+[Faraday](https://github.com/lostisland/faraday) connection. You can use this
+to, for instance, disable SSL verification:
 
 ```ruby
 FmRest::V1.build_connection(
-  host:     "example.com",
-  ...
-  ssl:      { verify: false }
+  host: "…",
+  …
+  ssl:  { verify: false }
 )
 ```
 
 You can also pass a `:log` option for basic request logging, see the section on
 [Logging](#Logging) below.
-
-`:username` is also aliased as `:account_name` to provide cross-compatibility
-with the ginjo-rfm gem.
 
 ### Full list of available options
 
@@ -123,10 +131,11 @@ Option              | Description                                | Format       
 `:database`         |                                            | String                      | None
 `:username`         |                                            | String                      | None
 `:password`         |                                            | String                      | None
+`:account_name`     | Alias of `:username`                       | String                      | None
 `:ssl`              | SSL options to be forwarded to Faraday     | Faraday SSL options         | None
 `:proxy`            | Proxy options to be forwarded to Faraday   | Faraday proxy options       | None
 `:log`              | Log JSON responses to STDOUT               | Boolean                     | `false`
-`:coerce_dates`     | See section on [date fields](#date-fields) | Boolean \| `:hybrid` \| `:full` | `false`
+`:coerce_dates`     | See section on [date fields](#date-fields-and-timezones) | Boolean \| `:hybrid` \| `:full` | `false`
 `:date_format`      | Date parsing format                        | String (FM date format)     | `"MM/dd/yyyy"`
 `:timestamp_format` | Timestmap parsing format                   | String (FM date format)     | `"MM/dd/yyyy HH:mm:ss"`
 `:time_format`      | Time parsing format                        | String (FM date format)     | `"HH:mm:ss"`
@@ -141,203 +150,46 @@ through `FmRest.default_connection_settings=`. E.g.:
 
 ```ruby
 FmRest.default_connection_settings = {
-  host:     "example.com",
-  database: "database name",
-  username: "username",
-  password: "password"
+  host:     "…",
+  database: "…",
+  username: "…",
+  password: "…"
 }
 ```
 
-This configuration will be used by default by `FmRest::V1.build_connection` as
-well as your models whenever you don't pass a configuration hash explicitly.
-
+These settings will be used by default by `FmRest::Spyke::Base` models whenever
+you don't set `fmrest_config=` explicitly, as well as by
+`FmRest::V1.build_connection` in case you're setting up your Faraday connection
+manually.
 
 ## Session token store
 
-By default fmrest-ruby will use a memory-based store for the session tokens.
-This is generally good enough for development, but not good enough for
-production, as in-memory tokens aren't shared across threads/processes.
+fmrest-ruby includes a number of options for storing session tokens:
 
-Besides the default token store the following token stores are bundled with fmrest-ruby:
+* Memory
+* ActiveRecord
+* Redis
+* Moneta
 
-### ActiveRecord
+See the [main document on token stores](docs/TokenStore.md) for detailed info
+on how to set up each store.
 
-On Rails apps already using ActiveRecord setting up this token store should be
-dead simple:
+## Date fields and timezones
 
-```ruby
-# config/initializers/fmrest.rb
-require "fmrest/token_store/active_record"
+fmrest-ruby has automatic detection and coercion of date fields to and from
+Ruby date/time objects. Basic timezone support is also provided.
 
-FmRest.token_store = FmRest::TokenStore::ActiveRecord
-```
+See the [main document on date fields](docs/DateFields.md) for more info.
 
-No migrations are needed, the token store table will be created automatically
-when needed, defaulting to the table name "fmrest_session_tokens". If you want
-to change the table name you can do so by initializing the token store and
-passing it the `:table_name` option:
-
-```ruby
-FmRest.token_store = FmRest::TokenStore::ActiveRecord.new(table_name: "my_token_store")
-```
-
-### Redis
-
-To use the Redis token store do:
-
-```ruby
-require "fmrest/token_store/redis"
-
-FmRest.token_store = FmRest::TokenStore::Redis
-```
-
-You can also initialize it with the following options:
-
-* `:redis` - A `Redis` object to use as connection, if ommited a new `Redis`
-  object will be created with remaining options
-* `:prefix` - The prefix to use for token keys, by default `"fmrest-token:"`
-* Any other options will be passed to `Redis.new` if `:redis` isn't provided
-
-Examples:
-
-```ruby
-# Passing a Redis connection explicitly
-FmRest.token_store = FmRest::TokenStore::Redis.new(redis: Redis.new, prefix: "my-fancy-prefix:")
-
-# Passing options for Redis.new
-FmRest.token_store = FmRest::TokenStore::Redis.new(prefix: "my-fancy-prefix:", host: "10.0.1.1", port: 6380, db: 15)
-```
-
-NOTE: redis-rb is not included as a gem dependency of fmrest-ruby, so you'll
-have to add it to your Gemfile.
-
-### Moneta
-
-[Moneta](https://github.com/moneta-rb/moneta) is a key/value store wrapper
-around many different storage backends. If ActiveRecord or Redis don't suit
-your needs, chances are Moneta will.
-
-To use it:
-
-```ruby
-# config/initializers/fmrest.rb
-require "fmrest/token_store/moneta"
-
-FmRest.token_store = FmRest::TokenStore::Moneta
-```
-
-By default the `:Memory` moneta backend will be used.
-
-You can also initialize it with the following options:
-
-* `:backend` - The moneta backend to initialize the store with
-* `:prefix` - The prefix to use for token keys, by default `"fmrest-token:"`
-* Any other options will be passed to `Moneta.new`
-
-Examples:
-
-```ruby
-# Using YAML as a backend with a custom prefix
-FmRest.token_store = FmRest::TokenStore::Moneta.new(
-  backend: :YAML,
-  file:    "tmp/tokens.yml",
-  prefix:  "my-tokens"
-)
-```
-
-NOTE: the moneta gem is not included as a dependency of fmrest-ruby, so
-you'll have to add it to your Gemfile.
-
-
-## Date fields
-
-Since the Data API uses JSON (wich doesn't provide a native date/time object),
-dates and timestamps are received in string format. By default fmrest-ruby
-leaves those string fields untouched, but it provides an opt-in feature to try
-to automatically "coerce" them into Ruby date objects.
-
-The connection option `:coerce_dates` controls this feature. Possible values
-are:
-
-* `:full` - whenever a string matches the given date/timestamp/time format,
-  convert them to `Date` or `DateTime` objects as appropriate
-* `:hybrid` or `true` - similar as above, but instead of converting to regular
-  `Date`/`DateTime` it converts strings to `FmRest::StringDate` and
-  `FmRest::StringDateTime`, "hybrid" classes provided by fmrest-ruby that
-  retain the functionality of `String` while also providing most the
-  functionality of `Date`/`DateTime` (more on this below)
-* `false` - disable date coercion entirely (default), leave original string
-  values untouched
-
-Enabling date coercion works with both basic fmrest-ruby connections and Spyke
-models (ORM).
-
-The connection options `:date_format`, `:timestamp_format` and `:time_format`
-control how to match and parse dates. You only need to provide these if you use
-a date/time localization different from American format (the default).
-
-Future versions of fmrest-ruby will provide better (and less heuristic) ways of
-specifying and/or detecting date fields (e.g. by requesting layout metadata or
-a DSL in model classes).
-
-### Hybrid string/date objects
-
-`FmRest::StringDate` and `FmRest::StringDateTime` are special classes that
-inherit from `String`, but internally parse and store a `Date` or `DateTime`,
-and delegate any methods not provided by `String` to those objects. In other
-words, they quack like a duck *and* bark like a dog.
-
-You can use these when you want fmrest-ruby to provide you with date objects,
-but you don't want to worry about date coercion of false positives (i.e. a
-string field that gets converted to `Date` because it just so matched the given
-date format).
-
-Be warned however that these classes come with a fair share of known gotchas
-(see GitHub wiki for more info). Some of those gothas can be removed by calling
-
-```ruby
-FmRest::StringDateAwareness.enable
-```
-
-Which will extend the core `Date` and `DateTime` classes to be aware of
-`FmRest::StringDate`, especially when calling `Date.===`, `Date.parse` or
-`Date._parse`.
-
-If you're working with ActiveRecord models this will also make them accept
-`FmRest::StringDate` values for date fields.
-
-### Timezones
-
-fmrest-ruby has basic timezone support. You can set the `:timezone` option in
-your connection settings to one of the following values:
-
-* `:local` - dates will be converted to your system local time offset (as
-  defined by `ENV["TZ"]`), or the timezone set by `Time.zone` if you're using
-  ActiveSupport
-* `:utc` - dates will be converted to UTC offset
-* `nil` - (default) ignore timezones altogether
-
-
-## ActiveRecord-like ORM (through Spyke)
+## ActiveRecord-like ORM (fmrest-spyke)
 
 [Spyke](https://github.com/balvig/spyke) is an ActiveRecord-like gem for
 building REST ORM models. fmrest-ruby builds its ORM features atop Spyke,
-although Spyke itself is not a dependency of fmrest-ruby, so you'll need to add
-it to your Gemfile yourself:
-
-```ruby
-gem 'spyke'
-```
-
-Then require fmrest-ruby's Spyke integration:
-
-```ruby
-# Put this in config/initializers/fmrest.rb if it's a Rails project
-require "fmrest/spyke"
-```
+bundled in the `fmrest-spyke` gem (already included if you're using the
+`fmrest` gem).
 
 To create a model you can inherit directly from `FmRest::Spyke::Base`, which is
-itself a subclass of `Spyke::Base` with the `FmRest::Spyke` mixin included:
+itself a subclass of `Spyke::Base`.
 
 ```ruby
 class Honeybee < FmRest::Spyke::Base
@@ -376,10 +228,10 @@ This allows you to set your Data API connection settings on your model:
 ```ruby
 class Honeybee < FmRest::Spyke::Base
   self.fmrest_config = {
-    host:     "example.com",
-    database: "My Database",
-    username: "...",
-    password: "..."
+    host:     "…",
+    database: "…",
+    username: "…",
+    password: "…"
   }
 end
 ```
@@ -406,69 +258,29 @@ class Honeybee < BeeBase
 end
 ```
 
-### Model.fmrest_config_overlay=
+#### Connection settings overlays
 
-There may be cases where you want to use different connection settings
-depending on context, for example if you want to use username and password
-provided by the user in a web application. Since `Model.fmrest_config` is
-global, changing the username/password for one context would also change it for
-all other contexts, leading to security issues.
+There may be cases where you want to use a different set of connection settings
+depending on context. For example, if you want to use username and password
+provided by the user in a web application. Since `Model.fmrest_config` is set
+at the class level, changing the username/password for the model in one context
+would also change it in all other contexts, leading to security issues.
 
-`Model.fmrest_config_overlay=` solves that issue by allowing you to override
-some settings in a thread-local and reversible manner. That way, using the same
-example as above, you could connect to the Data API with user-provided
-credentials without having them leak into other users of your web application.
+To solve this scenario, fmrest-ruby provides a way of defining thread-local and
+reversible connection settings overlays through `Model.fmrest_config_overlay=`.
 
-E.g.:
-
-```ruby
-class BeeBase < FmRest::Spyke::Base
-  # Host and database provided as base settings
-  self.fmrest_config = {
-    host:     "example.com",
-    database: "My Database"
-  }
-end
-
-# E.g. in a controller-action of a Rails application:
-
-# User-provided credentials
-BeeBase.fmrest_config_overlay = {
-  username: params[:username],
-  password: params[:password]
-}
-
-# Perform some Data API requests ...
-```
-
-### Model.clear_fmrest_config_overlay
-
-Clears the thread-local settings provided to `fmrest_config_overaly=`.
-
-### Model.with_overlay
-
-Runs a block with the given settings overlay, resetting them after the block
-finishes running. It wraps execution in its own fiber, so it doesn't affect the
-overlay of the currently-running thread.
-
-```ruby
-Honeybee.with_overlay(username: "...", password: "...") do
-  Honeybee.query(...)
-end
-```
+See the [main document on connection setting overlays](docs/ConfigOverlays.md)
+for details on how it works.
 
 ### Model.layout
 
-Use `layout` to set the `:layout` part of API URLs, e.g.:
+Use `Model.layout` to define the layout for your model.
 
 ```ruby
 class Honeybee < FmRest::Spyke::Base
-  layout "Honeybees Web" # uri path will be "layouts/Honeybees%20Web/records(/:id)"
+  layout "Honeybees Web"
 end
 ```
-
-This is much preferred over using Spyke's `uri` to set custom URLs for your
-Data API models.
 
 Note that you only need to set this if the name of the model and the name of
 the layout differ, otherwise the default will just work.
@@ -484,8 +296,8 @@ request and store session tokens for you (provided that `:autologin` is
 
 ### Model.logout
 
-Use `logout` to log out from the database session (you may call it on any model
-that uses the database session you want to log out from).
+Use `Model.logout` to log out from the database session (you may call it on any
+model that uses the database session you want to log out from).
 
 ```ruby
 Honeybee.logout
@@ -604,208 +416,11 @@ Guides](https://guides.rubyonrails.org/active_model_basics.html#dirty).
 Since Spyke is API-agnostic it only provides a wide-purpose `.where` method for
 passing arbitrary parameters to the REST backend. fmrest-ruby however is well
 aware of its backend API, so it extends Spkye models with a bunch of useful
-querying methods.
+querying methods: `.query`, `.limit`, `.offset`, `.sort`, `.portal`, `.script`,
+etc.
 
-#### .limit
-
-`.limit` sets the limit for get and find request:
-
-```ruby
-Honeybee.limit(10)
-```
-
-NOTE: You can also set a default limit value for a model class, see
-[other notes on querying](#other-notes-on-querying).
-
-You can also use `.limit` to set limits on portals:
-
-```ruby
-Honeybee.limit(hives: 3, flowers: 2)
-```
-
-To remove the limit on a portal set it to `nil`:
-
-```ruby
-Honeybee.limit(flowers: nil)
-```
-
-#### .offset
-
-`.offset` sets the offset for get and find requests:
-
-```ruby
-Honeybee.offset(10)
-```
-
-You can also use `.offset` to set offsets on portals:
-
-```ruby
-Honeybee.offset(hives: 3, flowers: 2)
-```
-
-To remove the offset on a portal set it to `nil`:
-
-```ruby
-Honeybee.offset(flowers: nil)
-```
-
-#### .sort
-
-`.sort` (or `.order`) sets sorting options for get and find requests:
-
-```ruby
-Honeybee.sort(:name, :age)
-Honeybee.order(:name, :age) # alias method
-```
-
-You can set descending sort order by appending either `!` or `__desc` to a sort
-attribute (defaults to ascending order):
-
-```ruby
-Honeybee.sort(:name, :age!)
-Honeybee.sort(:name, :age__desc)
-```
-
-NOTE: You can also set default sort values for a model class, see
-[Other notes on querying](#other-notes-on-querying).
-
-#### .portal
-
-`.portal` (aliased as `.includes` and `.portals`) sets which portals to fetch
-(if any) for get and find requests (this recognizes portals defined with
-`has_portal`):
-
-```ruby
-Honeybee.portal(:hives)   # include just the :hives portal
-Honeybee.includes(:hives) # alias method
-Honeybee.portals(:hives, :flowers) # alias for pluralization fundamentalists
-```
-
-Chaining calls to `.portal` will add portals to the existing included list:
-
-```ruby
-Honeybee.portal(:flowers).portal(:hives) # include both portals
-```
-
-If you want to disable portals for the scope call `.portal(false)`:
-
-```ruby
-Honeybee.portal(false) # disable portals for this scope
-```
-
-If you want to include all portals call `.portal(true)`:
-
-```ruby
-Honeybee.portal(true) # include all portals
-```
-
-For convenience you can also use `.with_all_portals` and `.without_portals`,
-which behave just as calling `.portal(true)` and `portal(false)` respectively.
-
-NOTE: By default all portals are included.
-
-#### .query
-
-`.query` sets query conditions for a find request (and supports attributes as
-defined with `attributes`):
-
-```ruby
-Honeybee.query(name: "Hutch")
-# JSON -> {"query": [{"Bee Name": "Hutch"}]}
-```
-
-Passing multiple attributes to `.query` will group them in the same JSON object:
-
-```ruby
-Honeybee.query(name: "Hutch", age: 4)
-# JSON -> {"query": [{"Bee Name": "Hutch", "Bee Age": 4}]}
-```
-
-Calling `.query` multiple times or passing it multiple hashes creates separate
-JSON objects (so you can define OR queries):
-
-```ruby
-Honeybee.query(name: "Hutch").query(name: "Maya")
-Honeybee.query({ name: "Hutch" }, { name: "Maya" })
-# JSON -> {"query": [{"Bee Name": "Hutch"}, {"Bee Name": "Maya"}]}
-```
-
-#### .omit
-
-`.omit` works like `.query` but excludes matches:
-
-```ruby
-Honeybee.omit(name: "Hutch")
-# JSON -> {"query": [{"Bee Name": "Hutch", "omit": "true"}]}
-```
-
-You can get the same effect by passing `omit: true` to `.query`:
-
-```ruby
-Honeybee.query(name: "Hutch", omit: true)
-# JSON -> {"query": [{"Bee Name": "Hutch", "omit": "true"}]}
-```
-
-#### .script
-
-`.script` enables the execution of scripts during query requests.
-
-```ruby
-Honeybee.script("My script").find_some # Fetch records and execute a script
-```
-
-See section on [script execution](#script-execution) below for more info.
-
-#### Other notes on querying
-
-You can chain all query methods together:
-
-```ruby
-Honeybee.limit(10).offset(20).sort(:name, :age!).portal(:hives).query(name: "Hutch")
-```
-
-You can also set default values for limit and sort on the class:
-
-```ruby
-class Honeybee < FmRest::Spyke::Base
-  self.default_limit = 1000
-  self.default_sort = [:name, :age!]
-end
-```
-
-Calling any `Enumerable` method on the resulting scope object will trigger a
-server request, so you can treat the scope as a collection:
-
-```ruby
-Honeybee.limit(10).sort(:name).each { |bee| ... }
-```
-
-If you want to explicitly run the request instead you can use `.find_some` on
-the scope object:
-
-```ruby
-Honeybee.limit(10).sort(:name).find_some # => [<Honeybee...>, ...]
-```
-
-If you want just a single result you can use `.first` instead (this will
-force `.limit(1)`):
-
-```ruby
-Honeybee.query(name: "Hutch").first # => <Honeybee...>
-```
-
-If you know the id of the record you should use `.find(id)` instead of
-`.query(id: id).first` (so that the sent request is
-`GET ../:layout/records/:id` instead of `POST ../:layout/_find`).
-
-```ruby
-Honeybee.find(89) # => <Honeybee...>
-```
-
-Note also that if you use `.find(id)` your `.query()` parameters (as well as
-limit, offset and sort parameters) will be discarded as they're not supported
-by the single record endpoint.
-
+See the [main document on querying](docs/Querying.md) for detailed information
+on the query API methods.
 
 ### Finding records in batches
 
@@ -813,44 +428,10 @@ Sometimes you want to iterate over a very large number of records to do some
 processing, but requesting them all at once would result in one huge request to
 the Data API, and loading too many records in memory all at once.
 
-To mitigate this problem you can use `.find_in_batches` and `.find_each`. If
-you've used ActiveRecord you're probably familiar with how they operate:
+To mitigate this problem you can use `.find_in_batches` and `.find_each`.
 
-```ruby
-# Find records in batches of 100 each
-Honeybee.query(hive: "Queensville").find_in_batches(batch_size: 100) do |batch|
-  dispatch_bees(batch)
-end
-
-# Iterate over all records using batches
-Honeybee.query(hive: "Queensville").find_each(batch_size: 100) do |bee|
-  bee.dispatch
-end
-```
-
-`.find_in_batches` yields collections of records (batches), while `.find_each`
-yields individual records, but using batches behind the scenes.
-
-Both methods accept a block-less form in which case they return an
-`Enumerator`:
-
-```ruby
-batch_enum = Honeybee.find_in_batches
-
-batch = batch_enum.next # => Spyke::Collection
-
-batch_enum.each do |batch|
-  process_batch(batch)
-end
-
-record_enum = Honeybee.find_each
-
-record_enum.next # => Honeybee
-```
-
-NOTE: By its nature, batch processing is subject to race conditions if other
-processes are modifying the database.
-
+See the [main document on finding in batches](docs/FindInBatches.md) for
+detailed information on how those work.
 
 ### Container fields
 
@@ -862,200 +443,48 @@ class Honeybee < FmRest::Spyke::Base
 end
 ```
 
-`:field_name` specifies the original field in the FM layout and is optional, if
-not given it will default to the name of your attribute (just `:photo` in this
-example).
-
-(Note that you don't need to define container fields with `attributes` in
-addition to the `container` definition.)
-
-This will provide you with the following instance methods:
-
-```ruby
-bee = Honeybee.new
-
-bee.photo.url # The URL of the container file on the FileMaker server
-
-bee.photo.download # Download the contents of the container as an IO object
-
-bee.photo.upload(filename_or_io) # Upload a file to the container
-```
-
-`upload` also accepts an options hash with the following options:
-
-* `:repetition` - Sets the field repetition
-* `:filename` - The filename to use when uploading (defaults to
-  `filename_or_io.original_filename` if available)
-* `:content_type` - The MIME content type to use (defaults to
-  `application/octet-stream`)
-
+See the [main document on container fields](docs/ContainerFields.md) for
+details on how to use it.
 
 ### Script execution
 
-The Data API allows running scripts as part of many types of requests.
+The FM Data API allows running scripts as part of many types of requests, and
+`fmrest-spyke` provides mechanisms for all of them.
 
-#### Model.execute_script
-As of FM18 you can execute scripts directly. To do that for a specific model
-use `Model.execute_script`:
-
-```ruby
-result = Honeybee.execute_script("My Script", param: "optional parameter")
-```
-
-This will return a `Spyke::Result` object containing among other things the
-result of the script execution:
-
-```ruby
-result.metadata[:script][:after]
-# => { result: "oh hi", error: "0" }
-```
-
-#### Script options object format
-
-All other script-capable requests take one or more of three possible script
-execution options: `script.prerequest`, `script.presort` and plain `script`
-(which fmrest-ruby dubs `after` for convenience).
-
-Because of that fmrest-ruby uses a common object format for specifying script options
-across multiple methods. That object format is as follows:
-
-```ruby
-# Just a string means to execute that `after' script without a parameter
-"My Script"
-
-# A 2-elemnent array means [script name, script parameter]
-["My Script", "parameter"]
-
-# A hash with keys :prerequest, :presort and/or :after sets those scripts for
-{
-  prerequest: "My Prerequest Script",
-  presort: "My Presort Script",
-  after: "My Script"
-}
-
-# Using 2-element arrays as objects in the hash allows specifying parameters
-{
-  prerequest: ["My Prerequest Script", "parameter"],
-  presort: ["My Presort Script", "parameter"],
-  after: ["My Script", "parameter"]
-}
-```
-
-#### Script execution on record save, destroy and reload
-
-A record instance's `.save` and `.destroy` methods both accept a `script:`
-option to which you can pass a script options object with
-[the above format](#script-options-object-format):
-
-```ruby
-# Save the record and execute an `after' script called "My Script"
-bee.save(script: "My Script")
-
-# Same as above but with an added parameter
-bee.save(script: ["My Script", "parameter"])
-
-# Save the record and execute a presort script and an `after' script
-bee.save(script: { presort: "My Presort Script", after: "My Script" })
-
-# Destroy the record and execute a prerequest script with a parameter
-bee.destroy(script: { prerequest: ["My Prerequest Script", "parameter"] })
-
-# Reload the record and execute a prerequest script with a parameter
-bee.reload(script: { prerequest: ["My Prerequest Script", "parameter"] })
-```
-
-#### Retrieving script execution results
-
-Every time a request is ran on a model or record instance of a model, a
-thread-local `Model.last_request_metadata` attribute is set on that model,
-which is a hash containing the results of script executions, if any were
-performed, among other metadata.
-
-The results for `:after`, `:prerequest` and `:presort` scripts are stored
-separately, under their matching key.
-
-```ruby
-bee.save(script: { presort: "My Presort Script", after: "My Script" })
-
-Honeybee.last_request_metadata.script
-# => { after: { result: "oh hi", error: "0" }, presort: { result: "lo", error: "0" } }
-```
-
-#### Executing scripts through query requests
-
-As mentioned under the [Query API](#query-api) section, you can use the
-`.script` query method to specify that you want scripts executed when a query
-is performed on that scope.
-
-`.script` takes the same options object specified [above](#script-options-object-format):
-
-```ruby
-# Find one Honeybee record executing a presort and after script
-Honeybee.script(presort: ["My Presort Script", "parameter"], after: "My Script").first
-```
-
-The model class' `.last_request_metadata` will be set in case you need to get the result.
-
-In the case of retrieving multiple results (i.e. via `.find_some`) the
-resulting collection will have a `.metadata` attribute method containing the
-same metadata hash with script execution results. Note that this does not apply
-to retrieving single records, in that case you'll have to use
-`.last_request_metadata`.
-
+See the [main document on script execution](docs/ScriptExecution.md) for
+details.
 
 ### Setting global field values
 
-You can call `.set_globals` on any `FmRest::Spyke::Base` model to set glabal
+You can call `.set_globals` on any `FmRest::Spyke::Base` model to set global
 field values on the database that model is configured for.
 
-You can pass it either a hash of fully qualified field names
-(table_name::field_name), or 1-level-deep nested hashes, with the outer being a
-table name and the inner keys being the field names:
-
-```ruby
-Honeybee.set_globals(
-  "beeTable::myVar"      => "value",
-  "beeTable::myOtherVar" => "also a value"
-)
-
-# Equivalent to the above example
-Honeybee.set_globals(beeTable: { myVar: "value", myOtherVar: "also a value" })
-
-# Combined
-Honeybee.set_globals(
-  "beeTable::myVar" => "value",
-  beeTable: { myOtherVar: "also a value" }
-)
-```
-
+See the [main document on setting global field values](docs/GlobalFields.md)
+for details.
 
 ## Logging
 
-If using fmrest-ruby + Spyke in a Rails app pretty log output will be set up
-for you automatically by Spyke (see [their
+If using `fmrest-spyke` with Rails then pretty log output will be set up for
+you automatically by Spyke (see [their
 README](https://github.com/balvig/spyke#log-output)).
 
-You can also enable simple STDOUT logging (useful for debugging) by passing
-`log: true` in the options hash for either
+You can also enable simple Faraday STDOUT logging of raw requests (useful for
+debugging) by passing `log: true` in the options hash for either
 `FmRest.default_connection_settings=` or your models' `fmrest_config=`, e.g.:
 
 ```ruby
 FmRest.default_connection_settings = {
-  host:     "example.com",
-  database: "My Database",
-  username: "z3r0c00l",
-  password: "abc123",
-  log:      true
+  host: "…",
+  …
+  log:  true
 }
 
 # Or in your model
 class LoggyBee < FmRest::Spyke::Base
   self.fmrest_config = {
-    host:     "example.com",
-    database: "My Database",
-    username: "...",
-    password: "...",
-    log:      true
+    host: "…",
+    …
+    log:  true
   }
 end
 ```
@@ -1103,6 +532,14 @@ FM Data API reference: https://fmhelp.filemaker.com/docs/18/en/dataapi/
 
 \* You can manually supply the URL and JSON to a `FmRest` connection.
 
+## Supported Ruby versions
+
+fmrest-ruby aims to support and is [tested against](https://github.com/beezwax/fmrest-ruby/actions?query=workflow%3ACI)
+the following Ruby implementations:
+
+* Ruby 2.5
+* Ruby 2.6
+* Ruby 2.7
 
 ## Gem development
 
@@ -1111,27 +548,17 @@ After checking out the repo, run `bin/setup` to install dependencies. Then, run
 prompt that will allow you to experiment (it will auto-load all fixtures in
 spec/fixtures).
 
-To install this gem onto your local machine, run `bundle exec rake install`. To
-release a new version, update the version number in `version.rb`, and then run
-`bundle exec rake release`, which will create a git tag for the version, push
-git commits and tags, and push the `.gem` file to
-[rubygems.org](https://rubygems.org).
-
-
-## Contributing
-
-Bug reports and pull requests are welcome. This project is intended to be a
-safe, welcoming space for collaboration, and contributors are expected to
-adhere to the [Contributor Covenant](http://contributor-covenant.org) code of
-conduct.
-
+To install all gems onto your local machine, run
+`bundle exec rake all:install`. To release a new version, update the version
+number in `lib/fmrest/version.rb`, and then run `bundle exec rake all:release`,
+which will create a git tag for the version, push git commits and tags, and
+push the `.gem` files to [rubygems.org](https://rubygems.org).
 
 ## License
 
 The gem is available as open source under the terms of the
 [MIT License](https://opensource.org/licenses/MIT).
 See [LICENSE.txt](LICENSE.txt).
-
 
 ## Disclaimer
 
