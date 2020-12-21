@@ -3,6 +3,13 @@ require "spec_helper"
 RSpec.describe FmRest::V1::Utils do
   let(:extendee) { Object.new.tap { |obj| obj.extend(described_class) } }
 
+  describe "#url_encode" do
+    it "URL-encodes the given string with spaces as %20" do
+      expect(extendee.url_encode("This Is A Test 実験")).to \
+        eq("This%20Is%20A%20Test%20%E5%AE%9F%E9%A8%93")
+    end
+  end
+
   describe "#convert_script_params" do
     it "converts a string argument into a single script options hash" do
       expect(extendee.convert_script_params("Lone Script")).to eq(script: "Lone Script")

@@ -11,7 +11,7 @@ module FmRest
 
       HEADER_KEY = "Authorization"
       TOKEN_STORE_INTERFACE = [:load, :store, :delete].freeze
-      LOGOUT_PATH_MATCHER = %r{\A(#{FmRest::V1::Connection::BASE_PATH}/[^/]+/sessions/)[^/]+\Z}.freeze
+      LOGOUT_PATH_MATCHER = %r{\A(#{FmRest::V1::Connection::DATABASES_PATH}/[^/]+/sessions/)[^/]+\Z}.freeze
 
       # @param app [#call]
       # @param settings [FmRest::ConnectionSettings]

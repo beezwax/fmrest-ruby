@@ -54,8 +54,15 @@ RSpec.describe FmRest::V1::Paths do
   end
 
   describe "#globals_path" do
-    it "returns globals" do
+    it "returns `globals'" do
       expect(extendee.globals_path).to eq("globals")
+    end
+  end
+
+  describe "#product_info_path" do
+    it "returns an absolute path to products info" do
+      expect(extendee.product_info_path).to start_with("/")
+      expect(extendee.product_info_path).to eq("#{FmRest::V1::Connection::BASE_PATH}/productInfo")
     end
   end
 end

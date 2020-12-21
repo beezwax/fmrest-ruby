@@ -5,7 +5,7 @@ require "uri"
 
 module RequestStubs
   def fm_url(host: FMREST_DUMMY_CONFIG[:host], database: FMREST_DUMMY_CONFIG[:database], layout: nil, id: nil)
-    String.new("https://#{host}/fmi/data/v1/databases/#{URI.encode_www_form_component(database)}").tap do |url|
+    String.new("https://#{host}/fmi/data/v1/databases/#{FmRest::V1.url_encode(database)}").tap do |url|
       if layout
         url << "/layouts/#{URI.encode_www_form_component(layout)}"
         url << "/records/#{id}" if id

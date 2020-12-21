@@ -19,7 +19,7 @@ RSpec.describe FmRest::V1::Connection do
       it "returns a Faraday::Connection with the right URL set" do
         connection = extendee.base_connection(conn_settings)
         expect(connection).to be_a(Faraday::Connection)
-        expect(connection.url_prefix.to_s).to eq("https://example.com/fmi/data/v1/databases/Test+DB/")
+        expect(connection.url_prefix.to_s).to eq("https://example.com/fmi/data/v1/databases/Test%20DB/")
       end
 
       it "passes the given block to the Faraday constructor" do

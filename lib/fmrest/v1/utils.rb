@@ -22,23 +22,27 @@ module FmRest
       # will be treated as described above, except for their own script
       # execution order (prerequest, presort or after action).
       #
-      # Examples:
+      # @param script_options [String, Hash, Array] The script parameters to
+      # convert to canonical form
       #
-      #     convert_script_params("My Script")
-      #     # => { "script": "My Script" }
+      # @return [Hash] The converted script parameters
       #
-      #     convert_script_params(["My Script", "the param"])
-      #     # => { "script": "My Script", "script.param": "the param" }
+      # @example
+      #   convert_script_params("My Script")
+      #   # => { "script": "My Script" }
       #
-      #     convert_script_params(after: "After Script", prerequest: "Prerequest Script")
-      #     # => { "script": "After Script", "script.prerequest": "Prerequest Script" }
+      #   convert_script_params(["My Script", "the param"])
+      #   # => { "script": "My Script", "script.param": "the param" }
       #
-      #     convert_script_params(presort: ["Presort Script", "foo"], prerequest: "Prerequest Script")
-      #     # => {
-      #     #      "script.presort": "After Script",
-      #     #      "script.presort.param": "foo",
-      #     #      "script.prerequest": "Prerequest Script"
-      #     #    }
+      #   convert_script_params(after: "After Script", prerequest: "Prerequest Script")
+      #   # => { "script": "After Script", "script.prerequest": "Prerequest Script" }
+      #
+      #   convert_script_params(presort: ["Presort Script", "foo"], prerequest: "Prerequest Script")
+      #   # => {
+      #   #      "script.presort": "After Script",
+      #   #      "script.presort.param": "foo",
+      #   #      "script.prerequest": "Prerequest Script"
+      #   #    }
       #
       def convert_script_params(script_options)
         params = {}
@@ -70,6 +74,21 @@ module FmRest
         end
 
         params
+      end
+
+      # Borrowed from `ERB::Util`
+      #
+      # This method is preferred to escape Data API URIs components over
+      # `URI.encode_www_form_component` (and similar methods) because the
+      # latter converts spaces to `+` instead of `%20`, which the Data API
+      # doesn't seem to like.
+      #
+      # @param s [String] An URL component to encode
+      # @return [String] The URL-encoded string
+      def url_encode(s)
+        s.to_s.b.gsub(/[^a-zA-Z0-9_\-.]/n) { |m|
+          sprintf("%%%02X", m.unpack("C")[0])
+        }
       end
 
       private

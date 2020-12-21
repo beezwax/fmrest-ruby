@@ -5,7 +5,8 @@ require "uri"
 module FmRest
   module V1
     module Connection
-      BASE_PATH = "/fmi/data/v1/databases"
+      BASE_PATH = "/fmi/data/v1"
+      DATABASES_PATH = "#{BASE_PATH}/databases"
 
       AUTH_HEADERS = { "Content-Type" => "application/json" }.freeze
 
@@ -102,10 +103,10 @@ module FmRest
         faraday_options[:ssl] = settings.ssl if settings.ssl?
         faraday_options[:proxy] = settings.proxy if settings.proxy?
 
-        database = URI.encode_www_form_component(settings.database!)
+        database = V1.url_encode(settings.database!)
 
         Faraday.new(
-          "#{scheme}://#{host}#{BASE_PATH}/#{database}/".freeze,
+          "#{scheme}://#{host}#{DATABASES_PATH}/#{database}/".freeze,
           faraday_options,
           &block
         )
