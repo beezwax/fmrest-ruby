@@ -398,7 +398,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
       end
 
       it "sets the mod_id" do
-        expect { ship.reload }.to change { ship.mod_id }.from(nil).to("2")
+        expect { ship.reload }.to change { ship.mod_id }.from(nil).to(2)
       end
     end
 

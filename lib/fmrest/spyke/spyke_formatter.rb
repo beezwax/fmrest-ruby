@@ -64,7 +64,7 @@ module FmRest
 
         data = {}
         data[:__mod_id] = response[:modId] if response[:modId]
-        data[:__record_id] = response[:recordId].to_i if response[:recordId]
+        data[:__record_id] = response[:recordId] if response[:recordId]
 
         build_base_hash(json, true).merge!(data: data)
       end
@@ -188,7 +188,7 @@ module FmRest
       # @param json_data [Hash]
       # @return [Hash] the record data in Spyke format
       def prepare_record_data(json_data)
-        out = { __record_id: json_data[:recordId].to_i, __mod_id: json_data[:modId] }
+        out = { __record_id: json_data[:recordId], __mod_id: json_data[:modId] }
         out.merge!(json_data[:fieldData])
         out.merge!(prepare_portal_data(json_data[:portalData])) if json_data[:portalData]
         out
@@ -213,7 +213,7 @@ module FmRest
 
           out[portal_name] =
             portal_records.map do |portal_fields|
-              attributes = { __record_id: portal_fields[:recordId].to_i }
+              attributes = { __record_id: portal_fields[:recordId] }
               attributes[:__mod_id] = portal_fields[:modId] if portal_fields[:modId]
 
               prefix = portal_options[:attribute_prefix] || portal_name

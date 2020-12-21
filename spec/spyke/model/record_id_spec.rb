@@ -22,10 +22,16 @@ RSpec.describe FmRest::Spyke::Model::RecordID do
   end
 
   describe "#__record_id=" do
-    it "sets the current record_id" do
+    it "sets the current record_id and converts it to integer" do
       instance = test_class.new
-      instance.__record_id = 1
+      instance.__record_id = "1"
       expect(instance.record_id).to eq(1)
+    end
+
+    it "doesn't convert to integer if given nil" do
+      instance = test_class.new
+      instance.__record_id = nil
+      expect(instance.record_id).to eq(nil)
     end
   end
 
@@ -59,7 +65,7 @@ RSpec.describe FmRest::Spyke::Model::RecordID do
 
   describe "#hash" do
     it "returns the hash of #__record_id" do
-      id = double(hash: "hashed!")
+      id = double(to_i: double(hash: "hashed!"))
       expect(test_class.new(__record_id: id).hash).to eq("hashed!")
     end
   end
@@ -71,10 +77,16 @@ RSpec.describe FmRest::Spyke::Model::RecordID do
   end
 
   describe "#__mod_id=" do
-    it "sets the current mod_id" do
+    it "sets the current mod_id and converts it to integer" do
       instance = test_class.new
-      instance.__mod_id = 1
+      instance.__mod_id = "1"
       expect(instance.mod_id).to eq(1)
+    end
+
+    it "doesn't convert to integer if given nil" do
+      instance = test_class.new
+      instance.__record_id = nil
+      expect(instance.record_id).to eq(nil)
     end
   end
 

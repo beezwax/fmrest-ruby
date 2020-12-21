@@ -15,9 +15,10 @@ module FmRest
             fieldData: serialize_values!(changed_params_not_embedded_in_url)
           }
 
-          params[:modId] = mod_id if mod_id
+          params[:modId] = __mod_id.to_s if __mod_id
 
           portal_data = serialize_portals
+
           params[:portalData] = portal_data unless portal_data.empty?
 
           params
@@ -27,12 +28,12 @@ module FmRest
 
         def serialize_for_portal(portal)
           params =
-            changed_params.except(:id).transform_keys do |key|
+            changed_params.except(:__record_id).transform_keys do |key|
               "#{portal.attribute_prefix}::#{key}"
             end
 
-          params[:recordId] = id if id
-          params[:modId] = mod_id if mod_id
+          params[:recordId] = __record_id.to_s if __record_id
+          params[:modId] = __mod_id.to_s if __mod_id
 
           serialize_values!(params)
         end

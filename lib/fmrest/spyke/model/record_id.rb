@@ -20,12 +20,12 @@ module FmRest
 
         included do
           # @return [Integer] the record's recordId
-          attr_accessor :__record_id
+          attr_reader :__record_id
           alias_method :record_id, :__record_id
           alias_method :id, :__record_id
 
           # @return [Integer] the record's modId
-          attr_accessor :__mod_id
+          attr_reader :__mod_id
           alias_method :mod_id, :__mod_id
 
           # Get rid of Spyke's id= setter method, as we'll be using __record_id=
@@ -34,6 +34,24 @@ module FmRest
 
           # Tell Spyke that we want __record_id as the PK
           self.primary_key = :__record_id
+        end
+
+        # Sets the recordId and converts it to integer if it's not nil
+        #
+        # @param value [String, Integer, nil] The new recordId
+        #
+        # @return [Integer] the record's recordId
+        def __record_id=(value)
+          @__record_id = value.nil? ? nil : value.to_i
+        end
+
+        # Sets the modId and converts it to integer if it's not nil
+        #
+        # @param value [String, Integer, nil] The new modId
+        #
+        # @return [Integer] the record's modId
+        def __mod_id=(value)
+          @__mod_id = value.nil? ? nil : value.to_i
         end
 
         def __record_id?

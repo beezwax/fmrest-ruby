@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "spec_helper"
 
 require "fixtures/pirates"
@@ -71,7 +73,7 @@ RSpec.describe FmRest::Spyke::Model::Associations do
           expect(ship.crew.first).to be_a(Pirate)
           expect(ship.crew.first.name).to eq("Hendrick van der Decken")
           expect(ship.crew.first.record_id).to eq(1)
-          expect(ship.crew.first.mod_id).to eq("0")
+          expect(ship.crew.first.mod_id).to eq(0)
           expect(ship.crew.first).to_not be_changed
           expect(ship.crew.last.record_id).to eq(2)
         end
