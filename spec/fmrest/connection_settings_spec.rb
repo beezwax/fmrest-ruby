@@ -72,10 +72,10 @@ RSpec.describe FmRest::ConnectionSettings do
     end
 
     it "returns the requested property's default only if it was not given explicitly" do
-      config = described_class.new(host: "host", username: "bob", database: "xyz")
+      config = described_class.new({ host: "host", username: "bob", database: "xyz" })
       expect(config[:autologin]).to eq(true)
 
-      config = described_class.new(host: "host", username: "bob", database: "xyz", autologin: false)
+      config = described_class.new({ host: "host", username: "bob", database: "xyz", autologin: false })
       expect(config[:autologin]).to eq(false)
     end
 
@@ -96,7 +96,7 @@ RSpec.describe FmRest::ConnectionSettings do
 
   describe "#merge" do
     it "creates a new ConnectionSettings instance with properties merged with the passed settings" do
-      merged = subject.merge(username: "bobby")
+      merged = subject.merge({ username: "bobby" })
       expect(merged.username).to eq("bobby")
       expect(merged.password).to eq("secret")
     end
