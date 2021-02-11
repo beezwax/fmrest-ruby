@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "fmrest-core", "=#{FmRest::VERSION}"
   spec.add_dependency "fmrest-spyke", "=#{FmRest::VERSION}"
 
-  spec.add_development_dependency "bundler", "~> 2.1.0"
+  spec.add_development_dependency "bundler", "~> 2.2.0"
   spec.add_development_dependency "rake", "~> 13.0"
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "webmock"
