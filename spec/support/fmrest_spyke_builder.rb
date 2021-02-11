@@ -1,8 +1,8 @@
 require "support/fmrest_dummy_config"
 
 module FmRestSpykeBuilder
-  def fmrest_spyke_class(class_name: "TestClass", &block)
-    Class.new(FmRest::Spyke::Base).tap do |klass|
+  def fmrest_spyke_class(class_name: "TestClass", parent: FmRest::Spyke::Base, &block)
+    Class.new(parent).tap do |klass|
       klass.fmrest_config = FMREST_DUMMY_CONFIG
 
       klass.define_singleton_method(:name) do

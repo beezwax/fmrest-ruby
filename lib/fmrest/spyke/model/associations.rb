@@ -21,6 +21,8 @@ module FmRest
           self.portal_options = {}.freeze
 
           class << self; private :portal_options=; end
+
+          set_callback :save, :after, :remove_marked_for_destruction
         end
 
         class_methods do
@@ -72,6 +74,9 @@ module FmRest
           super.tap { @loaded_portals = nil }
         end
 
+        # @return [Array<FmRest::Spyke::Portal>] A collection of portal
+        #   relations for the record
+        #
         def portals
           self.class.associations.each_with_object([]) do |(key, _), portals|
             candidate = association(key)
@@ -79,8 +84,83 @@ module FmRest
             portals << candidate
           end
         end
+
+        # Signals that this record has been marked for being deleted next time
+        # its parent record is saved (e.g. in a portal association)
+        #
+        # This method is named after ActiveRecord's namesake
+        #
+        def mark_for_destruction
+          @marked_for_destruction = true
+        end
+        alias_method :mark_for_deletion, :mark_for_destruction
+
+        def marked_for_destruction?
+          !!@marked_for_destruction
+        end
+        alias_method :marked_for_deletion?, :marked_for_destruction?
+
+        # Signals that this record has been embedded in a portal so we can make
+        # sure to include it in the next update request
+        #
+        def embedded_in_portal
+          @embedded_in_portal = true
+        end
+
+        def embedded_in_portal?
+          !!@embedded_in_portal
+        end
+
+        # Override ActiveModel::Dirty's method to include clearing
+        # of `@embedded_in_portal` and `@marked_for_destruction`
+        #
+        def changes_applied
+          super
+          @embedded_in_portal = nil
+          @marked_for_destruction = nil
+        end
+
+        # Override ActiveModel::Dirty's method to include awareness
+        # of `@embedded_in_portal`
+        #
+        def changed?
+          super || embedded_in_portal?
+        end
+
+        # Takes care of updating the new portal record's recordIds and modIds.
+        #
+        # Called when saving a record with freshly added portal records, this
+        # method is not meant to be called manually.
+        #
+        # @param [Hash] data The hash containing newPortalData from the DAPI
+        #   response
+        def __new_portal_record_info=(data)
+          data.each do |d|
+            table_name = d[:tableName]
+
+            portal_new_records =
+              portals.detect { |p| p.portal_key == table_name }.select { |r| !r.persisted? }
+
+            # The DAPI provides only one recordId for the entire portal in the
+            # newPortalRecordInfo object. This appears to be the recordId of
+            # the last portal record created, so we assume all portal records
+            # coming before it must have sequential recordIds up to the one we
+            # do have.
+            portal_new_records.reverse_each.with_index do |record, i|
+              record.__record_id = d[:recordId].to_i - i
+
+              # New records get a fresh modId
+              record.__mod_id = 0
+            end
+          end
+        end
+
+        private
+
+        def remove_marked_for_destruction
+          portals.each(&:_remove_marked_for_destruction)
+        end
       end
     end
   end
 end
-

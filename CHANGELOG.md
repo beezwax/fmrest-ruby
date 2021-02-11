@@ -4,6 +4,11 @@
 
 * Split `fmrest` gem into `fmrest-core` and `fmrest-spyke`. `fmrest` becomes a
   wrapper for the two new gems.
+* Fix bug preventing connection databases with spaces in their names.
+* Improved portal support with ability to delete portal records, and better
+  refreshing of portal records after saving the parent.
+* `FmRest::Spyke::Base#__record_id` and `FmRest::Spyke::Base#__mod_id` now
+  always return integers if set.
 
 ### 0.12.0
 

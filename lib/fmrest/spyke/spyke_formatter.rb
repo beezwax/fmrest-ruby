@@ -65,6 +65,7 @@ module FmRest
         data = {}
         data[:__mod_id] = response[:modId] if response[:modId]
         data[:__record_id] = response[:recordId] if response[:recordId]
+        data[:__new_portal_record_info] = response[:newPortalRecordInfo] if response[:newPortalRecordInfo]
 
         build_base_hash(json, true).merge!(data: data)
       end

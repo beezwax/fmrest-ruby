@@ -102,4 +102,15 @@ RSpec.describe FmRest::Spyke::Model::Attributes do
       expect { instance.attributes = params }.to raise_error(ActiveModel::ForbiddenAttributesError)
     end
   end
+
+  describe "after save: clear_changes_information" do
+    it "resets changes information" do
+      stub_session_login
+      stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_fm
+
+      ship = Ship.new name: "Mary Celeste"
+
+      expect { ship.save }.to change { ship.changed? }.from(true).to(false)
+    end
+  end
 end

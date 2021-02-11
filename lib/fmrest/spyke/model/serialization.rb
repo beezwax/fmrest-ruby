@@ -12,7 +12,7 @@ module FmRest
         #
         def to_params
           params = {
-            fieldData: serialize_values!(changed_params_not_embedded_in_url)
+            fieldData: serialize_values!(changed_params_not_embedded_in_url).merge(serialize_portal_deletions)
           }
 
           params[:modId] = __mod_id.to_s if __mod_id
@@ -45,13 +45,28 @@ module FmRest
 
           portals.each do |portal|
             portal.each do |portal_record|
-              next unless portal_record.changed?
+              next unless portal_record.changed? && !portal_record.marked_for_destruction?
               portal_params = portal_data[portal.portal_key] ||= []
               portal_params << portal_record.serialize_for_portal(portal)
             end
           end
 
           portal_data
+        end
+
+        def serialize_portal_deletions
+          deletions = []
+
+          portals.each do |portal|
+            portal.select(&:marked_for_destruction?).each do |portal_record|
+              next unless portal_record.persisted?
+              deletions << "#{portal.portal_key}.#{portal_record.__record_id}"
+            end
+          end
+
+          return {} if deletions.length == 0
+
+          { deleteRelated: deletions.length == 1 ? deletions.first : deletions }
         end
 
         def changed_params_not_embedded_in_url

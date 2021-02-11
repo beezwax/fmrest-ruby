@@ -67,8 +67,8 @@ bee = Honeybee.find(9)
 
 bee.name = "Hutch"
 
-# Add a record to portal
-bee.flowers << Flower.find(1)
+# Add a new record to portal
+bee.flowers.build(name: "Daisy")
 
 bee.save
 ```
@@ -113,11 +113,11 @@ setting up a connection (see [full list](#full-list-of-available-options) below)
 to, for instance, disable SSL verification:
 
 ```ruby
-FmRest::V1.build_connection(
+{
   host: "…",
   …
   ssl:  { verify: false }
-)
+}
 ```
 
 You can also pass a `:log` option for basic request logging, see the section on
@@ -245,11 +245,7 @@ same connection. E.g.:
 
 ```ruby
 class BeeBase < FmRest::Spyke::Base
-  self.fmrest_config = {
-    host:     "example.com",
-    database: "My Database",
-    username: "...",
-    password: "..."
+  self.fmrest_config = { host: "…", … }
   }
 end
 
@@ -333,7 +329,7 @@ bee.attributes # => { "First Name": "Queen", "Last Name": "Buzz" }
 
 ### Model.has_portal
 
-You can define portal associations on your model as such:
+You can define portal associations on your model wth `has_portal`, as such:
 
 ```ruby
 class Honeybee < FmRest::Spyke::Base
@@ -345,48 +341,7 @@ class Flower < FmRest::Spyke::Base
 end
 ```
 
-In this case fmrest-ruby will expect the portal table name and portal object
-name to be both "flowers", i.e. the expected portal JSON portion should look
-like this:
-
-```json
-...
-"portalData": {
-  "flowers": [
-    {
-      "flowers::color": "red",
-      "flowers::species": "rose"
-    }
-  ]
-}
-```
-
-If you need to specify different values for them you can do so with
-`portal_key` for the portal table name, and `attribute_prefix` for the portal
-object name, and `class_name`, e.g.:
-
-```ruby
-class Honeybee < FmRest::Spyke::Base
-  has_portal :pollinated_flowers, portal_key: "Bee Flowers",
-                                  attribute_prefix: "Flower",
-                                  class_name: "Flower"
-end
-```
-
-The above will use the `Flower` model class and expects the following portal JSON
-portion:
-
-```json
-...
-"portalData": {
-  "Bee Flowers": [
-    {
-      "Flower::color": "white",
-      "Flower::species": "rose"
-    }
-  ]
-}
-```
+See the [main document on portal associations](docs/Portals.md) for details.
 
 ### Dirty attributes
 
@@ -521,12 +476,13 @@ FM Data API reference: https://fmhelp.filemaker.com/docs/18/en/dataapi/
 | Edit a record                       | Manual*                       | Yes                              |
 | Duplicate a record                  | Manual*                       | No                               |
 | Delete a record                     | Manual*                       | Yes                              |
+| Edit portal records                 | Manual*                       | Yes                              |
 | Get a single record                 | Manual*                       | Yes                              |
 | Get a range of records              | Manual*                       | Yes                              |
 | Get container data                  | Manual*                       | Yes                              |
 | Upload container data               | Manual*                       | Yes                              |
 | Perform a find request              | Manual*                       | Yes                              |
-| Set global field values             | Manual*                       | Yes
+| Set global field values             | Manual*                       | Yes                              |
 | Run a script                        | Manual*                       | Yes                              |
 | Run a script with another request   | Manual*                       | Yes                              |
 

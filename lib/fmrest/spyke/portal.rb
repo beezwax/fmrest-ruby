@@ -13,22 +13,28 @@ module FmRest
       end
 
       def portal_key
-        return @options[:portal_key] if @options[:portal_key]
-        name
+        (@options[:portal_key] || name).to_s
       end
 
       def attribute_prefix
-        @options[:attribute_prefix] || portal_key
+        (@options[:attribute_prefix] || portal_key).to_s
       end
 
+      # Callback method, not meant to be used directly
+      #
       def parent_changes_applied
-        each do |record|
-          record.changes_applied
-          # Saving portal data doesn't provide new modIds for the
-          # portal records, so we clear them instead. We can still save
-          # portal data without a mod_id (it's optional in FM Data API)
-          record.mod_id = nil
-        end
+        each(&:changes_applied)
+      end
+
+      def <<(*records)
+        records.flatten.each { |r| add_to_parent(r) }
+        self
+      end
+      alias_method :push, :<<
+      alias_method :concat, :<<
+
+      def _remove_marked_for_destruction
+        find_some.reject!(&:marked_for_destruction?)
       end
 
       private
@@ -46,8 +52,12 @@ module FmRest
         parent.attributes[portal_key]
       end
 
+      # Spyke override
+      #
       def add_to_parent(record)
+        raise ArgumentError, "Expected an instance of #{klass}, got a #{record.class} instead" unless record.kind_of?(klass)
         find_some << record
+        record.embedded_in_portal
         record
       end
     end

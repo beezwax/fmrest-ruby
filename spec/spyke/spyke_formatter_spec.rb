@@ -164,10 +164,10 @@ RSpec.describe FmRest::Spyke::SpykeFormatter do
       expect(response.body).to include(
         metadata: a_metadata_object.with_ok_message,
         data: {
-          __record_id: 1,
-          __mod_id: 1,
+          __record_id: "1",
+          __mod_id: "1",
           foo: "Foo",
-          portal1: [{ bar: "Bar", __record_id: 1, __mod_id: 1 }]
+          portal1: [{ bar: "Bar", __record_id: "1", __mod_id: "1" }]
         }
       )
     end
@@ -182,10 +182,10 @@ RSpec.describe FmRest::Spyke::SpykeFormatter do
           .with_ok_message
           .with_data_info(data_info),
         data: [{
-          __record_id: 1,
-          __mod_id: 1,
+          __record_id: "1",
+          __mod_id: "1",
           foo: "Foo",
-          portal1: [{ bar: "Bar", __record_id: 1, __mod_id: 1 }]
+          portal1: [{ bar: "Bar", __record_id: "1", __mod_id: "1" }]
         }]
       )
     end
@@ -200,10 +200,10 @@ RSpec.describe FmRest::Spyke::SpykeFormatter do
           .with_ok_message
           .with_data_info(data_info),
         data: [{
-          __record_id: 1,
-          __mod_id: 1,
+          __record_id: "1",
+          __mod_id: "1",
           foo: "Foo",
-          portal1: [{ bar: "Bar", __record_id: 1, __mod_id: 1 }]
+          portal1: [{ bar: "Bar", __record_id: "1", __mod_id: "1" }]
         }]
       )
     end
@@ -216,7 +216,7 @@ RSpec.describe FmRest::Spyke::SpykeFormatter do
       context "when sucessful" do
         let :response_json do
           {
-            response: { modId: "2" },
+            response: { modId: "2", newPortalRecordInfo: {} },
             messages: [{code: "0", message: "OK"}]
           }
         end
@@ -224,7 +224,10 @@ RSpec.describe FmRest::Spyke::SpykeFormatter do
         it "returns a hash with single record data" do
           expect(response.body).to include(
             metadata: a_metadata_object.with_ok_message,
-            data: { __mod_id: 2 },
+            data: {
+              __mod_id: "2",
+              __new_portal_record_info: a_kind_of(Hash)
+            },
             errors: {}
           )
         end

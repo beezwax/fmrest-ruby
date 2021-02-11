@@ -34,6 +34,8 @@ module FmRest
           self.mapped_attributes = ::ActiveSupport::HashWithIndifferentAccess.new.freeze
 
           class << self; private :mapped_attributes=; end
+
+          set_callback :save, :after, :changes_applied_after_save
         end
 
         class_methods do
@@ -118,12 +120,6 @@ module FmRest
         #
         def reload(*args)
           super.tap { |r| clear_changes_information }
-        end
-
-        # Spyke override -- Adds AM::Dirty support
-        #
-        def save(*args)
-          super.tap { |r| changes_applied_after_save if r }
         end
 
         # Spyke override -- Adds support for forbidden attributes (i.e. Rails'

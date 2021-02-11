@@ -85,7 +85,7 @@ RSpec.describe FmRest::Spyke::Model::Serialization do
       end
     end
 
-    context "with a record with portal data" do
+    context "with a record with unpersisted portal data" do
       subject do
         ship = Ship.new
         ship.crew.build name: "Mortimer"
@@ -100,8 +100,38 @@ RSpec.describe FmRest::Spyke::Model::Serialization do
           portalData: {
             "PiratesTable" => [
               { "Pirate::name" => "Mortimer" },
-              { "Pirate::name" => "Jojo" }
+              { "Pirate::name" => "Jojo" },
+              {}
             ]
+          }
+        )
+      end
+    end
+
+    context "with a record with persisted portal data" do
+      subject do
+        ship = Ship.new
+        ship.crew.build name: "Mortimer", __record_id: 1
+        ship.crew.build name: "Jojo", __record_id: 2
+        ship
+      end
+
+      it "includes a single portal deletion" do
+        subject.crew.first.mark_for_destruction
+
+        expect(subject.to_params).to include(
+          fieldData: {
+            deleteRelated: "PiratesTable.1"
+          }
+        )
+      end
+
+      it "includes multiple portal deletions" do
+        subject.crew.each(&:mark_for_destruction)
+
+        expect(subject.to_params).to match(
+          fieldData: {
+            deleteRelated: ["PiratesTable.1", "PiratesTable.2"]
           }
         )
       end

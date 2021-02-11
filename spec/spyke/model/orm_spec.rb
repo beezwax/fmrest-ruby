@@ -308,7 +308,13 @@ RSpec.describe FmRest::Spyke::Model::Orm do
   end
 
   describe "#save" do
-    let(:ship) { Ship.new name: "Mary Celeste" }
+    let(:klass) {
+      fmrest_spyke_class(class_name: "ShipWithCallbacks", parent: Ship) do
+        layout :Ships
+      end
+    }
+
+    let(:ship) { klass.new name: "Mary Celeste" }
 
     before { stub_session_login }
 
@@ -328,24 +334,52 @@ RSpec.describe FmRest::Spyke::Model::Orm do
     end
 
     context "with a successful save" do
-      it "resets changes information for self and portal records" do
+      before do
         stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_fm(
           recordId: "1",
           modId: "0"
         )
+      end
 
+      it "resets changes information for self and portal records" do
         expect { ship.save }.to change { ship.changed? }.from(true).to(false)
+      end
+
+      it "runs before and after callbacks" do
+        klass.before_save :before_foo
+        klass.after_save :after_foo
+        klass.before_create :before_foo
+        klass.after_create :after_foo
+
+        expect(ship).to receive(:before_foo).twice
+        expect(ship).to receive(:after_foo).twice
+
+        ship.save
       end
     end
 
     context "with an unsuccessful save (server side validation error)" do
-      it "doesn't resets changes information" do
+      before do
         stub_request(:post, fm_url(layout: "Ships") + "/records").to_return_json(
           response: {},
           messages: [{ code: 500, message: "Date validation error"}]
         )
+      end
 
+      it "doesn't resets changes information" do
         expect { ship.save }.to_not change { ship.changed? }.from(true)
+      end
+
+      it "it doesn't run after callbacks" do
+        klass.before_save :before_foo
+        klass.before_create :before_foo
+        klass.after_save :after_foo
+        klass.after_create :after_foo
+
+        expect(ship).to receive(:before_foo).twice
+        expect(ship).to_not receive(:after_foo)
+
+        ship.save
       end
     end
 
