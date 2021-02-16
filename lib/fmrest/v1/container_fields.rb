@@ -45,18 +45,23 @@ module FmRest
             proxy: proxy_options || FmRest.default_connection_settings[:proxy]
           )
 
-        # Requesting the container URL with no cookie set will respond with a
-        # redirect and a session cookie
-        cookie_response = conn.get url
+        openuri_options =
+          faraday_connection_to_openuri_options(conn).merge(redirect: false)
 
-        unless cookie = cookie_response.headers["Set-Cookie"]
-          raise FmRest::ContainerFieldError, "Container field's initial request didn't return a session cookie, the URL may be stale (try downloading it again immediately after retrieving the record)"
+        begin
+          url.open(openuri_options)
+        rescue OpenURI::HTTPRedirect => e
+          unless cookie = e.io.metas.dig("set-cookie", 0)
+            raise FmRest::ContainerFieldError, "Container field's initial request didn't return a session cookie, the URL may be stale (try downloading it again immediately after retrieving the record)"
+          end
+
+          url = URI(e.io.meta["location"])
+
+          # Now request the URL again with the proper session cookie using
+          # OpenURI, which wraps the response in an IO object which also responds
+          # to #content_type
+          url.open(openuri_options.merge("Cookie" => cookie))
         end
-
-        # Now request the URL again with the proper session cookie using
-        # OpenURI, which wraps the response in an IO object which also responds
-        # to #content_type
-        url.open(faraday_connection_to_openuri_options(conn).merge("Cookie" => cookie))
       end
 
       # Handles the core logic of uploading a file into a container field

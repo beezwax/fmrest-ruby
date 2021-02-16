@@ -4,6 +4,8 @@ RSpec.describe FmRest::V1::ContainerFields do
   let(:extendee) { Object.new.tap { |obj| obj.extend(described_class) } }
 
   describe "#fetch_container_data" do
+    let(:container_url) { "https://foo.bar/qux" }
+
     context "when given an invalid URL" do
       it "raises an FmRest::ContainerFieldError" do
         expect { extendee.fetch_container_data("boo boo") }.to raise_error(FmRest::ContainerFieldError, /Invalid container field URL/)
@@ -16,45 +18,44 @@ RSpec.describe FmRest::V1::ContainerFields do
       end
     end
 
-    context "when the given URL doesn't return a Set-Cookie header" do
-      let(:container_url) { "http://foo.bar/qux" }
-
-      before do
-        stub_request(:get, container_url).to_return(body: "foo")
-      end
-
-      it "raises an FmRest::ContainerFieldError" do
-        expect { extendee.fetch_container_data(container_url) }.to raise_error(FmRest::ContainerFieldError, /session cookie/)
-      end
-    end
-
-    context "when the given URL returns a Set-Cookie header" do
-      let(:container_url) { "http://foo.bar/qux" }
-
-      before do
-        stub_request(:get, container_url).to_return(headers: { "Set-Cookie" => "secret cookie" })
-        stub_request(:get, container_url).with(headers: { "Cookie" => "secret cookie" }).to_return(body: "hi there")
-      end
-
+    context "when the given URL is not a redirect" do
       it "returns an IO object with the container field contents" do
+        stub_request(:get, container_url).to_return(body: "hi there")
+
         expect(extendee.fetch_container_data(container_url).read).to eq("hi there")
       end
     end
+
+    context "when the given URL is a redirect" do
+      context "but doesn't return a Set-Cookie header" do
+        it "raises an FmRest::ContainerFieldError" do
+          stub_request(:get, container_url).to_return(status: 302, headers: { "Location" => container_url })
+
+          expect { extendee.fetch_container_data(container_url) }.to raise_error(FmRest::ContainerFieldError, /session cookie/)
+        end
+      end
+
+      context "and returns a Set-Cookie header" do
+        it "returns an IO object with the container field contents" do
+          stub_request(:get, container_url).to_return(status: 302, headers: { "Location" => container_url, "Set-Cookie" => "secret cookie" })
+          stub_request(:get, container_url).with(headers: { "Cookie" => "secret cookie" }).to_return(body: "hi there")
+
+          expect(extendee.fetch_container_data(container_url).read).to eq("hi there")
+        end
+      end
+    end 
 
     context "when given a base Faraday connection" do
       # NOTE: These specs are too close to implementation, but there doesn't
       # seem to be another way around it since WebMock can't mock SSL/proxy
       # requests, which would be the ideal way of testing this
 
-      let(:container_url) { "https://foo.bar/qux" }
-
       let(:faraday_options) { { ssl: { verify: false, cert_store: __dir__ }, proxy: "http://proxy.foo.bar" } }
 
       let!(:base_faraday) { Faraday.new(nil, faraday_options) }
 
       before do
-        stub_request(:get, container_url).to_return(headers: { "Set-Cookie" => "secret cookie" })
-        stub_request(:get, container_url).with(headers: { "Cookie" => "secret cookie" }).to_return(body: "hi there")
+        stub_request(:get, container_url).to_return(body: "hi there")
       end
 
       after :each do
