@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.13.1
+
+* Fix downloading of container field data from FMS19+
+
 ### 0.13.0
 
 * Split `fmrest` gem into `fmrest-core` and `fmrest-spyke`. `fmrest` becomes a
