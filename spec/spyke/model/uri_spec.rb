@@ -9,13 +9,25 @@ RSpec.describe FmRest::Spyke::Model::URI do
   end
 
   describe ".layout" do
-    it "when called with no args for first time on the class returns the class name" do
+    it "defaults to the class name" do
       expect(test_class.layout).to eq("TestClass")
     end
 
-    it "when called with an arg sets the layout" do
+    it "when called with an arg sets the layout, converted to a frozen string" do
       test_class.layout :DifferentLayout
-      expect(test_class.layout).to eq(:DifferentLayout)
+      expect(test_class.layout).to eq("DifferentLayout")
+      expect(test_class.layout).to be_frozen
+    end
+
+    it "is inheritable" do
+      test_class.layout :TestLayout
+
+      subclass = Class.new(test_class)
+      expect(subclass.layout).to eq("TestLayout")
+
+      subclass.layout :NewTestLayout
+      expect(test_class.layout).to eq("TestLayout")
+      expect(subclass.layout).to eq("NewTestLayout")
     end
   end
 

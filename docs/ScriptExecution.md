@@ -3,10 +3,10 @@
 The Data API allows running scripts as part of many types of requests, and
 `fmrest-spyke` provides mechanisms for all of them.
 
-### Model.execute_script
+### FmRest::Layout.execute_script
 
 As of FM18 you can execute scripts directly. To do that for a specific model
-use `Model.execute_script`:
+use `.execute_script`:
 
 ```ruby
 result = Honeybee.execute_script("My Script", param: "optional parameter")
@@ -77,7 +77,7 @@ bee.reload(script: { prerequest: ["My Prerequest Script", "parameter"] })
 ### Retrieving script execution results
 
 Every time a request is ran on a model or record instance of a model, a
-thread-local `Model.last_request_metadata` attribute is set on that model,
+thread-local `.last_request_metadata` attribute is set on that model,
 which is a hash containing the results of script executions, if any were
 performed, among other metadata.
 

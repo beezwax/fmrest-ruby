@@ -6,12 +6,26 @@ module FmRest
       module URI
         extend ::ActiveSupport::Concern
 
+        included do
+          # Make the layout setting inheritable
+          class_attribute :_layout, instance_predicate: false
+
+          class << self
+            protected :_layout
+          end
+        end
+
         class_methods do
-          # Accessor for FM layout (helps with building the URI)
+          # Accessor for FM layout (user for building request URIs).
+          #
+          # @param layout [String] The FM layout to connect this class to
+          #
+          # @return [String] The current layout if manually set, or the name of
+          #   the class otherwise
           #
           def layout(layout = nil)
-            @layout = layout if layout
-            @layout ||= model_name.name
+            self._layout = layout.dup.to_s.freeze if layout
+            self._layout || model_name.name
           end
 
           # Spyke override -- Extends `uri` to default to FM Data's URI schema

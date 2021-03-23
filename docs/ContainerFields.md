@@ -3,7 +3,7 @@
 You can define container fields on your model class with `container`:
 
 ```ruby
-class Honeybee < FmRest::Spyke::Base
+class Honeybee < FmRest::Layout
   container :photo, field_name: "Beehive Photo ID"
   container :resume, field_name: "Resume"
 end

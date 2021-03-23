@@ -17,10 +17,10 @@ to see if a feature you need is natively supported by the gem.
 
 The `fmrest` gem is a wrapper for two other gems:
 
-* `fmrest-core`, which provides the core Faraday connection builder, session
+* `fmrest-spyke`, providing an ActiveRecord-like ORM library built on top
+  of `fmrest-core` and [Spyke](https://github.com/balvig/spyke).
+* `fmrest-core`, providing the core Faraday connection builder, session
   management, and other core utilities.
-* `fmrest-spyke`, which provides an ActiveRecord-like ORM library built on top
-  of `fmrest-core` and Spyke.
 
 ## Installation
 
@@ -30,7 +30,7 @@ Add this to your Gemfile:
 gem 'fmrest'
 ```
 
-Or if you just want to use the Faraday connection without the ORM features, do:
+Or if you just want to use the Faraday connection without the ORM features:
 
 ```ruby
 gem 'fmrest-core'
@@ -40,10 +40,11 @@ gem 'fmrest-core'
 
 ### ORM example
 
-Most people would want to use the ORM features provided by `fmrest-spyke`:
+Most people would want to use the ORM features:
 
 ```ruby
-class Honeybee < FmRest::Spyke::Base
+# A Layout model connecting to the "Honeybees Web" FileMaker layout
+class Honeybee < FmRest::Layout("Honeybees Web")
   # Connection settings
   self.fmrest_config = {
     host:     "…",
@@ -88,11 +89,11 @@ connection = FmRest::V1.build_connection(
 )
 
 # Get all records (as parsed JSON)
-connection.get("layouts/MyFancyLayout/records")
+connection.get("layouts/FancyLayout/records")
 
 # Create new record
 connection.post do |req|
-  req.url "layouts/MyFancyLayout/records"
+  req.url "layouts/FancyLayout/records"
 
   # You can just pass a hash for the JSON body
   req.body = { … }
@@ -157,8 +158,8 @@ FmRest.default_connection_settings = {
 }
 ```
 
-These settings will be used by default by `FmRest::Spyke::Base` models whenever
-you don't set `fmrest_config=` explicitly, as well as by
+These settings will be used by default by `FmRest::Layout` models whenever you
+don't set `fmrest_config=` explicitly, as well as by
 `FmRest::V1.build_connection` in case you're setting up your Faraday connection
 manually.
 
@@ -188,11 +189,11 @@ building REST ORM models. fmrest-ruby builds its ORM features atop Spyke,
 bundled in the `fmrest-spyke` gem (already included if you're using the
 `fmrest` gem).
 
-To create a model you can inherit directly from `FmRest::Spyke::Base`, which is
-itself a subclass of `Spyke::Base`.
+To create a model you can inherit directly from `FmRest::Layout` (itself a
+subclass of `Spyke::Base`).
 
 ```ruby
-class Honeybee < FmRest::Spyke::Base
+class Honeybee < FmRest::Layout
 end
 ```
 
@@ -216,17 +217,23 @@ bee = Honeybee.find(9) # GET request
 
 It's recommended that you read Spyke's documentation for more information on
 these basic features. If you've used ActiveRecord or similar ORM libraries
-however you'll find it quite familiar.
+you'll find it quite familiar.
 
-In addition, `FmRest::Spyke::Base` extends `Spyke::Base` with the following
+Notice that `FmRest::Layout` is aliased as `FmRest::Spyke::Base`. Previous
+versions of fmrest-ruby only provided the latter version, so if you're already
+using `FmRest::Spyke::Base` there's no need to rename your classes to
+`FmRest::Layout`, both will continue to work interchangeably.
+
+In addition, `FmRest::Layout` extends `Spyke::Base` with the following
 features:
 
-### Model.fmrest_config=
+### FmRest::Layout.fmrest_config=
 
-This allows you to set your Data API connection settings on your model:
+This allows you to set Data API connection settings specific to your model
+class:
 
 ```ruby
-class Honeybee < FmRest::Spyke::Base
+class Honeybee < FmRest::Layout
   self.fmrest_config = {
     host:     "…",
     database: "…",
@@ -244,9 +251,8 @@ does the initial connection setup and then inherit from it in models using that
 same connection. E.g.:
 
 ```ruby
-class BeeBase < FmRest::Spyke::Base
-  self.fmrest_config = { host: "…", … }
-  }
+class BeeBase < FmRest::Layout
+  self.fmrest_config = { host: "…", database: "…", … }
 end
 
 class Honeybee < BeeBase
@@ -254,34 +260,45 @@ class Honeybee < BeeBase
 end
 ```
 
+Also, if not set, your model will try to use
+`FmRest.default_connection_settings` instead.
+
 #### Connection settings overlays
 
 There may be cases where you want to use a different set of connection settings
 depending on context. For example, if you want to use username and password
-provided by the user in a web application. Since `Model.fmrest_config` is set
-at the class level, changing the username/password for the model in one context
-would also change it in all other contexts, leading to security issues.
+provided by the user in a web application. Since `.fmrest_config`
+is set at the class level, changing the username/password for the model in one
+context would also change it in all other contexts, leading to security issues.
 
 To solve this scenario, fmrest-ruby provides a way of defining thread-local and
-reversible connection settings overlays through `Model.fmrest_config_overlay=`.
+reversible connection settings overlays through
+`.fmrest_config_overlay=`.
 
 See the [main document on connection setting overlays](docs/ConfigOverlays.md)
 for details on how it works.
 
-### Model.layout
+### FmRest::Layout.layout
 
-Use `Model.layout` to define the layout for your model.
+Use `layout` to set the layout name for your model.
 
 ```ruby
-class Honeybee < FmRest::Spyke::Base
+class Honeybee < FmRest::Layout
   layout "Honeybees Web"
 end
 ```
 
-Note that you only need to set this if the name of the model and the name of
-the layout differ, otherwise the default will just work.
+Alternatively, you can set the layout name in the class definition line:
 
-### Model.request_auth_token
+```ruby
+class Honeybee < FmRest::Layout("Honeybees Web")
+```
+
+Note that you only need to manually set the layout name if the name of the
+class and the name of the layout differ, otherwise fmrest-ruby will just use
+the name of the class.
+
+### FmRest::Layout.request_auth_token
 
 Requests a Data API session token using the connection settings in
 `fmrest_config` and returns it if successful, otherwise returns `false`.
@@ -290,16 +307,16 @@ You normally don't need to use this method as fmrest-ruby will automatically
 request and store session tokens for you (provided that `:autologin` is
 `true`).
 
-### Model.logout
+### FmRest::Layout.logout
 
-Use `Model.logout` to log out from the database session (you may call it on any
+Use `.logout` to log out from the database session (you may call it on any
 model that uses the database session you want to log out from).
 
 ```ruby
 Honeybee.logout
 ```
 
-### Mapped Model.attributes
+### Mapped FmRest::Layout.attributes
 
 Spyke allows you to define your model's attributes using `attributes`, however
 sometimes FileMaker's field names aren't very Ruby-ORM-friendly, especially
@@ -308,7 +325,7 @@ fmrest-ruby extends `attributes`' functionality to allow you to map
 Ruby-friendly attribute names to FileMaker field names. E.g.:
 
 ```ruby
-class Honeybee < FmRest::Spyke::Base
+class Honeybee < FmRest::Layout
   attributes first_name: "First Name", last_name: "Last Name"
 end
 ```
@@ -327,16 +344,16 @@ bee.first_name = "Queen"
 bee.attributes # => { "First Name": "Queen", "Last Name": "Buzz" }
 ```
 
-### Model.has_portal
+### FmRest::Layout.has_portal
 
 You can define portal associations on your model wth `has_portal`, as such:
 
 ```ruby
-class Honeybee < FmRest::Spyke::Base
+class Honeybee < FmRest::Layout
   has_portal :flowers
 end
 
-class Flower < FmRest::Spyke::Base
+class Flower < FmRest::Layout
   attributes :color, :species
 end
 ```
@@ -393,7 +410,7 @@ detailed information on how those work.
 You can define container fields on your model class with `container`:
 
 ```ruby
-class Honeybee < FmRest::Spyke::Base
+class Honeybee < FmRest::Layout
   container :photo, field_name: "Beehive Photo ID"
 end
 ```
@@ -411,7 +428,7 @@ details.
 
 ### Setting global field values
 
-You can call `.set_globals` on any `FmRest::Spyke::Base` model to set global
+You can call `.set_globals` on any `FmRest::Layout` model to set global
 field values on the database that model is configured for.
 
 See the [main document on setting global field values](docs/GlobalFields.md)
@@ -435,7 +452,7 @@ FmRest.default_connection_settings = {
 }
 
 # Or in your model
-class LoggyBee < FmRest::Spyke::Base
+class LoggyBee < FmRest::Layout
   self.fmrest_config = {
     host: "…",
     …
@@ -449,7 +466,7 @@ If you need to set up more complex logging for your models can use the
 Faraday connection, e.g.:
 
 ```ruby
-class LoggyBee < FmRest::Spyke::Base
+class LoggyBee < FmRest::Layout
   faraday do |conn|
     conn.response :logger, MyApp.logger, bodies: true
   end
@@ -460,31 +477,31 @@ end
 
 FM Data API reference: https://fmhelp.filemaker.com/docs/18/en/dataapi/
 
-| FM 18 Data API feature              | Supported by basic connection | Supported by FmRest::Spyke::Base |
-|-------------------------------------|-------------------------------|----------------------------------|
-| Log in using HTTP Basic Auth        | Yes                           | Yes                              |
-| Log in using OAuth                  | No                            | No                               |
-| Log in to an external data source   | No                            | No                               |
-| Log in using a FileMaker ID account | No                            | No                               |
-| Log out                             | Yes                           | Yes                              |
-| Get product information             | Manual*                       | No                               |
-| Get database names                  | Manual*                       | No                               |
-| Get script names                    | Manual*                       | No                               |
-| Get layout names                    | Manual*                       | No                               |
-| Get layout metadata                 | Manual*                       | No                               |
-| Create a record                     | Manual*                       | Yes                              |
-| Edit a record                       | Manual*                       | Yes                              |
-| Duplicate a record                  | Manual*                       | No                               |
-| Delete a record                     | Manual*                       | Yes                              |
-| Edit portal records                 | Manual*                       | Yes                              |
-| Get a single record                 | Manual*                       | Yes                              |
-| Get a range of records              | Manual*                       | Yes                              |
-| Get container data                  | Manual*                       | Yes                              |
-| Upload container data               | Manual*                       | Yes                              |
-| Perform a find request              | Manual*                       | Yes                              |
-| Set global field values             | Manual*                       | Yes                              |
-| Run a script                        | Manual*                       | Yes                              |
-| Run a script with another request   | Manual*                       | Yes                              |
+| FM 18 Data API feature              | Supported by basic connection | Supported by FmRest::Layout |
+|-------------------------------------|-------------------------------|-----------------------------|
+| Log in using HTTP Basic Auth        | Yes                           | Yes                         |
+| Log in using OAuth                  | No                            | No                          |
+| Log in to an external data source   | No                            | No                          |
+| Log in using a FileMaker ID account | No                            | No                          |
+| Log out                             | Yes                           | Yes                         |
+| Get product information             | Manual*                       | No                          |
+| Get database names                  | Manual*                       | No                          |
+| Get script names                    | Manual*                       | No                          |
+| Get layout names                    | Manual*                       | No                          |
+| Get layout metadata                 | Manual*                       | No                          |
+| Create a record                     | Manual*                       | Yes                         |
+| Edit a record                       | Manual*                       | Yes                         |
+| Duplicate a record                  | Manual*                       | No                          |
+| Delete a record                     | Manual*                       | Yes                         |
+| Edit portal records                 | Manual*                       | Yes                         |
+| Get a single record                 | Manual*                       | Yes                         |
+| Get a range of records              | Manual*                       | Yes                         |
+| Get container data                  | Manual*                       | Yes                         |
+| Upload container data               | Manual*                       | Yes                         |
+| Perform a find request              | Manual*                       | Yes                         |
+| Set global field values             | Manual*                       | Yes                         |
+| Run a script                        | Manual*                       | Yes                         |
+| Run a script with another request   | Manual*                       | Yes                         |
 
 \* You can manually supply the URL and JSON to a `FmRest` connection.
 

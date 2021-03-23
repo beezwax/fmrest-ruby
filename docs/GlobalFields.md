@@ -1,6 +1,6 @@
 ## Setting global field values
 
-You can call `.set_globals` on any `FmRest::Spyke::Base` model to set global
+You can call `.set_globals` on any `FmRest::Layout` model to set global
 field values on the database that model is configured for.
 
 You can pass it either a hash of fully qualified field names

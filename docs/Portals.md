@@ -2,23 +2,23 @@
 
 `fmrest-spyke` allows you to define portal associations in your models.
 
-### Model.has_portal
+### FmRest::Layout.has_portal
 
 You can define portal associations on your model as such:
 
 ```ruby
-class Honeybee < FmRest::Spyke::Base
+class Honeybee < FmRest::Layout
   has_portal :flowers
 end
 
-class Flower < FmRest::Spyke::Base
+class Flower < FmRest::Layout
   attributes :color, :species
 end
 ```
 
 In this case fmrest-ruby will expect the portal table name and portal object
-name to be both "flowers", i.e. the expected portal JSON portion should look
-like this:
+name to be both "flowers", i.e. the expected portal portion of the Data API
+JSON should look like this:
 
 ```json
 …
@@ -37,7 +37,7 @@ If you need to specify different values for them you can do so with
 object name, and `class_name`, e.g.:
 
 ```ruby
-class Honeybee < FmRest::Spyke::Base
+class Honeybee < FmRest::Layout
   has_portal :pollinated_flowers, portal_key: "Bee Flowers",
                                   attribute_prefix: "Flower",
                                   class_name: "Flower"
@@ -59,20 +59,27 @@ portion:
 }
 ```
 
+Notice that despite using `FmRest::Layout` to define our portal models
+(`Flower` in the example above), it is not required to have an actual matching
+layout in FileMaker, as the data would be coming from the portal.
+
 ### Adding records to a portal
 
 You can instantiate new records directly into a portal with
 `.portal_name.build`, e.g.:
 
 ```ruby
-class Honeybee < FmRest::Spyke::Base
-  has_portal :missions
+class Honeybee < FmRest::Layout
+  has_portal :tasks
+end
+
+class Task < FmRest::Layout
 end
 
 honeybee = Honeybee.new
 
-honeybee.missions.build(directives: "Collect pollen")
-honeybee.missions.build(directives: "Sting farmer")
+honeybee.tasks.build(description: "Collect pollen")
+honeybee.tasks.build(description: "Sting farmer")
 
 # Persist the parent record along with its portal records
 honeybee.save
@@ -83,13 +90,13 @@ You can also add unpersisted record instances with `<<` (also aliased as
 chained.  e.g.:
 
 ```ruby
-honeybee.missions << Mission.new
+honeybee.missions << Task.new
 
 # Passing an array of records
-honeybee.missions << [Mission.new, Mission.new]
+honeybee.missions << [Task.new, Task.new]
 
 # Chaining
-honeybee.missions << Mission.new << Mission.new
+honeybee.missions << Task.new << Task.new
 ```
 
 Note that even though `fmrest-spyke` will allow you to add persisted records to
@@ -105,7 +112,7 @@ with `.mark_for_destruction`, and then save the parent record.
 E.g.:
 
 ```ruby
-class Honeybee < FmRest::Spyke::Base
+class Honeybee < FmRest::Layout
   has_portal :flowers
 end
 

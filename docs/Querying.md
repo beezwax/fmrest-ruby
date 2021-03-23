@@ -163,7 +163,7 @@ Honeybee.limit(10).offset(20).sort(:name, :age!).portal(:hives).query(name: "Hut
 You can also set default values for limit and sort on the class:
 
 ```ruby
-class Honeybee < FmRest::Spyke::Base
+class Honeybee < FmRest::Layout
   self.default_limit = 1000
   self.default_sort = [:name, :age!]
 end

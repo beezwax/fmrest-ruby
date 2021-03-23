@@ -60,4 +60,4 @@ connection.delete "sessions/this-will-be-replaced-with-the-actual-token"
 ```
 
 NOTE: If you're using the ORM features this becomes much more straight-forward,
-see `Model.logout`.
+see `FmRest::Layout.logout`.
