@@ -1,5 +1,12 @@
 ## Changelog
 
+### 0.14.0
+
+* Aliased `FmRest::Spyke::Base` as `FmRest::Layout` (now preferred), and
+  provided a shortcut version for setting the layout name (e.g.  `class Foo <
+  FmRest::Layout("LayoutName")`)
+* Made `layout` class setting subclass-inheritable
+
 ### 0.13.1
 
 * Fix downloading of container field data from FMS19+
