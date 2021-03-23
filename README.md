@@ -288,7 +288,8 @@ class Honeybee < FmRest::Layout
 end
 ```
 
-Alternatively, you can set the layout name in the class definition line:
+Alternatively, if you're inheriting from `FmRest::Layout` directly you can set
+the layout name in the class definition line:
 
 ```ruby
 class Honeybee < FmRest::Layout("Honeybees Web")
