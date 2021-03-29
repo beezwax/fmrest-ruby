@@ -99,8 +99,8 @@ RSpec.describe FmRest::Spyke::Model::Serialization do
           fieldData: {},
           portalData: {
             "PiratesTable" => [
-              { "Pirate::name" => "Mortimer" },
-              { "Pirate::name" => "Jojo" },
+              { "Pirate::Name" => "Mortimer" },
+              { "Pirate::Name" => "Jojo" },
               {}
             ]
           }

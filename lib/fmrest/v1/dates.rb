@@ -3,6 +3,8 @@
 module FmRest
   module V1
     module Dates
+      FM_DATE_FORMAT = "%m/%d/%Y"
+      FM_DATETIME_FORMAT = "#{FM_DATE_FORMAT} %H:%M:%S"
       FM_DATETIME_FORMAT_MATCHER = /MM|mm|dd|HH|ss|yyyy/.freeze
 
       FM_DATE_TO_STRPTIME_SUBSTITUTIONS = {
@@ -55,8 +57,8 @@ module FmRest
       # Takes a DateTime dt, and returns the correct local offset for that dt,
       # daylight savings included, in fraction of a day.
       #
-      # By default, if ActiveSupport's Time.zone is set it will be used instead
-      # of the system timezone.
+      # By default, if ActiveSupport's `Time.zone` is set it will be used
+      # instead of the system timezone.
       #
       # @param dt [DateTime] The DateTime to get the offset for
       # @param zone [nil, String, TimeZone] The timezone to use to calculate
@@ -75,6 +77,40 @@ module FmRest
                end
 
         Rational(time.utc_offset, 86400) # seconds in one day (24*60*60)
+      end
+
+      # Returns a list of all datetime classes recognized by fmrest-ruby,
+      # including `FmRest::StringDateTime` if defined. Useful for using in a
+      # `case .. when` statement.
+      #
+      def datetime_classes
+        [DateTime, Time, defined?(FmRest::StringDateTime) && FmRest::StringDateTime].compact.freeze
+      end
+
+      # Returns a list of all date classes recognized by fmrest-ruby, including
+      # `FmRest::StringDate` if defined. Useful for using in a `case .. when`
+      # statement.
+      #
+      def date_classes
+        [Date, defined?(FmRest::StringDate) && FmRest::StringDate].compact.freeze
+      end
+
+      # Converts the given DateTime dt to the specified timezone setting offset,
+      # leaving everything else intact.
+      #
+      # @param dt [DateTime] The datetime to convert
+      # @param timezone [nil, Symbol, String] Accepted values are `:utc`,
+      #   `:local`, or `nil` (in which case it leaves the given datetime intact)
+      # @return [DateTime] A new datetime with converted timezone
+      def convert_datetime_timezone(dt, timezone)
+        case timezone
+        when :utc, "utc"
+          dt.new_offset(0)
+        when :local, "local"
+          dt.new_offset(FmRest::V1.local_offset_for_datetime(dt))
+        when nil
+          dt
+        end
       end
     end
   end

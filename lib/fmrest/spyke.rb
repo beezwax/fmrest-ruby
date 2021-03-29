@@ -1,12 +1,6 @@
 # frozen_string_literal: true
 
-begin
-  require "spyke"
-rescue LoadError => e
-  e.message << " (Did you include Spyke in your Gemfile?)" unless e.message.frozen?
-  raise e
-end
-
+require "spyke"
 require "fmrest"
 require "fmrest/spyke/spyke_formatter"
 require "fmrest/spyke/model"

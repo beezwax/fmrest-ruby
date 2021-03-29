@@ -83,4 +83,115 @@ RSpec.describe FmRest::V1::Dates do
       end
     end
   end
+
+  describe "#datetime_classes" do
+    context "with no FmRest::StringDateTime defined" do
+      it "returns an array of datetime-representing classes without FmRest::StringDateTime" do
+        if defined?(FmRest::StringDateTime)
+          @old_string_date_time = FmRest::StringDateTime
+          FmRest.send(:remove_const, :StringDateTime)
+        end
+
+        expect(extendee.datetime_classes).to eq([DateTime, Time])
+
+        FmRest::StringDateTime = @old_string_date_time if @old_string_date_time
+      end
+    end
+
+    context "with FmRest::StringDateTime defined" do
+      it "returns an array of datetime-representing classes with FmRest::StringDateTime" do
+        mock_string_date_time = double(:StringDateTimeClass)
+
+        if defined?(FmRest::StringDateTime)
+          @old_string_date_time = FmRest::StringDateTime
+          FmRest.send(:remove_const, :StringDateTime)
+        end
+
+        FmRest::StringDateTime = mock_string_date_time
+
+        expect(extendee.datetime_classes).to eq([DateTime, Time, mock_string_date_time])
+
+        if @old_string_date_time
+          FmRest::StringDateTime = @old_string_date_time
+        else
+          FmRest.send(:remove_const, :StringDateTime)
+        end
+      end
+    end
+  end
+
+  describe "#date_classes" do
+    context "with no FmRest::StringDate defined" do
+      it "returns an array of date-representing classes without FmRest::StringDate" do
+        if defined?(FmRest::StringDate)
+          @old_string_date = FmRest::StringDate
+          FmRest.send(:remove_const, :StringDate)
+        end
+
+        expect(extendee.date_classes).to eq([Date])
+
+        FmRest::StringDate = @old_string_date if @old_string_date
+      end
+    end
+
+    context "with FmRest::StringDate defined" do
+      it "returns an array of date-representing classes with FmRest::StringDate" do
+        mock_string_date = double(:StringDateClass)
+
+        if defined?(FmRest::StringDate)
+          @old_string_date = FmRest::StringDate
+          FmRest.send(:remove_const, :StringDate)
+        end
+
+        FmRest::StringDate = mock_string_date
+
+        expect(extendee.date_classes).to eq([Date, mock_string_date])
+
+        if @old_string_date
+          FmRest::StringDate = @old_string_date
+        else
+          FmRest.send(:remove_const, :StringDate)
+        end
+      end
+    end
+  end
+
+  describe "#convert_datetime_timezone" do
+    let(:datetime) { DateTime.civil(2020, 8, 1, 13, 31, 9, '-1') }
+
+    subject { extendee.convert_datetime_timezone(datetime, timezone).offset }
+
+    context "when :timezone is set to nil" do
+      let(:timezone) { nil }
+
+      it "returns the same datetime object" do
+        is_expected.to eq(datetime.offset)
+      end
+    end
+
+    [:utc, "utc"].each do |tz|
+      context "when :timezone is set to #{tz.inspect}" do
+        let(:timezone) { tz }
+
+        it "returns the datetime with offset converted to zero" do
+          is_expected.to eq(0)
+        end
+      end
+    end
+
+    [:local, "local"].each do |tz|
+      context "when :timezone is set to #{tz.inspect}" do
+        let(:timezone) { tz }
+
+        it "returns the datetime converted to local timezone" do
+          # Take advantage of ActiveSupport's TimeZone for testing
+          # independently of the system timezone
+          Time.use_zone("Pacific Time (US & Canada)") do
+            # On this date it's PDT, so UTC offset is -7hs
+            is_expected.to eq(Rational(-7, 24))
+          end
+        end
+      end
+    end
+  end
 end

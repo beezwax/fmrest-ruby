@@ -54,13 +54,28 @@ class Honeybee < FmRest::Layout("Honeybees Web")
   }
 
   # Mapped attributes
-  attributes name: "Bee Name", age: "Bee Age"
+  attributes name: "Bee Name", age: "Bee Age", created_on: "Created On"
 
-  # Portals
-  has_portal :flowers
+  # Portal associations
+  has_portal :tasks
 
-  # File container
+  # File containers
   container :photo, field_name: "Bee Photo"
+
+  # Scopes
+  scope :can_legally_fly, -> { query(age: ">18") }
+
+  # Client-side validations
+  validates :name, presence: true
+
+  # Callbacks
+  before_save :set_created_on
+
+  private
+
+  def set_created_on
+    self.created_on = Date.today
+  end
 end
 
 # Find a record by id
@@ -69,7 +84,7 @@ bee = Honeybee.find(9)
 bee.name = "Hutch"
 
 # Add a new record to portal
-bee.flowers.build(name: "Daisy")
+bee.tasks.build(urgency: "Today")
 
 bee.save
 ```
@@ -129,9 +144,9 @@ You can also pass a `:log` option for basic request logging, see the section on
 Option              | Description                                | Format                      | Default
 --------------------|--------------------------------------------|-----------------------------|--------
 `:host`             | Hostname with optional port, e.g. `"example.com:9000"` | String          | None
-`:database`         |                                            | String                      | None
-`:username`         |                                            | String                      | None
-`:password`         |                                            | String                      | None
+`:database`         | The name of the database to connect to     | String                      | None
+`:username`         | A Data API-ready account                   | String                      | None
+`:password`         | Your password                              | String                      | None
 `:account_name`     | Alias of `:username`                       | String                      | None
 `:ssl`              | SSL options to be forwarded to Faraday     | Faraday SSL options         | None
 `:proxy`            | Proxy options to be forwarded to Faraday   | Faraday proxy options       | None
@@ -389,8 +404,8 @@ Guides](https://guides.rubyonrails.org/active_model_basics.html#dirty).
 Since Spyke is API-agnostic it only provides a wide-purpose `.where` method for
 passing arbitrary parameters to the REST backend. fmrest-ruby however is well
 aware of its backend API, so it extends Spkye models with a bunch of useful
-querying methods: `.query`, `.limit`, `.offset`, `.sort`, `.portal`, `.script`,
-etc.
+querying methods: `.query`, `.match`, `.omit`, `.limit`, `.offset`, `.sort`,
+`.portal`, `.script`, etc.
 
 See the [main document on querying](docs/Querying.md) for detailed information
 on the query API methods.

@@ -5,6 +5,7 @@ RSpec.describe FmRest::Spyke::Relation do
     fmrest_spyke_class do
       attributes :foo, :bar
 
+      has_portal :ships, portal_key: "Ships"
       has_portal :bridges, portal_key: "Bridges"
       has_portal :tunnels, portal_key: "Tunnels"
     end
@@ -194,10 +195,74 @@ RSpec.describe FmRest::Spyke::Relation do
 
   describe "#query" do
     it "creates a new scope with the given query params merged with previous ones" do
-      query_scope = relation.query(foo: "Noodles").query(bar: "Onions", omit: true)
+      query_scope = relation.query(foo: "Noodles").query({ bar: "Onions" }, { foo: "Meatballs" })
       expect(query_scope).to_not eq(relation)
       expect(query_scope).to be_a(FmRest::Spyke::Relation)
-      expect(query_scope.query_params).to eq([{ "foo" => "Noodles" }, { "bar" => "Onions", "omit" => "true" }])
+      expect(query_scope.query_params).to eq([{ "foo" => "Noodles", "bar" => "Onions" }, { "foo" => "Meatballs" }])
+    end
+
+    it "normalizes portal query fields when given a sub-hash" do
+      expect(relation.query(ships: { name: "Mary Celeste" }).query_params).to eq([{ "Ships::name" => "Mary Celeste" }])
+    end
+
+    it "raises an exception when given a scalar key not matching any attribute" do
+      expect { relation.query(no_such_attribute: "very well then") }.to \
+        raise_error(FmRest::Spyke::Relation::UnknownQueryKey, /No attribute/)
+    end
+
+    it "raises an exception when given a hash key not matching any portal" do
+      expect { relation.query(no_such_portal: { a: "A" }) }.to \
+        raise_error(FmRest::Spyke::Relation::UnknownQueryKey, /No portal/)
+    end
+
+    it "converts Ruby nil to FileMaker empty field condition" do
+      expect(relation.query(foo: nil).query_params).to eq([{ "foo" => "=" }])
+    end
+
+    it "converts Ruby dates to FileMaker date format" do
+      expect(relation.query(foo: Date.civil(2020, 1, 30)).query_params).to eq([{ "foo" => "01/30/2020" }])
+    end
+
+    it "converts Ruby datetimes to FileMaker date format" do
+      expect(relation.query(foo: DateTime.civil(2020, 1, 30, 0, 0)).query_params).to eq([{ "foo" => "01/30/2020 00:00:00" }])
+    end
+
+    it "converts Ruby ranges to FileMaker search ranges" do
+      expect(relation.query(foo: (1..5)).query_params).to eq([{ "foo" => "1..5" }])
+      expect(relation.query(foo: (1...5)).query_params).to eq([{ "foo" => "1..4" }])
+      expect(relation.query(foo: (1.1..5.1)).query_params).to eq([{ "foo" => "1.1..5.1" }])
+      expect(relation.query(foo: (1..Float::INFINITY)).query_params).to eq([{ "foo" => ">=1" }])
+      if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.6.0")
+        # nil-ended ranges were introduced in Ruby 2.6
+        expect(relation.query(foo: (1..nil)).query_params).to eq([{ "foo" => ">=1" }])
+      end
+      expect(relation.query(foo: (-Float::INFINITY..5)).query_params).to eq([{ "foo" => "<=5" }])
+      expect(relation.query(foo: (-Float::INFINITY...5)).query_params).to eq([{ "foo" => "<5" }])
+      expect(relation.query(foo: (-Float::INFINITY..Float::INFINITY)).query_params).to eq([{ "foo" => "*" }])
+      expect(relation.query(foo: ("A".."Z")).query_params).to eq([{ "foo" => "A..Z" }])
+      expect(relation.query(foo: ("A".."Z")).query_params).to eq([{ "foo" => "A..Z" }])
+      expect(relation.query(foo: (Date.civil(2020, 1, 30)..Date.civil(2021, 1, 30))).query_params).to eq([{ "foo" => "01/30/2020..01/30/2021" }])
+    end
+
+    context "with prefixed .or" do
+      it "resets or_flag back to nil" do
+        expect(relation.or.query(foo: "Noodles").or_flag).to eq(nil)
+      end
+
+      it "adds given params to a separate conditions hash" do
+        query_scope = relation.query(foo: "Noodles").or.query({ foo: "Onions" }, { foo: "Meatballs" })
+        expect(query_scope.query_params).to eq([{ "foo" => "Noodles" }, { "foo" => "Onions" }, { "foo" => "Meatballs" }])
+      end
+    end
+  end
+
+  describe "#match" do
+    it "prefixes the given query values with == and escapes find operators" do
+      match_scope = relation.match(foo: "noodle=sp@ghetti", ships: { name: "M@ry" })
+      expect(match_scope.query_params).to eq([{
+        "foo" => "==noodle\\=sp\\@ghetti",
+        "Ships::name" => "==M\\@ry"
+      }])
     end
   end
 
@@ -205,6 +270,17 @@ RSpec.describe FmRest::Spyke::Relation do
     it "forwards params to #query with omit: true" do
       expect(relation).to receive(:query).with(foo: "Coffee", omit: true).and_return("Yipee!")
       expect(relation.omit(foo: "Coffee")).to eq("Yipee!")
+    end
+  end
+
+  describe "#or" do
+    it "sets or_flag to true" do
+      expect(relation.or.or_flag).to eq(true)
+    end
+
+    it "forwards params to .query() if any given" do
+      query_scope = relation.query(foo: "Noodles").or(foo: "Meatballs")
+      expect(query_scope.query_params).to eq([{ "foo" => "Noodles" }, { "foo" => "Meatballs" }])
     end
   end
 

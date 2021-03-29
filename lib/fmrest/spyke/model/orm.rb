@@ -26,10 +26,10 @@ module FmRest
 
         class_methods do
           # Methods delegated to `FmRest::Spyke::Relation`
-          delegate :limit, :offset, :sort, :order, :query, :omit, :portal,
-                   :portals, :includes, :with_all_portals, :without_portals,
-                   :script, :find_one, :first, :any, :find_some,
-                   :find_in_batches, :find_each, to: :all
+          delegate :limit, :offset, :sort, :order, :query, :match, :omit,
+            :portal, :portals, :includes, :with_all_portals, :without_portals,
+            :script, :find_one, :first, :any, :find_some, :find_in_batches,
+            :find_each, to: :all
 
           # Spyke override -- Use FmRest's Relation instead of Spyke's vanilla
           # one

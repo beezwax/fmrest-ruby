@@ -5,6 +5,9 @@ module FmRest
     module Utils
       VALID_SCRIPT_KEYS = [:prerequest, :presort, :after].freeze
 
+      # See https://help.claris.com/en/pro-help/content/finding-text.html
+      FM_FIND_OPERATORS_RE = /([@\*#\?!=<>"])/
+
       # Converts custom script options to a hash with the Data API's expected
       # JSON script format.
       #
@@ -89,6 +92,16 @@ module FmRest
         s.to_s.b.gsub(/[^a-zA-Z0-9_\-.]/n) { |m|
           sprintf("%%%02X", m.unpack("C")[0])
         }
+      end
+
+      # Escapes FileMaker find operators from the given string in order to use
+      # it in a find request.
+      #
+      # @param s [String] The string to escape
+      # @return [String] A new string with find operators escaped with
+      #   backslashes
+      def escape_find_operators(s)
+        s.gsub(FM_FIND_OPERATORS_RE, "\\\\\\1")
       end
 
       private

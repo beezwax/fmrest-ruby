@@ -37,8 +37,8 @@ RSpec.describe FmRest::Spyke::Model::Orm do
   end
 
   %i[
-    limit offset sort order query omit portal portals includes without_portals
-    with_all_portals script find_one first any find_some
+    limit offset sort order query match omit portal portals includes
+    without_portals with_all_portals script find_one first any find_some
     find_in_batches find_each
   ].each do |delegator|
     describe ".#{delegator}" do
@@ -59,31 +59,31 @@ RSpec.describe FmRest::Spyke::Model::Orm do
       let(:request) { stub_request(:post, fm_url(layout: "Pirates") + "/_find").to_return_fm }
 
       it "applies limit JSON param" do
-        request.with(body: { limit: 42, query: [{ name: "foo" }] })
+        request.with(body: { limit: 42, query: [{ Name: "foo" }] })
         Pirate.query(name: "foo").limit(42).fetch
         expect(request).to have_been_requested
       end
 
       it "applies offset JSON param" do
-        request.with(body: { offset: 10, query: [{ name: "foo" }] })
+        request.with(body: { offset: 10, query: [{ Name: "foo" }] })
         Pirate.query(name: "foo").offset(10).fetch
         expect(request).to have_been_requested
       end
 
       it "applies sort JSON param" do
-        request.with(body: { sort: [{fieldName: "name"}, {fieldName: "rank", sortOrder: "descend"}], query: [{ name: "foo" }] })
+        request.with(body: { sort: [{fieldName: "Name"}, {fieldName: "Rank", sortOrder: "descend"}], query: [{ Name: "foo" }] })
         Pirate.query(name: "foo").sort(:name, :rank!).fetch
         expect(request).to have_been_requested
       end
 
       it "applies sort JSON param even when .limit(1) is used" do
-        request.with(body: { limit: 1, sort: [{fieldName: "name"}, {fieldName: "rank", sortOrder: "descend"}], query: [{ name: "foo" }] })
+        request.with(body: { limit: 1, sort: [{fieldName: "Name"}, {fieldName: "Rank", sortOrder: "descend"}], query: [{ Name: "foo" }] })
         Pirate.query(name: "foo").limit(1).sort(:name, :rank!).fetch
         expect(request).to have_been_requested
       end
 
       it "applies script JSON param" do
-        request.with(body: { script: "runme", "script.param": "with param", query: [{ name: "foo" }] })
+        request.with(body: { script: "runme", "script.param": "with param", query: [{ Name: "foo" }] })
         Pirate.query(name: "foo").script(["runme", "with param"]).fetch
         expect(request).to have_been_requested
       end
@@ -143,8 +143,8 @@ RSpec.describe FmRest::Spyke::Model::Orm do
         request.with(body: {
           limit:  42,
           offset: 10,
-          sort:   [{fieldName: "name"}, {fieldName: "rank", sortOrder: "descend"}],
-          query:  [{ name: "foo" }]
+          sort:   [{fieldName: "Name"}, {fieldName: "Rank", sortOrder: "descend"}],
+          query:  [{ Name: "foo" }]
         })
         Pirate.limit(42).offset(10).sort(:name, :rank!).query(name: "foo").fetch
         expect(request).to have_been_requested
@@ -154,12 +154,12 @@ RSpec.describe FmRest::Spyke::Model::Orm do
         let(:request) { stub_request(:post, fm_url(layout: "Pirates") + "/_find").to_return_fm(401) }
 
         it "returns an empty Spyke::Result" do
-          request.with(body: { query: [{ name: "foo" }] })
+          request.with(body: { query: [{ Name: "foo" }] })
           expect(Pirate.query(name: "foo").fetch.data).to eq(nil)
         end
 
         it "raises an error if the model's raise_on_no_matching_records is true" do
-          request.with(body: { query: [{ name: "foo" }] })
+          request.with(body: { query: [{ Name: "foo" }] })
           Pirate.raise_on_no_matching_records = true
           expect { Pirate.query(name: "foo").fetch }.to raise_error(FmRest::APIError::NoMatchingRecordsError)
           Pirate.raise_on_no_matching_records = nil
@@ -183,7 +183,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
       end
 
       it "applies _sort URI param" do
-        request.with(query: { _sort: [{fieldName: "name"}, {fieldName: "rank", sortOrder: "descend"}].to_json })
+        request.with(query: { _sort: [{fieldName: "Name"}, {fieldName: "Rank", sortOrder: "descend"}].to_json })
         Pirate.sort(:name, :rank!).fetch
         expect(request).to have_been_requested
       end
@@ -242,7 +242,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
         request.with(query: {
           _limit:  42,
           _offset: 10,
-          _sort:   [{fieldName: "name"}, {fieldName: "rank", sortOrder: "descend"}].to_json,
+          _sort:   [{fieldName: "Name"}, {fieldName: "Rank", sortOrder: "descend"}].to_json,
         })
         Pirate.limit(42).offset(10).sort(:name, :rank!).fetch
         expect(request).to have_been_requested
@@ -497,4 +497,3 @@ RSpec.describe FmRest::Spyke::Model::Orm do
     end
   end
 end
-

@@ -62,4 +62,10 @@ RSpec.describe FmRest::V1::Utils do
       expect { extendee.convert_script_params(after: false) }.to raise_error(ArgumentError, /\AScript arguments/)
     end
   end
+
+  describe "#escape_find_operators" do
+    it "escapes FileMaker find operators with backslash" do
+      expect(extendee.escape_find_operators("abc@*#?!=<>xyz")).to eq("abc\\@\\*\\#\\?\\!\\=\\<\\>xyz")
+    end
+  end
 end

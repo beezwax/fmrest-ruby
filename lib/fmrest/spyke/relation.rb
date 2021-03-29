@@ -5,6 +5,8 @@ module FmRest
     class Relation < ::Spyke::Relation
       SORT_PARAM_MATCHER = /(.*?)(!|__desc(?:end)?)?\Z/.freeze
 
+      class UnknownQueryKey < ArgumentError; end
+
       # NOTE: We need to keep limit, offset, sort, query and portal accessors
       # separate from regular params because FM Data API uses either "limit" or
       # "_limit" (or "_offset", etc.) as param keys depending on the type of
@@ -12,7 +14,7 @@ module FmRest
 
 
       attr_accessor :limit_value, :offset_value, :sort_params, :query_params,
-                    :included_portals, :portal_params, :script_params
+                    :or_flag, :included_portals, :portal_params, :script_params
 
       def initialize(*_args)
         super
@@ -161,14 +163,109 @@ module FmRest
         portal(false)
       end
 
+      # Sets conditions for a find request. Conditions must be given in
+      # `{ field: condition }` format, where `condition` is normally a string
+      # sent raw to the Data API server, so you can use FileMaker find
+      # operators. You can also pass Ruby range or date/datetime objects for
+      # condition values, and they'll be converted to the appropriate Data API
+      # representation.
+      #
+      # Passing `omit: true` in a conditions set will negate all conditions in
+      # that set.
+      #
+      # You can modify the way conditions are added (i.e. through logical AND
+      # or OR) by pre-chaining `.or`. By default it adds conditions through
+      # logical AND.
+      #
+      # Note that because of the way the Data API works, logical AND conditions
+      # on a single field are not possible. Because of that, if you try to set
+      # two AND conditions for the same field, the previously existing one will
+      # be overwritten with the new condition.
+      #
+      # It is recommended that you learn how the Data API represents conditions
+      # in its find requests (i.e. an array of JSON objects with conditions on
+      # fields). This method internally uses that same representation, which
+      # you can view by inspecting the resulting relations. Understanding that
+      # representation will also make the limitations of this Ruby API clear.
+      #
+      # @example
+      #   Person.query(name: "=Alice") # Simple query
+      #   Person.query(age: (20..29)) # Query using a Ruby range
+      #   Person.query(created_on: Date.today..Date.today-1)
+      #   Person.query(name: "=Alice", age: ">20") # Query multiple fields (logical AND)
+      #   Person.query(name: "=Alice").query(age: ">20") # Same effect as above example
+      #   Person.query(name: "=Bob", omit: true) # Negate a query (i.e. find people not named Bob)
+      #   Person.query(pets: { name: "=Snuggles" }) # Query portal fields
+      #   Person.query({ name: "=Alice" }, { name: "=Bob" }) # Separate conditions through logical OR
+      #   Person.query(name: "=Alice").or.query(name: "=Bob") # Same effect as above example
+      # @return [FmRest::Spyke::Relation] a new relation with the given find
+      #   conditions applied
       def query(*params)
         with_clone do |r|
-          r.query_params += params.flatten.map { |p| normalize_query_params(p) }
+          params = params.flatten.map { |p| normalize_query_params(p) }
+
+          if r.or_flag || r.query_params.empty?
+            r.query_params += params
+            r.or_flag = nil
+          elsif params.length > r.query_params.length
+            params[0, r.query_params.length].each_with_index do |p, i|
+              r.query_params[i].merge!(p)
+            end
+
+            remainder = params.length - r.query_params.length
+            r.query_params += params[-remainder, remainder]
+          else
+            params.each_with_index { |p, i| r.query_params[i].merge!(p) }
+          end
         end
       end
 
+      # Similar to `.query`, but sets exact string match queries (i.e.
+      # prefixes queries with ==) and escapes find operators in the given
+      # queries using `FmRest.e`.
+      #
+      # @example
+      #   Person.query(email: "bob@example.com") # Find exact email
+      # @return [FmRest::Spyke::Relation] a new relation with the exact match
+      #   conditions applied
+      def match(*params)
+        query(transform_query_values(params) { |v| "==#{FmRest::V1.escape_find_operators(v)}" })
+      end
+
+      # Negated version of `.query`, sets conditions to omit in a find request.
+      #
+      # This is the same as passing `omit: true` to `.query`.
+      #
+      # @return [FmRest::Spyke::Relation] a new relation with the given find
+      #   conditions applied negated
       def omit(params)
         query(params.merge(omit: true))
+      end
+
+      # Signals that the next query conditions to be set (through `.query`,
+      # `.match`, etc.) should be added as a logical OR relative to previously
+      # set conditions (rather than the default AND).
+      #
+      # In practice this means the JSON query request will have a new
+      # conditions object appended, e.g.:
+      #
+      # ```
+      # {"query": [{"field": "condition"}, {"field": "OR-added condition"}]}
+      # ```
+      #
+      # You can call this method with or without parameters. If parameters are
+      # given they will be passed down to `.query` (and those conditions
+      # immediately set), otherwise it just prepares the next
+      # conditions-setting method to use OR.
+      #
+      # @example
+      #   # Add conditions directly in .or call:
+      #   Person.query(name: "=Alice").or(name: "=Bob")
+      #   # Add exact match conditions through method chaining
+      #   Person.match(email: "alice@example.com").or.match(email: "bob@example.com")
+      def or(*params)
+        clone = with_clone { |r| r.or_flag = true }
+        params.empty? ? clone : clone.query(*params)
       end
 
       # @return [Boolean] whether a query was set on this relation
@@ -328,11 +425,91 @@ module FmRest
             next
           end
 
-          # TODO: Raise ArgumentError if an attribute given as symbol isn't defiend
-          if k.kind_of?(Symbol) && klass.mapped_attributes.has_key?(k)
-            normalized[klass.mapped_attributes[k].to_s] = v
+          # Portal fields query (nested hash), e.g. { contact: { name: "Hutch" } }
+          if v.kind_of?(Hash)
+            if k.kind_of?(Symbol)
+              portal_key, = klass.portal_options.find { |_, opts| opts[:name].to_s == k.to_s }
+
+              if portal_key
+                portal_model = klass.associations[k].klass
+
+                portal_normalized = v.each_with_object({}) do |(pk, pv), h|
+                  normalize_single_query_param_for_model(portal_model, pk, pv, h)
+                end
+
+                normalized.merge!(portal_normalized.transform_keys { |pf| "#{portal_key}::#{pf}" })
+              else
+                raise UnknownQueryKey, "No portal matches the query key `:#{k}` on #{klass.name}. If you are trying to use the literal string '#{k}' pass it as a string instead of a symbol."
+              end
+            else
+              normalized.merge!(v.transform_keys { |pf| "#{k}::#{pf}" })
+            end
+
+            next
+          end
+
+          # Attribute query (scalar values), e.g. { name: "Hutch" }
+          normalize_single_query_param_for_model(klass, k, v, normalized)
+        end
+      end
+
+      def normalize_single_query_param_for_model(model, k, v, hash)
+        if k.kind_of?(Symbol)
+          if model.mapped_attributes.has_key?(k)
+            hash[model.mapped_attributes[k].to_s] = format_query_condition(v)
           else
-            normalized[k.to_s] = v
+            raise UnknownQueryKey, "No attribute matches the query key `:#{k}` on #{model.name}. If you are trying to use the literal string '#{k}' pass it as a string instead of a symbol."
+          end
+        else
+          hash[k.to_s] = format_query_condition(v)
+        end
+      end
+
+      # Transforms various Ruby data types to FileMaker search condition
+      # strings
+      #
+      def format_query_condition(condition)
+        case condition
+        when nil
+          "=" # Search for empty field
+        when Range
+          format_range_condition(condition)
+        when *FmRest::V1.datetime_classes
+          FmRest::V1.convert_datetime_timezone(condition.to_datetime, klass.fmrest_config.timezone)
+            .strftime(FmRest::V1::Dates::FM_DATETIME_FORMAT)
+        when *FmRest::V1.date_classes
+          condition.strftime(FmRest::V1::Dates::FM_DATE_FORMAT)
+        else
+          condition
+        end
+      end
+
+      def format_range_condition(range)
+        if range.first.kind_of?(Numeric)
+          if range.first == Float::INFINITY || range.end == -Float::INFINITY
+            raise ArgumentError, "Can't search for a range that begins at +Infinity or ends at -Infinity"
+          elsif range.first == -Float::INFINITY
+            if range.end == Float::INFINITY || range.end.nil?
+              "*" # Search for non-empty field
+            else
+              range.exclude_end? ? "<#{range.end}" : "<=#{range.end}"
+            end
+          elsif range.end == Float::INFINITY || range.end.nil?
+            ">=#{range.first}"
+          elsif range.exclude_end? && range.last.respond_to?(:pred)
+            "#{range.first}..#{range.last.pred}"
+          else
+            "#{range.first}..#{range.last}"
+          end
+        else
+          "#{format_query_condition(range.first)}..#{format_query_condition(range.last)}"
+        end
+      end
+
+      def transform_query_values(*params, &block)
+        params.flatten.map do |p|
+          p.transform_values do |v|
+            v.kind_of?(Hash) ? v.transform_values(&block) : yield(v)
           end
         end
       end

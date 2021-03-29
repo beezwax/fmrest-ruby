@@ -32,5 +32,13 @@ module FmRest
       warn "[DEPRECATION] `FmRest.config` is deprecated, use `FmRest.default_connection_settings` instead"
       default_connection_settings
     end
+
+    # Shortcut for FmRest::V1.escape_find_operators
+    #
+    # @param (see FmRest::V1.escape_find_operators
+    # @return (see FmRest::V1.escape_find_operators
+    def e(s)
+      V1.escape_find_operators(s)
+    end
   end
 end
