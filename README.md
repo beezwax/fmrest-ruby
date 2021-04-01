@@ -9,9 +9,11 @@ using
 [Faraday](https://github.com/lostisland/faraday) and with optional
 ActiveRecord-ish ORM features through [Spyke](https://github.com/balvig/spyke).
 
-fmrest-ruby only partially implements FileMaker 18's Data API.
+fmrest-ruby only partially implements FileMaker 19's Data API.
 See the [implementation completeness table](#api-implementation-completeness-table)
 to see if a feature you need is natively supported by the gem.
+
+[API Documentation](https://rubydoc.info/github/beezwax/fmrest-ruby)
 
 ## Gems
 
