@@ -553,6 +553,6 @@ See [LICENSE.txt](LICENSE.txt).
 
 ## Disclaimer
 
-This project is not sponsored by or otherwise affiliated with FileMaker, Inc,
-an Apple subsidiary. FileMaker is a trademark of FileMaker, Inc., registered in
-the U.S. and other countries.
+This project is not sponsored by or otherwise affiliated with Claris
+International Inc., an Apple Inc. subsidiary. FileMaker is a trademark of
+Claris International, Inc., registered in the U.S. and other countries.
