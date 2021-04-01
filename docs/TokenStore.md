@@ -30,7 +30,7 @@ FmRest.token_store = FmRest::TokenStore::ActiveRecord.new(table_name: "my_token_
 
 ### Redis
 
-To use the Redis token add `gem "redis"` to your Gemfile, then do:
+To use the Redis token store add `gem "redis"` to your Gemfile, then do:
 
 ```ruby
 FmRest.token_store = FmRest::TokenStore::Redis
