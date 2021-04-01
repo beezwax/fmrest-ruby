@@ -2,6 +2,7 @@
 
 [![Gem Version](https://badge.fury.io/rb/fmrest.svg?style=flat)](https://rubygems.org/gems/fmrest)
 ![CI](https://github.com/beezwax/fmrest-ruby/workflows/CI/badge.svg)
+[![Yard Docs](http://img.shields.io/badge/yard-docs-blue.svg)](https://rubydoc.info/github/beezwax/fmrest-ruby)
 
 A Ruby client for
 [FileMaker 18 and 19's Data API](https://help.claris.com/en/data-api-guide)
@@ -12,8 +13,6 @@ ActiveRecord-ish ORM features through [Spyke](https://github.com/balvig/spyke).
 fmrest-ruby only partially implements FileMaker 19's Data API.
 See the [implementation completeness table](#api-implementation-completeness-table)
 to see if a feature you need is natively supported by the gem.
-
-[API Documentation](https://rubydoc.info/github/beezwax/fmrest-ruby)
 
 ## Gems
 
