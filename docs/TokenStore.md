@@ -15,7 +15,6 @@ be dead simple:
 
 ```ruby
 # config/initializers/fmrest.rb
-require "fmrest/token_store/active_record"
 
 FmRest.token_store = FmRest::TokenStore::ActiveRecord
 ```
@@ -31,11 +30,9 @@ FmRest.token_store = FmRest::TokenStore::ActiveRecord.new(table_name: "my_token_
 
 ### Redis
 
-To use the Redis token store do:
+To use the Redis token add `gem "redis"` to your Gemfile, then do:
 
 ```ruby
-require "fmrest/token_store/redis"
-
 FmRest.token_store = FmRest::TokenStore::Redis
 ```
 
@@ -56,21 +53,15 @@ FmRest.token_store = FmRest::TokenStore::Redis.new(redis: Redis.new, prefix: "my
 FmRest.token_store = FmRest::TokenStore::Redis.new(prefix: "my-fancy-prefix:", host: "10.0.1.1", port: 6380, db: 15)
 ```
 
-NOTE: `redis-rb` is not included as a gem dependency of `fmrest-core`, so
-you'll have to add it to your Gemfile.
-
 ### Moneta
 
 [Moneta](https://github.com/moneta-rb/moneta) is a key/value store wrapper
 around many different storage backends. If ActiveRecord or Redis don't suit
 your needs, chances are Moneta will.
 
-To use it:
+To use it add `gem "moneta"` to your Gemfile, then do:
 
 ```ruby
-# config/initializers/fmrest.rb
-require "fmrest/token_store/moneta"
-
 FmRest.token_store = FmRest::TokenStore::Moneta
 ```
 
@@ -92,6 +83,3 @@ FmRest.token_store = FmRest::TokenStore::Moneta.new(
   prefix:  "my-tokens"
 )
 ```
-
-NOTE: the `moneta` gem is not included as a dependency of `fmrest-core`, so
-you'll have to add it to your Gemfile.
