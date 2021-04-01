@@ -1,4 +1,5 @@
 --markup markdown
 --plugin activesupport-concern
+lib/**/*.rb
 -
 docs/*
