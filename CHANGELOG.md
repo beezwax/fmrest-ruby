@@ -1,5 +1,10 @@
 ## Changelog
 
+### 0.15.0
+
+* Much improved querying API (see documentation on querying), adding new
+  `.query` capabilities, as well as two new methods: `.match` and `.or`
+
 ### 0.14.0
 
 * Aliased `FmRest::Spyke::Base` as `FmRest::Layout` (now preferred), and

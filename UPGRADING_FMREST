@@ -1,4 +1,15 @@
 =======================================
+ Notes on upgrading from fmrest < 0.15
+=======================================
+
+There's a breaking change in the way the `.query` method behaves when chained.
+
+Previously it would add new conditions as a logical OR in relation to
+already set ones, whereas now by default it adds new conditions as a logical
+AND relative to existing ones. To keep the old behavior you can use `.or.query`
+in chained query calls instead. See documentation on querying for details.
+
+=======================================
  Notes on upgrading from fmrest < 0.13
 =======================================
 
