@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.15.1
+
+* Fix autoloading of `FmRest::Layout`
+
 ### 0.15.0
 
 * Much improved querying API (see documentation on querying), adding new
