@@ -555,4 +555,4 @@ See [LICENSE.txt](LICENSE.txt).
 
 This project is not sponsored by or otherwise affiliated with Claris
 International Inc., an Apple Inc. subsidiary. FileMaker is a trademark of
-Claris International, Inc., registered in the U.S. and other countries.
+Claris International Inc., registered in the U.S. and other countries.
