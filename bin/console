@@ -2,8 +2,6 @@
 
 require "bundler/setup"
 require "fmrest"
-require "spyke"
-require "fmrest/spyke"
 
 require_relative "../spec/support/fmrest_dummy_config"
 require_relative "../spec/fixtures/pirates"

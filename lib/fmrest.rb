@@ -41,5 +41,10 @@ module FmRest
     def e(s)
       V1.escape_find_operators(s)
     end
+
+    def Layout(*_)
+      require "fmrest/spyke"
+      self.Layout(*_)
+    end
   end
 end
