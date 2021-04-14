@@ -41,7 +41,7 @@ module FmRest
           end
 
           if settings.log
-            conn.response :logger, nil, bodies: true, headers: true
+            conn.response :logger, FmRest.logger, bodies: true, headers: true, log_level: settings.log_level
           end
 
           conn.adapter Faraday.default_adapter
@@ -61,7 +61,7 @@ module FmRest
           conn.basic_auth settings.username!, settings.password!
 
           if settings.log
-            conn.response :logger, nil, bodies: true, headers: true
+            conn.response :logger, FmRest.logger, bodies: true, headers: true, log_level: settings.log_level
           end
 
           conn.response :json

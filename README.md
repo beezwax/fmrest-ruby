@@ -152,6 +152,7 @@ Option              | Description                                | Format       
 `:ssl`              | SSL options to be forwarded to Faraday     | Faraday SSL options         | None
 `:proxy`            | Proxy options to be forwarded to Faraday   | Faraday proxy options       | None
 `:log`              | Log JSON responses to STDOUT               | Boolean                     | `false`
+`:log_level`        | Which log level to log into                | Values accepted by `Logger#level=` | `:debug`
 `:coerce_dates`     | See section on [date fields](#date-fields-and-timezones) | Boolean \| `:hybrid` \| `:full` | `false`
 `:date_format`      | Date parsing format                        | String (FM date format)     | `"MM/dd/yyyy"`
 `:timestamp_format` | Timestmap parsing format                   | String (FM date format)     | `"MM/dd/yyyy HH:mm:ss"`
@@ -457,7 +458,7 @@ If using `fmrest-spyke` with Rails then pretty log output will be set up for
 you automatically by Spyke (see [their
 README](https://github.com/balvig/spyke#log-output)).
 
-You can also enable simple Faraday STDOUT logging of raw requests (useful for
+You can also enable simple Faraday logging of raw requests (useful for
 debugging) by passing `log: true` in the options hash for either
 `FmRest.default_connection_settings=` or your models' `fmrest_config=`, e.g.:
 
@@ -478,7 +479,17 @@ class LoggyBee < FmRest::Layout
 end
 ```
 
-If you need to set up more complex logging for your models can use the
+You can also pass `log_level` to connection settings to change the severity of
+log output (defaults to `:debug`).
+
+By default fmrest-ruby logs to STDOUT or to Rails' logger object if available.
+You can change this by providing your own logger object to `FmRest.logger=`:
+
+```ruby
+FmRest.logger = Logger.new("fmrest.log")
+```
+
+If you need to set up more complex logging for your models you can use the
 `faraday` block inside your class to inject your own logger middleware into the
 Faraday connection, e.g.:
 

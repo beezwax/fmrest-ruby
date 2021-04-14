@@ -15,9 +15,13 @@ module FmRest
 
   class << self
     attr_accessor :token_store
+    attr_writer :logger
 
     def default_connection_settings=(settings)
-      @default_connection_settings = ConnectionSettings.wrap(settings, skip_validation: true)
+      # Skip validation since we may use the defaults for half-complete
+      # settings
+      @default_connection_settings =
+        ConnectionSettings.wrap(settings, skip_validation: true)
     end
 
     def default_connection_settings
@@ -32,6 +36,15 @@ module FmRest
     def config
       warn "[DEPRECATION] `FmRest.config` is deprecated, use `FmRest.default_connection_settings` instead"
       default_connection_settings
+    end
+
+    def logger
+      @logger ||= if defined?(Rails)
+                    Rails.logger
+                  else
+                    require "logger"
+                    Logger.new($stdout)
+                  end
     end
 
     # Shortcut for FmRest::V1.escape_find_operators

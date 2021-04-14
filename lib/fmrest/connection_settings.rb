@@ -24,6 +24,7 @@ module FmRest
       ssl
       proxy
       log
+      log_level
       coerce_dates
       date_format
       timestamp_format
@@ -45,6 +46,7 @@ module FmRest
     DEFAULTS = {
       autologin:        true,
       log:              false,
+      log_level:        :debug,
       date_format:      DEFAULT_DATE_FORMAT,
       time_format:      DEFAULT_TIME_FORMAT,
       timestamp_format: DEFAULT_TIMESTAMP_FORMAT,
