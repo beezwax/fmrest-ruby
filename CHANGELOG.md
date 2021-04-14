@@ -1,5 +1,10 @@
 ## Changelog
 
+### 0.16.0
+
+* Add `FmRest.logger=`
+* Handle serialization of `nil`, `true` and `false` values
+
 ### 0.15.2
 
 * Fix autoloading of `FmRest::Layout`
