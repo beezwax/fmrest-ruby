@@ -85,6 +85,30 @@ RSpec.describe FmRest::Spyke::Model::Serialization do
       end
     end
 
+    context "with a new record with a nil field" do
+      it "serializes the field as an empty string" do
+        record = test_class.new(foo: 1)
+        record.foo = nil # trigger dirty
+        expect(record.to_params).to eq(fieldData: { "Foo" => "" })
+      end
+    end
+
+    context "with a new record with a true field" do
+      subject { test_class.new(foo: true) }
+
+      it "serializes the field as a 1" do
+        expect(subject.to_params).to eq(fieldData: { "Foo" => 1 })
+      end
+    end
+
+    context "with a new record with a false field" do
+      subject { test_class.new(foo: false) }
+
+      it "serializes the field as a 0" do
+        expect(subject.to_params).to eq(fieldData: { "Foo" => 0 })
+      end
+    end
+
     context "with a record with unpersisted portal data" do
       subject do
         ship = Ship.new

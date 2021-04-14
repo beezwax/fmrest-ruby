@@ -73,6 +73,10 @@ module FmRest
         # Modifies the given hash in-place encoding non-string values (e.g.
         # dates) to their string representation when appropriate.
         #
+        # nil gets converted to empty string as the Data API doesn't accept
+        # nulls in JSON. Likewise, true and false get converted to 1 and 0
+        # respectively.
+        #
         def serialize_values!(params)
           params.transform_values! do |value|
             case value
@@ -80,6 +84,10 @@ module FmRest
               FmRest::V1.convert_datetime_timezone(value.to_datetime, fmrest_config.timezone).strftime(FmRest::V1::Dates::FM_DATETIME_FORMAT)
             when *FmRest::V1.date_classes
               value.strftime(FmRest::V1::Dates::FM_DATE_FORMAT)
+            when nil
+              ""
+            when true, false
+              value ? 1 : 0
             else
               value
             end
