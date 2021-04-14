@@ -26,11 +26,12 @@ RSpec.describe FmRest do
   end
 
   describe ".logger" do
+    around(:each) { FmRest.logger = nil }
+
     it "defaults to Rails' logger if available" do
       Object::Rails = double(:Rails, logger: :rails_logger)
       expect(FmRest.logger).to eq(:rails_logger)
       Object.send(:remove_const, :Rails)
-      FmRest.logger = nil # reset memoized value
     end
 
     it "defaults to a new Logger instance Rails is not available" do
