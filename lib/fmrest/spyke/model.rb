@@ -28,6 +28,8 @@ module FmRest
       include GlobalFields
       include Http
       include Auth
+
+      autoload :Rescuable, "fmrest/spyke/model/rescuable"
     end
   end
 end
