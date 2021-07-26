@@ -1,13 +1,19 @@
 ## Changelog
 
+### 0.17.0
+
+* Added support for Claris ID token login
+* Added ability to use procs in settings
+* Added `Rescuable` mixin
+
 ### 0.16.0
 
-* Add `FmRest.logger=`
+* Added `FmRest.logger=`
 * Handle serialization of `nil`, `true` and `false` values
 
 ### 0.15.2
 
-* Fix autoloading of `FmRest::Layout`
+* Fixed autoloading of `FmRest::Layout`
 
 ### 0.15.0
 
@@ -23,13 +29,13 @@
 
 ### 0.13.1
 
-* Fix downloading of container field data from FMS19+
+* Fixed downloading of container field data from FMS19+
 
 ### 0.13.0
 
 * Split `fmrest` gem into `fmrest-core` and `fmrest-spyke`. `fmrest` becomes a
   wrapper for the two new gems.
-* Fix bug preventing connection databases with spaces in their names.
+* Fixed bug preventing connection databases with spaces in their names.
 * Improved portal support with ability to delete portal records, and better
   refreshing of portal records after saving the parent.
 * `FmRest::Spyke::Base#__record_id` and `FmRest::Spyke::Base#__mod_id` now
@@ -44,7 +50,7 @@
 
 ### 0.11.1
 
-* Fix a couple crashes due to missing constants
+* Fixed a couple crashes due to missing constants
 
 ### 0.11.0
 
@@ -59,7 +65,7 @@
 
 ### 0.10.1
 
-* Fix `URI.escape` obsolete warning messages in Ruby 2.7 by replacing it with
+* Fixed `URI.escape` obsolete warning messages in Ruby 2.7 by replacing it with
   `URI.encode_www_form_component`
   ([PR#40](https://github.com/beezwax/fmrest-ruby/pull/40))
 
@@ -133,20 +139,20 @@
 
 ### 0.3.2
 
-* Fix support for ActiveSupport < 5.2
+* Fixed support for ActiveSupport < 5.2
   ([#27](https://github.com/beezwax/fmrest-ruby/issues/27))
 
 ### 0.3.0
 
-* Add Moneta token store
+* Added Moneta token store
 
 ### 0.2.5
 
-* Fix crash in `fetch_container_data` when no proxy options were set
+* Fixed crash in `fetch_container_data` when no proxy options were set
 
 ### 0.2.4
 
 * Use `String#=~` instead of `String#match?` for Ruby <2.4 compatibility (Fixes
   [#26](https://github.com/beezwax/fmrest-ruby/issues/26))
-* Deprecate `FmRest.config` in favor of `FmRest.default_connection_settings`
+* Deprecated `FmRest.config` in favor of `FmRest.default_connection_settings`
 * Honor Faraday SSL and proxy settings when fetching container files
