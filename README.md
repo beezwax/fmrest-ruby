@@ -125,6 +125,10 @@ The minimum required connection settings are `:host`, `:database`, `:username`
 and `:password`, but fmrest-ruby has many other options you can pass when
 setting up a connection (see [full list](#full-list-of-available-options) below).
 
+If you're using FileMaker Cloud you may need to pass `:fmid_token` instead
+of the regular `:username` and `:password`. See the [main document on
+connecting to FileMaker Cloud](docs/FileMakerCloud.md) for more info.
+
 `:ssl` and `:proxy` are forwarded to the underlying
 [Faraday](https://github.com/lostisland/faraday) connection. You can use this
 to, for instance, disable SSL verification:
@@ -149,6 +153,7 @@ Option              | Description                                | Format       
 `:username`         | A Data API-ready account                   | String                      | None
 `:password`         | Your password                              | String                      | None
 `:account_name`     | Alias of `:username`                       | String                      | None
+`:fmid_token`       | Claris ID token (only needed for FileMaker Cloud) | String               | None
 `:ssl`              | SSL options to be forwarded to Faraday     | Faraday SSL options         | None
 `:proxy`            | Proxy options to be forwarded to Faraday   | Faraday proxy options       | None
 `:log`              | Log JSON responses to STDOUT               | Boolean                     | `false`
@@ -283,10 +288,12 @@ Also, if not set, your model will try to use
 #### Connection settings overlays
 
 There may be cases where you want to use a different set of connection settings
-depending on context. For example, if you want to use username and password
-provided by the user in a web application. Since `.fmrest_config`
-is set at the class level, changing the username/password for the model in one
-context would also change it in all other contexts, leading to security issues.
+depending on context, or simply change the connection settings over time. For
+example, if you want to use username and password provided by the user in a web
+application, or if you're connecting using an expiring Claris ID token. Since
+`.fmrest_config` is set at the class level, changing the username/password for
+the model in one context would also change it in all other contexts, leading to
+security issues.
 
 To solve this scenario, fmrest-ruby provides a way of defining thread-local and
 reversible connection settings overlays through
@@ -323,7 +330,7 @@ Requests a Data API session token using the connection settings in
 
 You normally don't need to use this method as fmrest-ruby will automatically
 request and store session tokens for you (provided that `:autologin` is
-`true`).
+`true` in the connection settings, which it is by default).
 
 ### FmRest::Layout.logout
 
@@ -452,6 +459,41 @@ field values on the database that model is configured for.
 See the [main document on setting global field values](docs/GlobalFields.md)
 for details.
 
+### Rescuable mixin
+
+Sometimes you may want to handle Data API errors at the model level. For
+instance, if you're logging in to a file hosted by FileMaker Cloud using a
+Claris ID token, and you want to be able to renew said token when it fails to
+log you in. For such cases fmrest-ruby provides an off-by-default mixin called
+`Rescuable` that provides convenience macros for that. If you've used Ruby on
+Rails you may be familiar with its syntax from controllers. E.g.
+
+```ruby
+class BeeBase < FmRest::Layout
+  include FmRest::Spyke::Model::Rescuable
+
+  rescue_from FmRest::APIError::SystemError, with: :notify_admin_of_system_error
+
+  # Shorthand for rescue_with FmRest::APIError::AccountError, ...
+  rescue_account_error { ClarisIDTokenManager.expire_token }
+
+  def self.notify_admin_of_system_error(e)
+    # Shoot an email to the FM admin...
+  end
+end
+```
+
+Since `Rescuable` uses `ActiveSupport::Rescuable` internally, you may want to
+check [Rails'
+documentation](https://api.rubyonrails.org/classes/ActiveSupport/Rescuable/ClassMethods.html)
+too for details on how it works.
+
+One caveat of using `rescue_from` is that it always catches exceptions at the
+class level, so if you pass a method name to `with:` that method has to be a
+class method. Also note that this will only catch exceptions raised during an
+API call to the Data API server (in other words, only on actions that perform
+an HTTP request).
+
 ## Logging
 
 If using `fmrest-spyke` with Rails then pretty log output will be set up for
@@ -510,7 +552,7 @@ FM Data API reference: https://fmhelp.filemaker.com/docs/18/en/dataapi/
 | Log in using HTTP Basic Auth        | Yes                           | Yes                         |
 | Log in using OAuth                  | No                            | No                          |
 | Log in to an external data source   | No                            | No                          |
-| Log in using a FileMaker ID account | No                            | No                          |
+| Log in using Claris ID account      | Yes                           | Yes                         |
 | Log out                             | Yes                           | Yes                         |
 | Get product information             | Manual*                       | No                          |
 | Get database names                  | Manual*                       | No                          |

@@ -8,7 +8,8 @@ RSpec.describe FmRest::ConnectionSettings do
       host: "host.somewhere",
       username: "bob",
       password: "secret",
-      database: "xyz"
+      database: "xyz",
+      fmid_token: -> { "token".upcase }
     }
   end
 
@@ -48,7 +49,7 @@ RSpec.describe FmRest::ConnectionSettings do
 
     it "validates missing properties" do
       expect { described_class.new({}) }.to raise_error(FmRest::ConnectionSettings::MissingSetting, /`host', `database'/)
-      expect { described_class.new({host: "foo", database: "bar"}) }.to raise_error(FmRest::ConnectionSettings::MissingSetting, /`username' or `token'/)
+      expect { described_class.new({host: "foo", database: "bar"}) }.to raise_error(FmRest::ConnectionSettings::MissingSetting, /`username', `fmid_token' or `token'/)
     end
 
     it "doesn't validate if skip_validation: true is given" do
@@ -69,6 +70,10 @@ RSpec.describe FmRest::ConnectionSettings do
       expect(subject[:time_format]).to eq(FmRest::ConnectionSettings::DEFAULT_TIME_FORMAT)
       expect(subject[:timestamp_format]).to eq(FmRest::ConnectionSettings::DEFAULT_TIMESTAMP_FORMAT)
       expect(subject[:autologin]).to eq(true)
+    end
+
+    it "evaluates procs" do
+      expect(subject[:fmid_token]).to eq("TOKEN")
     end
 
     it "returns the requested property's default only if it was not given explicitly" do

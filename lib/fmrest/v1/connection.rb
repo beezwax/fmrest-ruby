@@ -9,6 +9,7 @@ module FmRest
       DATABASES_PATH = "#{BASE_PATH}/databases"
 
       AUTH_HEADERS = { "Content-Type" => "application/json" }.freeze
+      CLARIS_ID_HTTP_AUTH_TYPE = "FMID"
 
       # Builds a complete DAPI Faraday connection with middleware already
       # configured to handle authentication, JSON parsing, logging and DAPI
@@ -58,7 +59,11 @@ module FmRest
         base_connection(settings, { headers: AUTH_HEADERS }) do |conn|
           conn.use RaiseErrors
 
-          conn.basic_auth settings.username!, settings.password!
+          if settings.fmid_token?
+            conn.authorization CLARIS_ID_HTTP_AUTH_TYPE, settings.fmid_token
+          else
+            conn.basic_auth settings.username!, settings.password!
+          end
 
           if settings.log
             conn.response :logger, FmRest.logger, bodies: true, headers: true, log_level: settings.log_level

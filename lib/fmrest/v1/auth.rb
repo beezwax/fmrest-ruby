@@ -3,6 +3,8 @@
 module FmRest
   module V1
     module Auth
+      ACCESS_TOKEN_HEADER = "X-FM-Data-Access-Token"
+
       # Requests a token through basic auth
       #
       # @param connection [Faraday] the auth connection to use for
@@ -23,7 +25,7 @@ module FmRest
       # @raise [FmRest::APIError::AccountError] if authentication failed
       def request_auth_token!(connection = FmRest.V1.auth_connection)
         resp = connection.post(V1.session_path)
-        resp.body["response"]["token"]
+        resp.headers[ACCESS_TOKEN_HEADER] || resp.body["response"]["token"]
       end
     end
   end

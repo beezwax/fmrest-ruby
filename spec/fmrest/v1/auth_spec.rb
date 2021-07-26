@@ -9,7 +9,7 @@ RSpec.describe FmRest::V1::Auth do
 
   describe "#request_auth_token!" do
     it "returns the token when successful" do
-      stub_request(:post, fm_url + "/sessions").to_return_fm(token: "imatoken")
+      stub_request(:post, fm_url + "/sessions").to_return_fm({}, headers: { "X-FM-Data-Access-Token" => "imatoken" })
       expect(extendee.request_auth_token!(connection)).to eq("imatoken")
     end
 
@@ -21,7 +21,7 @@ RSpec.describe FmRest::V1::Auth do
 
   describe "#request_auth_token" do
     it "returns the token when successful" do
-      stub_request(:post, fm_url + "/sessions").to_return_fm(token: "imatoken")
+      stub_request(:post, fm_url + "/sessions").to_return_fm({}, headers: { "X-FM-Data-Access-Token" => "imatoken" })
       expect(extendee.request_auth_token(connection)).to eq("imatoken")
     end
 

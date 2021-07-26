@@ -1,10 +1,12 @@
 ## Connection setting overlays
 
 There may be cases where you want to use a different set of connection settings
-depending on context. For example, if you want to use username and password
-provided by the user in a web application. Since `.fmrest_config` is set at the
-class level, changing the username/password for the model in one context would
-also change it in all other contexts, leading to security issues.
+depending on context, or simply change the connection settings over time. For
+example, if you want to use username and password provided by the user in a web
+application, or if you're connecting using an expiring Claris ID token. Since
+`.fmrest_config` is set at the class level, changing the username/password for
+the model in one context would also change it in all other contexts, leading to
+security issues.
 
 fmrest-ruby solves this scenario with the following methods:
 

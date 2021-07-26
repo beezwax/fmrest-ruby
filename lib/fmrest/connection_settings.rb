@@ -18,6 +18,7 @@ module FmRest
       database
       username
       password
+      fmid_token
       token
       token_store
       autologin
@@ -69,13 +70,12 @@ module FmRest
 
     PROPERTIES.each do |p|
       define_method(p) do
-        get(p)
+        get_eval(p)
       end
 
       define_method("#{p}!") do
-        r = get(p)
-        raise MissingSetting, "Missing required setting: `#{p}'" if r.nil?
-        r
+        raise MissingSetting, "Missing required setting: `#{p}'" if get(p).nil?
+        get_eval(p)
       end
 
       define_method("#{p}?") do
@@ -85,7 +85,7 @@ module FmRest
 
     def [](key)
       raise ArgumentError, "Unknown setting `#{key}'" unless PROPERTIES.include?(key.to_sym)
-      get(key)
+      get_eval(key)
     end
 
     def to_h
@@ -104,12 +104,17 @@ module FmRest
       missing = REQUIRED.select { |r| get(r).nil? }.map { |m| "`#{m}'" }
       raise MissingSetting, "Missing required setting(s): #{missing.join(', ')}" unless missing.empty?
 
-      unless username? || token?
-        raise MissingSetting, "A minimum of `username' or `token' are required to be able to establish a connection"
+      unless username? || fmid_token? || token?
+        raise MissingSetting, "A minimum of `username', `fmid_token' or `token' are required to be able to establish a connection"
       end
     end
 
     private
+
+    def get_eval(key)
+      c = get(key)
+      c.kind_of?(Proc) ? c.call : c
+    end
 
     def get(key)
       return @settings[key.to_sym] if @settings.has_key?(key.to_sym)

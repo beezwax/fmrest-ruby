@@ -104,8 +104,24 @@ RSpec.describe FmRest::V1::Connection do
       expect(connection.headers).to include("Content-Type"=>"application/json")
     end
 
-    it "returns a Faraday::Connection that sets HTTP basic auth headers" do
-      expect(connection.headers).to include("Authorization" => /\ABasic .+\Z/)
+    context "when given username and password" do
+      it "returns a Faraday::Connection that sets HTTP basic auth headers" do
+        expect(connection.headers).to include("Authorization" => /\ABasic .+\Z/)
+      end
+    end
+
+    context "when given a fmid_token" do
+      let :conn_settings do
+        {
+          host: "example.com",
+          database: "Test DB",
+          fmid_token: "ThisIsAToken"
+        }
+      end
+
+      it "returns a Faraday::Connection that sets FMID auth headers" do
+        expect(connection.headers).to include("Authorization" => /\AFMID ThisIsAToken\Z/)
+      end
     end
 
     it "returns a Faraday::Connection that uses RaiseErrors" do
