@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.17.1
+
+* Fixed crash when `fmid_token` is set but `username` isn't
+
 ### 0.17.0
 
 * Added support for Claris ID token login
