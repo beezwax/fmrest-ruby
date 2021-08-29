@@ -91,6 +91,35 @@ RSpec.describe FmRest::V1::TokenSession do
       end
     end
 
+    context "with an fmid_token set in connection settings" do
+      let(:config) do
+        {
+          host:        "https://#{hostname}",
+          database:    "MyDB",
+          fmid_token:  "very-long-cognito-id-token",
+          token_store: token_store,
+          token:       config_token,
+          autologin:   autologin
+        }
+      end
+
+      context "with a valid token" do
+        let(:token) { "FILEMAKER_CLOUD_TOKEN" }
+
+        before do
+          token_store.store("#{hostname}:#{config[:database]}:#{Digest::SHA256.hexdigest(config[:fmid_token])}", token)
+
+          @stubbed_request =
+            stub_request(:get, "https://#{hostname}/").with(headers: { "Authorization" => "Bearer #{token}" }).to_return_fm
+        end
+
+        it "sets the token header" do
+          faraday.get("/")
+          expect(@stubbed_request).to have_been_requested.once
+        end
+      end
+    end
+
     context "with an invalid token" do
       let(:token) { "INVALID_TOKEN" }
       let(:new_token) { "SHINY_NEW_TOKEN" }

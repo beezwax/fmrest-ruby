@@ -100,7 +100,13 @@ module FmRest
             # Strip the host part to just the hostname (i.e. no scheme or port)
             host = @settings.host!
             host = URI(host).hostname if host =~ /\Ahttps?:\/\//
-            "#{host}:#{@settings.database!}:#{@settings.username!}"
+            identity_segment = if fmid_token = @settings.fmid_token
+                                 require "digest"
+                                 Digest::SHA256.hexdigest(fmid_token)
+                               else
+                                 @settings.username!
+                               end
+            "#{host}:#{@settings.database!}:#{identity_segment}"
           end
       end
 
