@@ -101,7 +101,7 @@ honeybee.missions << Task.new << Task.new
 
 Note that even though `fmrest-spyke` will allow you to add persisted records to
 the association through `<<`, far as we're aware the Data API doesn't support
-adding existing pre-records to a portal, so saving the parent record in such a
+adding pre-existing records to a portal, so saving the parent record in such a
 case will have no effect.
 
 ### Deleting portal records
