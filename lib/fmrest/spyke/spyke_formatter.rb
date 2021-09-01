@@ -195,8 +195,8 @@ module FmRest
         out
       end
 
-      # Extracts `recordId` and strips the `"PortalName::"` field prefix for each
-      # portal
+      # Extracts `recordId` and strips the `"tableName::"` field qualifier for
+      # each portal
       #
       # Sample `json_portal_data`:
       #
@@ -210,19 +210,33 @@ module FmRest
       # @return [Hash] the portal data in Spyke format
       def prepare_portal_data(json_portal_data)
         json_portal_data.each_with_object({}) do |(portal_name, portal_records), out|
+
           portal_options = @model.portal_options[portal_name.to_s] || {}
+          portal_builder = @model.associations[portal_options[:name].to_sym]
+          portal_class = portal_builder && portal_builder.klass
+          portal_attributes = (portal_class && portal_class.mapped_attributes.values) || []
 
           out[portal_name] =
             portal_records.map do |portal_fields|
               attributes = { __record_id: portal_fields[:recordId] }
               attributes[:__mod_id] = portal_fields[:modId] if portal_fields[:modId]
 
-              prefix = portal_options[:attribute_prefix] || portal_name
-              prefix_matcher = /\A#{prefix}::/
+              qualifier = portal_options[:attribute_prefix] || portal_name
+              qualifier_matcher = /\A#{qualifier}::/
 
               portal_fields.each do |k, v|
                 next if :recordId == k || :modId == k
-                attributes[k.to_s.gsub(prefix_matcher, "").to_sym] = v
+
+                stripped_field_name = k.to_s.gsub(qualifier_matcher, "")
+
+                # Only use the non-qualified attribute name if it was defined
+                # that way on the portal model, otherwise default to the fully
+                # qualified name
+                if portal_attributes.include?(stripped_field_name)
+                  attributes[stripped_field_name.to_sym] = v
+                else
+                  attributes[k.to_sym] = v
+                end
               end
 
               attributes

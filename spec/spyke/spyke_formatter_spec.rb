@@ -1,4 +1,8 @@
+# frozen_string_literal: true
+
 require "spec_helper"
+
+require "fixtures/pirates"
 
 # Custom matcher module for comparing Metadata objects
 #
@@ -167,9 +171,48 @@ RSpec.describe FmRest::Spyke::SpykeFormatter do
           __record_id: "1",
           __mod_id: "1",
           foo: "Foo",
-          portal1: [{ bar: "Bar", __record_id: "1", __mod_id: "1" }]
+          portal1: [{ "PortalOne::bar": "Bar", __record_id: "1", __mod_id: "1" }]
         }
       )
+    end
+
+    context "when the model defines a portal with a qualifier" do
+      let(:model) { Ship }
+
+      let :response_json do
+        {
+          response: {
+            data: [{
+              fieldData: {},
+
+              portalData: {
+                PiratesPortal: [{
+                  "Pirate::Name": "Bar",
+                  recordId: "1",
+                  modId: "1"
+                }]
+              },
+
+              modId: "1",
+              recordId: "1"
+            }],
+
+            dataInfo: data_info
+          },
+
+          messages: [{ code: "0", message: "OK" }]
+        }
+      end
+
+      it "strips the qualifier from the formatted hash" do
+        response = faraday.get('/records/1')
+
+        expect(response.body).to include(
+          data: hash_including(
+            PiratesPortal: [hash_including(Name: "Bar")]
+          )
+        )
+      end
     end
   end
 
@@ -185,7 +228,7 @@ RSpec.describe FmRest::Spyke::SpykeFormatter do
           __record_id: "1",
           __mod_id: "1",
           foo: "Foo",
-          portal1: [{ bar: "Bar", __record_id: "1", __mod_id: "1" }]
+          portal1: [{ "PortalOne::bar": "Bar", __record_id: "1", __mod_id: "1" }]
         }]
       )
     end
@@ -203,7 +246,7 @@ RSpec.describe FmRest::Spyke::SpykeFormatter do
           __record_id: "1",
           __mod_id: "1",
           foo: "Foo",
-          portal1: [{ bar: "Bar", __record_id: "1", __mod_id: "1" }]
+          portal1: [{ "PortalOne::bar": "Bar", __record_id: "1", __mod_id: "1" }]
         }]
       )
     end

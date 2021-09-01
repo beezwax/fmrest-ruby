@@ -68,4 +68,14 @@ RSpec.describe FmRest::V1::Utils do
       expect(extendee.escape_find_operators("abc@*#?!=<>xyz")).to eq("abc\\@\\*\\#\\?\\!\\=\\<\\>xyz")
     end
   end
+
+  describe "#is_fully_qualified?" do
+    it "returns true when given a valid FM fully-qualified field name" do
+      expect(extendee.is_fully_qualified?("table::field")).to eq(true)
+    end
+
+    it "returns false when given a non-FQN field name" do
+      expect(extendee.is_fully_qualified?("field")).to eq(false)
+    end
+  end
 end

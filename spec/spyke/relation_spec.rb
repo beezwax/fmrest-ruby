@@ -21,7 +21,7 @@ RSpec.describe FmRest::Spyke::Relation do
 
     it "sets the default sort if any" do
       test_class.default_sort = [:foo, :bar]
-      expect(relation.sort_params).to eq([{ fieldName: :foo }, { fieldName: :bar }])
+      expect(relation.sort_params).to eq([{ fieldName: "foo" }, { fieldName: "bar" }])
     end
   end
 
@@ -72,10 +72,10 @@ RSpec.describe FmRest::Spyke::Relation do
         expect(sort_scope).to_not eq(relation)
         expect(sort_scope).to be_a(FmRest::Spyke::Relation)
         expect(sort_scope.sort_params).to \
-          eq([{ fieldName: :foo },
-              { fieldName: :bar, sortOrder: "descend" },
-              { fieldName: :bar, sortOrder: "descend" },
-              { fieldName: :bar, sortOrder: "descend" }])
+          eq([{ fieldName: "foo" },
+              { fieldName: "bar", sortOrder: "descend" },
+              { fieldName: "bar", sortOrder: "descend" },
+              { fieldName: "bar", sortOrder: "descend" }])
       end
     end
 
@@ -463,7 +463,7 @@ RSpec.describe FmRest::Spyke::Relation do
 
       expect(scope.limit_value).to eq(10)
       expect(scope.offset_value).to eq(10)
-      expect(scope.sort_params).to eq([{fieldName: :foo}])
+      expect(scope.sort_params).to eq([{fieldName: "foo"}])
       expect(scope.query_params).to eq([{"foo" => 1}])
     end
   end

@@ -90,7 +90,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
 
       it "applies portal JSON param" do
         request = stub_request(:post, fm_url(layout: "Ships") + "/_find")
-          .with(body: hash_including(portal: ["PiratesTable", "Flags"]))
+          .with(body: hash_including(portal: ["PiratesPortal", "Flags"]))
           .to_return_fm
         Ship.query(name: "Mary Celeste").portal(:crew, "Flags").fetch
         expect(request).to have_been_requested
@@ -115,7 +115,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
       it "applies portal limit param" do
         request = stub_request(:post, fm_url(layout: "Ships") + "/_find")
          .with(
-           body: { portal: ["PiratesTable", "Flags"], "limit.PiratesTable" => 10, query: [{ name: "Mary Celeste" }] },
+           body: { portal: ["PiratesPortal", "Flags"], "limit.PiratesPortal" => 10, query: [{ name: "Mary Celeste" }] },
          ).to_return_fm
         Ship.query(name: "Mary Celeste").portal(:crew, "Flags").limit(crew: 10).fetch
         expect(request).to have_been_requested
@@ -124,7 +124,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
       it "applies portal offset param" do
         request = stub_request(:post, fm_url(layout: "Ships") + "/_find")
          .with(
-           body: { portal: ["PiratesTable", "Flags"], "offset.PiratesTable" => 10, query: [{ name: "Mary Celeste" }] },
+           body: { portal: ["PiratesPortal", "Flags"], "offset.PiratesPortal" => 10, query: [{ name: "Mary Celeste" }] },
          ).to_return_fm
         Ship.query(name: "Mary Celeste").portal(:crew, "Flags").offset(crew: 10).fetch
         expect(request).to have_been_requested
@@ -133,7 +133,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
       it "applies both portal offset and limit params" do
         request = stub_request(:post, fm_url(layout: "Ships") + "/_find")
          .with(
-           body: { portal: ["PiratesTable", "Flags"], "offset.PiratesTable" => 10,  "limit.PiratesTable" => 10, query: [{ name: "Mary Celeste" }] },
+           body: { portal: ["PiratesPortal", "Flags"], "offset.PiratesPortal" => 10,  "limit.PiratesPortal" => 10, query: [{ name: "Mary Celeste" }] },
          ).to_return_fm
         Ship.query(name: "Mary Celeste").portal(:crew, "Flags").offset(crew: 10).limit(crew: 10).fetch
         expect(request).to have_been_requested
@@ -196,7 +196,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
 
       it "applies portal URI param" do
         request = stub_request(:get, fm_url(layout: "Ships") + "/records")
-          .with(query: { portal: ["PiratesTable", "Flags"].to_json })
+          .with(query: { portal: ["PiratesPortal", "Flags"].to_json })
           .to_return_fm
         Ship.portal(:crew, "Flags").fetch
         expect(request).to have_been_requested
@@ -212,7 +212,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
 
       it "applies portal limit URI param" do
         request = stub_request(:get, fm_url(layout: "Ships") + "/records")
-          .with(query: { portal: ["PiratesTable", "Flags"].to_json, "_limit.PiratesTable" => 10 })
+          .with(query: { portal: ["PiratesPortal", "Flags"].to_json, "_limit.PiratesPortal" => 10 })
           .to_return_fm
         Ship.portal(:crew, "Flags").limit(crew: 10).fetch
         expect(request).to have_been_requested
@@ -220,7 +220,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
 
       it "applies portal offset URI param" do
         request = stub_request(:get, fm_url(layout: "Ships") + "/records")
-          .with(query: { portal: ["PiratesTable"].to_json, "_offset.PiratesTable" => 10 })
+          .with(query: { portal: ["PiratesPortal"].to_json, "_offset.PiratesPortal" => 10 })
           .to_return_fm
         Ship.portal(:crew).offset(crew: 10).fetch
         expect(request).to have_been_requested
@@ -229,9 +229,9 @@ RSpec.describe FmRest::Spyke::Model::Orm do
       it "applies both portal offset and limit URI params" do
         request = stub_request(:get, fm_url(layout: "Ships") + "/records")
           .with(query: {
-            portal: ["PiratesTable"].to_json,
-            "_offset.PiratesTable" => 10,
-            "_limit.PiratesTable" => 10
+            portal: ["PiratesPortal"].to_json,
+            "_offset.PiratesPortal" => 10,
+            "_limit.PiratesPortal" => 10
           })
           .to_return_fm
         Ship.portal(:crew).offset(crew: 10).limit(crew: 10).fetch

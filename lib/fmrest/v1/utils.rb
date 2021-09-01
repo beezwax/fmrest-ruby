@@ -8,6 +8,8 @@ module FmRest
       # See https://help.claris.com/en/pro-help/content/finding-text.html
       FM_FIND_OPERATORS_RE = /([@\*#\?!=<>"])/
 
+      FULLY_QUALIFIED_FIELD_NAME_MATCHER = /\A[^:]+::[^:]+\Z/.freeze
+
       # Converts custom script options to a hash with the Data API's expected
       # JSON script format.
       #
@@ -102,6 +104,18 @@ module FmRest
       #   backslashes
       def escape_find_operators(s)
         s.gsub(FM_FIND_OPERATORS_RE, "\\\\\\1")
+      end
+
+      # Returns whether the given FileMaker field name is a fully-qualified
+      # name. In other words, whether it contains the string "::".
+      #
+      # Note that this is a simple naive check which doesn't account for
+      # invalid field names.
+      #
+      # @param field_name [String] The field name to test
+      # @return [Boolean] Whether the field is a FQN
+      def is_fully_qualified?(field_name)
+        FULLY_QUALIFIED_FIELD_NAME_MATCHER === field_name.to_s
       end
 
       private

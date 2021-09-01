@@ -26,7 +26,7 @@ module FmRest
         def serialize_for_portal(portal)
           params =
             changed_params.except(:__record_id).transform_keys do |key|
-              "#{portal.attribute_prefix}::#{key}"
+              V1.is_fully_qualified?(key) ? key : "#{portal.attribute_prefix}::#{key}"
             end
 
           params[:recordId] = __record_id.to_s if __record_id

@@ -6,8 +6,6 @@ module FmRest
       module GlobalFields
         extend ::ActiveSupport::Concern
 
-        FULLY_QUALIFIED_FIELD_NAME_MATCHER = /\A[^:]+::[^:]+\Z/.freeze
-
         class_methods do
           def set_globals(values_hash)
             connection.patch(FmRest::V1.globals_path, {
@@ -26,7 +24,7 @@ module FmRest
                 next
               end
 
-              unless FULLY_QUALIFIED_FIELD_NAME_MATCHER === k.to_s
+              unless V1.is_fully_qualified?(k.to_s)
                 raise ArgumentError, "global fields must be given in fully qualified format (table name::field name)"
               end
 

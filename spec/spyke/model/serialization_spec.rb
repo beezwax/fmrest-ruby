@@ -113,7 +113,7 @@ RSpec.describe FmRest::Spyke::Model::Serialization do
       subject do
         ship = Ship.new
         ship.crew.build name: "Mortimer"
-        ship.crew.build name: "Jojo"
+        ship.crew.build name: "Jojo", parrot_name: "Polly"
         ship.crew.build
         ship
       end
@@ -122,9 +122,9 @@ RSpec.describe FmRest::Spyke::Model::Serialization do
         expect(subject.to_params).to eq(
           fieldData: {},
           portalData: {
-            "PiratesTable" => [
+            "PiratesPortal" => [
               { "Pirate::Name" => "Mortimer" },
-              { "Pirate::Name" => "Jojo" },
+              { "Pirate::Name" => "Jojo", "Parrot::Name" => "Polly" },
               {}
             ]
           }
@@ -145,7 +145,7 @@ RSpec.describe FmRest::Spyke::Model::Serialization do
 
         expect(subject.to_params).to include(
           fieldData: {
-            deleteRelated: "PiratesTable.1"
+            deleteRelated: "PiratesPortal.1"
           }
         )
       end
@@ -155,7 +155,7 @@ RSpec.describe FmRest::Spyke::Model::Serialization do
 
         expect(subject.to_params).to match(
           fieldData: {
-            deleteRelated: ["PiratesTable.1", "PiratesTable.2"]
+            deleteRelated: ["PiratesPortal.1", "PiratesPortal.2"]
           }
         )
       end

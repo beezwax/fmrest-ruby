@@ -42,17 +42,17 @@ RSpec.describe FmRest::Spyke::Model::Associations do
                 },
 
                 portalData: {
-                  PiratesTable: [
+                  PiratesPortal: [
                     {
-                      "Pirate::name": "Hendrick van der Decken",
-                      "Pirate::rank": "Captain",
+                      "Pirate::Name": "Hendrick van der Decken",
+                      "Pirate::Rank": "Captain",
                       recordId: "1",
                       modId: "0"
                     },
 
                     {
-                      "Pirate::name": "Marthijn van het Vriesendijks",
-                      "Pirate::rank": "First Officer",
+                      "Pirate::Name": "Marthijn van het Vriesendijks",
+                      "Pirate::Rank": "First Officer",
                       recordId: "2",
                       modId: "0"
                     }
@@ -126,7 +126,7 @@ RSpec.describe FmRest::Spyke::Model::Associations do
       ship.crew.build(name: "Luffy")
       ship.crew.build(name: "Hook")
 
-      ship.__new_portal_record_info = [tableName: "PiratesTable", recordId: 5]
+      ship.__new_portal_record_info = [tableName: "PiratesPortal", recordId: 5]
 
       expect(ship.crew[0].__record_id).to eq(4)
       expect(ship.crew[1].__record_id).to eq(5)
