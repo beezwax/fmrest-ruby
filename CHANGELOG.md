@@ -1,5 +1,11 @@
 ## Changelog
 
+### 0.18.0
+
+* Better support for portals with mismatching field qualifiers
+* Defining an attribute on a model that would collide with an existing method
+  now raises an error
+
 ### 0.17.1
 
 * Fixed crash when `fmid_token` is set but `username` isn't
