@@ -94,11 +94,17 @@ module FmRest
           end
 
           def _fmrest_define_attribute(from, to)
+            if existing_method = ((method_defined?(from) || private_method_defined?(from)) && from) ||
+                                 ((method_defined?("#{from}=") || private_method_defined?("#{from}=")) && "#{from}=")
+
+              raise ArgumentError, "You tried to define an attribute named `#{from}' on `#{name}', but this will generate a instance method `#{existing_method}', which is already defined by FmRest::Layout."
+            end
+
             # We use a setter here instead of injecting the hash key/value pair
             # directly with #[]= so that we don't change the mapped_attributes
             # hash on the parent class. The resulting hash is frozen for the
             # same reason.
-            self.mapped_attributes = mapped_attributes.merge(from => to).freeze
+            self.mapped_attributes = mapped_attributes.merge(from => to.to_s).freeze
 
             _fmrest_attribute_methods_container.module_eval do
               define_method(from) do

@@ -7,6 +7,9 @@ RSpec.describe FmRest::Spyke::Model::Attributes do
   let :test_class do
     fmrest_spyke_class do
       attributes foo: "Foo", bar: "Bar"
+
+      define_method(:existing_method) {}
+      define_method(:existing_setter=) {}
     end
   end
 
@@ -31,6 +34,11 @@ RSpec.describe FmRest::Spyke::Model::Attributes do
   describe ".attributes" do
     it "allows setting mapped attributes" do
       expect(test_class.new(foo: "Boo").attributes).to eq("Foo" => "Boo")
+    end
+
+    it "raises an exception if an attribute name collides with an existing method name" do
+      expect { test_class.attributes(existing_method: "Doesn't") }.to raise_error(ArgumentError, /`existing_method'/)
+      expect { test_class.attributes(existing_setter: "Matter") }.to raise_error(ArgumentError, /`existing_setter='/)
     end
 
     it "creates dirty methods for the given attributes" do
