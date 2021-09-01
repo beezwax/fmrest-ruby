@@ -12,56 +12,74 @@ class Honeybee < FmRest::Layout
 end
 
 class Flower < FmRest::Layout
-  attributes :color, :species
+  # Define attributes with fully qualified field names, as they would appear in
+  # the portal
+  attributes species: "Flowers::Species",
+             color:   "Flowers::Color"
 end
 ```
 
-In this case fmrest-ruby will expect the portal table name and portal object
-name to be both "flowers", i.e. the expected portal portion of the Data API
-JSON should look like this:
+In this case fmrest-ruby will expect the portal name to match the name given to
+`has_portal` (`flowers` in the above example), i.e. the expected portal portion
+of the Data API JSON should look like this:
 
 ```json
 …
 "portalData": {
   "flowers": [
     {
-      "flowers::color": "red",
-      "flowers::species": "rose"
+      "Flowers::Species": "rose",
+      "Flowers::Color": "red"
     }
   ]
 }
 ```
 
-If you need to specify different values for them you can do so with
-`portal_key` for the portal table name, and `attribute_prefix` for the portal
-object name, and `class_name`, e.g.:
+If you need to specify a different portal name you can do so with `portal_key`.
+You can also specify a different class to be used for the portal records with
+`class_name`, e.g.:
 
 ```ruby
 class Honeybee < FmRest::Layout
-  has_portal :pollinated_flowers, portal_key: "Bee Flowers",
-                                  attribute_prefix: "Flower",
-                                  class_name: "Flower"
+  has_portal :flowers, portal_key: "Flowers Portal",
+                       class_name: "BeeFlower"
 end
 ```
 
-The above will use the `Flower` model class and expects the following portal JSON
-portion:
+The above will use the `BeeFlower` model class and expects the following portal
+JSON portion:
 
 ```json
 …
 "portalData": {
-  "Bee Flowers": [
+  "Flowers Portal": [
     {
-      "Flower::color": "white",
-      "Flower::species": "rose"
+      "Flowers::Species": "rose",
+      "Flowers::Color": "white"
     }
   ]
 }
 ```
 
-Notice that despite using `FmRest::Layout` to define our portal models
-(`Flower` in the example above), it is not required to have an actual matching
-layout in FileMaker, as the data would be coming from the portal.
+If all your portal fields share the same qualifier prefix (e.g. `Flowers::`),
+you can specify it to `has_portal` with `attribute_prefix`, that way you don't
+need to repeat it for every attribute in the portal model, e.g.
+
+```ruby
+class Honeybee < FmRest::Layout
+  has_portal :flowers, attribute_prefix: "Flowers"
+end
+
+class Flower < FmRest::Layout
+  attributes species: "Species",
+             color:   "Color"
+end
+```
+
+Notice that despite using `FmRest::Layout` to define our portal model (`Flower`
+in the example above), it doesn't need to have a matching layout in the
+FileMaker application, as the data would be coming from the parent layout's
+portal (e.g. `Honeybee`).
 
 ### Adding records to a portal
 
