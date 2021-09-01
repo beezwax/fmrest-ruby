@@ -543,6 +543,10 @@ class LoggyBee < FmRest::Layout
 end
 ```
 
+## Gotchas
+
+Read about unexpected scenarios in the [gotchas doc](docs/Gotchas.md).
+
 ## API implementation completeness table
 
 FM Data API reference: https://fmhelp.filemaker.com/docs/18/en/dataapi/
