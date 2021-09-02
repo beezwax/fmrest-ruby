@@ -212,7 +212,7 @@ module FmRest
         json_portal_data.each_with_object({}) do |(portal_name, portal_records), out|
 
           portal_options = @model.portal_options[portal_name.to_s] || {}
-          portal_builder = @model.associations[portal_options[:name].to_sym]
+          portal_builder = portal_options[:name] && @model.associations[portal_options[:name].to_sym]
           portal_class = portal_builder && portal_builder.klass
           portal_attributes = (portal_class && portal_class.mapped_attributes.values) || []
 
