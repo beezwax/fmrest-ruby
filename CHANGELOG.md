@@ -3,8 +3,11 @@
 ### 0.18.0
 
 * Better support for portals with mismatching field qualifiers
+* Better ergonomics for script execution, improved documentation
 * Defining an attribute on a model that would collide with an existing method
   now raises an error
+* Cleared Faraday deprecation messages on authentication methods
+* Added fmrest-ruby/VERSION to User-Agent headers
 
 ### 0.17.1
 
