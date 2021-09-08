@@ -78,18 +78,6 @@ module FmRest
             new(attributes).tap(&:save!)
           end
 
-          # Requests execution of a FileMaker script.
-          #
-          # @param script_name [String] the name of the FileMaker script to
-          #   execute
-          # @param param [String] an optional paramater for the script
-          #
-          def execute_script(script_name, param: nil)
-            params = {}
-            params = {"script.param" => param} unless param.nil?
-            request(:get, FmRest::V1::script_path(layout, script_name), params)
-          end
-
           private
 
           def extend_scope_with_fm_params(scope, prefixed: false)

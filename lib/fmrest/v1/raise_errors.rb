@@ -5,10 +5,9 @@ module FmRest
     # FM Data API response middleware for raising exceptions on API response
     # errors
     #
-    # https://fmhelp.filemaker.com/help/17/fmp/en/index.html#page/FMP_Help/error-codes.html
-    #
     class RaiseErrors < Faraday::Response::Middleware
-      # https://fmhelp.filemaker.com/help/17/fmp/en/index.html#page/FMP_Help/error-codes.html
+      # Error codes reference:
+      # https://help.claris.com/en/pro-help/content/error-codes.html
       ERROR_RANGES = {
         -1         => APIError::UnknownError,
         100        => APIError::ResourceMissingError,

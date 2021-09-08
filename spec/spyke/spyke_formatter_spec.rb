@@ -76,6 +76,31 @@ RSpec.describe FmRest::Spyke::DataInfo do
   end
 end
 
+RSpec.describe FmRest::Spyke::ScriptResult do
+  let(:success_instance) { described_class.new("foo", "0") }
+  let(:error_instance) { described_class.new("foo", "3") }
+
+  describe "#success?" do
+    context "with no error" do
+      it { expect(success_instance.success?).to eq(true) }
+    end
+
+    context "with error" do
+      it { expect(error_instance.success?).to eq(false) }
+    end
+  end
+
+  describe "#error?" do
+    context "with no error" do
+      it { expect(success_instance.error?).to eq(false) }
+    end
+
+    context "with error" do
+      it { expect(error_instance.error?).to eq(true) }
+    end
+  end
+end
+
 
 RSpec.describe FmRest::Spyke::SpykeFormatter do
   include MetadataMatchers

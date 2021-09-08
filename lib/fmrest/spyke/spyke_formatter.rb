@@ -6,7 +6,7 @@ require "ostruct"
 module FmRest
   module Spyke
     # Metadata class to be passed to Spyke::Collection#metadata
-    class Metadata < Struct.new(:messages, :script, :data_info)
+    Metadata = Struct.new(:messages, :script, :data_info) do
       alias_method :scripts, :script
     end
 
@@ -14,6 +14,11 @@ module FmRest
       def total_record_count; totalRecordCount; end
       def found_count; foundCount; end
       def returned_count; returnedCount; end
+    end
+
+    ScriptResult = Struct.new(:result, :error) do
+      def success?; error == "0"; end
+      def error?; !success?; end
     end
 
     # Response Faraday middleware for converting FM API's response JSON into
@@ -119,17 +124,18 @@ module FmRest
 
         [:prerequest, :presort].each do |s|
           if json[:response][:"scriptError.#{s}"]
-            results[s] = OpenStruct.new(
-              result: json[:response][:"scriptResult.#{s}"],
-              error:  json[:response][:"scriptError.#{s}"]
+            results[s] = ScriptResult.new(
+              json[:response][:"scriptResult.#{s}"],
+              json[:response][:"scriptError.#{s}"]
             ).freeze
           end
         end
 
+        # after/default script
         if json[:response][:scriptError]
-          results[:after] = OpenStruct.new(
-            result: json[:response][:scriptResult],
-            error:  json[:response][:scriptError]
+          results[:after] = ScriptResult.new(
+            json[:response][:scriptResult],
+            json[:response][:scriptError]
           ).freeze
         end
 

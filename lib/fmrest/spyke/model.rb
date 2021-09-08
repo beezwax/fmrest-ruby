@@ -11,6 +11,7 @@ require "fmrest/spyke/model/container_fields"
 require "fmrest/spyke/model/global_fields"
 require "fmrest/spyke/model/http"
 require "fmrest/spyke/model/auth"
+require "fmrest/spyke/model/script_execution"
 
 module FmRest
   module Spyke
@@ -28,6 +29,7 @@ module FmRest
       include GlobalFields
       include Http
       include Auth
+      include ScriptExecution
 
       autoload :Rescuable, "fmrest/spyke/model/rescuable"
     end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "spec_helper"
 
 require "fixtures/pirates"
@@ -466,34 +468,6 @@ RSpec.describe FmRest::Spyke::Model::Orm do
       expect_any_instance_of(Ship).to_not receive(:save)
       expect_any_instance_of(Ship).to receive(:save!).and_return(true)
       Ship.create!({})
-    end
-  end
-
-  describe "#execute_script" do
-    before { stub_session_login }
-
-    it "runs the script indicated" do
-      request = stub_request(:get, fm_url(layout: "Ships") + "/script/clear_data").to_return_fm
-
-      Ship.execute_script("clear_data")
-
-      expect(request).to have_been_requested
-    end
-
-    it "raises error when script is missing" do
-      request = stub_request(:get, fm_url(layout: "Ships") + "/script/bleh").to_return_fm(
-        104
-      )
-
-      expect { Ship.execute_script("bleh") }.to raise_error(FmRest::APIError::ResourceMissingError)
-    end
-
-    it "sends along any passed parameters" do
-      request = stub_request(:get, fm_url(layout: "Ships") + "/script/clear_data?script.param=some%20string").to_return_fm
-
-      Ship.execute_script("clear_data", param: "some string")
-
-      expect(request).to have_been_requested
     end
   end
 end
