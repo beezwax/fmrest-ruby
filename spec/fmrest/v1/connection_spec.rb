@@ -96,9 +96,7 @@ RSpec.describe FmRest::V1::Connection do
   end
 
   describe "#auth_connection" do
-    let :connection do
-      extendee.auth_connection(conn_settings)
-    end
+    let(:connection) { extendee.auth_connection(conn_settings) }
 
     it "returns a Faraday::Connection that sets the content-type to application/json" do
       expect(connection.headers).to include("Content-Type"=>"application/json")
@@ -106,7 +104,13 @@ RSpec.describe FmRest::V1::Connection do
 
     context "when given username and password" do
       it "returns a Faraday::Connection that sets HTTP basic auth headers" do
-        expect(connection.headers).to include("Authorization" => /\ABasic .+\Z/)
+        request_stub = stub_request(:post, "https://#{conn_settings[:host]}/")
+          .with(basic_auth: [conn_settings[:username], conn_settings[:password]])
+          .to_return_fm
+
+        connection.post("/")
+
+        expect(request_stub).to have_been_requested
       end
     end
 
@@ -120,7 +124,13 @@ RSpec.describe FmRest::V1::Connection do
       end
 
       it "returns a Faraday::Connection that sets FMID auth headers" do
-        expect(connection.headers).to include("Authorization" => /\AFMID ThisIsAToken\Z/)
+        request_stub = stub_request(:post, "https://#{conn_settings[:host]}/")
+          .with(headers: { "Authorization" => "FMID ThisIsAToken" })
+          .to_return_fm
+
+        connection.post("/")
+
+        expect(request_stub).to have_been_requested
       end
     end
 
