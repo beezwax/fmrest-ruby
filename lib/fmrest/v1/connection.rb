@@ -39,7 +39,7 @@ module FmRest
             yield conn, settings
           else
             conn.use TypeCoercer, settings
-            conn.response :json
+            conn.response :json, content_type: /\bjson$/
           end
 
           if settings.log
@@ -70,7 +70,7 @@ module FmRest
             conn.response :logger, FmRest.logger, bodies: true, headers: true, log_level: settings.log_level
           end
 
-          conn.response :json
+          conn.response :json, content_type: /\bjson$/
           conn.adapter Faraday.default_adapter
         end
       end

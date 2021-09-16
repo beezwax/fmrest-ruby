@@ -27,6 +27,17 @@ module FmRest
       }.freeze
 
       def on_complete(env)
+        # Sometimes, especially when using FileMaker Cloud, a failed
+        # authorization request will return a 401 (Unauthorized) with text/html
+        # content-type instead of the regular JSON, so we need to catch it
+        # manually here, emulating a regular account error
+        if !(/\bjson$/ === env.response_headers["content-type"]) && env.status == 401
+          raise FmRest::APIError::AccountError.new(212, "Authentication failed (HTTP 401: Unauthorized)")
+        end
+
+        # From this point on we want JSON
+        return unless env.body.is_a?(Hash)
+
         # Sniff for either straight JSON parsing or Spyke's format
         if env.body[:metadata] && env.body[:metadata][:messages]
           check_errors(env.body[:metadata][:messages])

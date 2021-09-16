@@ -2,6 +2,8 @@ require "webmock/rspec"
 
 class WebMock::RequestStub
   def to_return_json(hash = {}, options = {})
+    options[:headers] ||= {}
+    options[:headers]["Content-Type"] = "application/json"
     options[:body] = JSON.dump(hash)
     to_return(options)
   end

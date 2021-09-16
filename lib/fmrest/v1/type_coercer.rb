@@ -21,7 +21,7 @@ module FmRest
 
       def on_complete(env)
         return unless enabled?
-        return unless env.body.kind_of?(Hash)
+        return unless env.body.is_a?(Hash)
 
         data = env.body.dig("response", "data") || env.body.dig(:response, :data)
 

@@ -132,7 +132,10 @@ module FmRest
       end
 
       def auth_connection
-        @auth_connection ||= V1.auth_connection(@settings)
+        # NOTE: this is purposely not memoized so that settings can be
+        # refreshed (since proc-based settings will not be automatically
+        # re-eval'd, for example for fmid_token-based auth)
+        V1.auth_connection(@settings)
       end
     end
   end
