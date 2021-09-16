@@ -7,6 +7,9 @@
 * Defining an attribute on a model that would collide with an existing method
   now raises an error
 * Cleared Faraday deprecation messages on authentication methods
+* Handle FileMaker Cloud case where HTTP 401 Unauthorized with content-type
+  text/html is returned after token expiry
+* Add retry option to Rescuable mixin
 * Added fmrest-ruby/VERSION to User-Agent headers
 
 ### 0.17.1
