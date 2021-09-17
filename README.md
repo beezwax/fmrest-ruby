@@ -549,9 +549,9 @@ Read about unexpected scenarios in the [gotchas doc](docs/Gotchas.md).
 
 ## API implementation completeness table
 
-FM Data API reference: https://fmhelp.filemaker.com/docs/18/en/dataapi/
+FM Data API reference: https://help.claris.com/en/data-api-guide/
 
-| FM 18 Data API feature              | Supported by basic connection | Supported by FmRest::Layout |
+| FM 19 Data API feature              | Supported by basic connection | Supported by FmRest::Layout |
 |-------------------------------------|-------------------------------|-----------------------------|
 | Log in using HTTP Basic Auth        | Yes                           | Yes                         |
 | Log in using OAuth                  | No                            | No                          |
