@@ -31,6 +31,10 @@ module FmRest
       timestamp_format
       time_format
       timezone
+      cognito_client_id
+      cognito_pool_id
+      aws_region
+      cloud
     ).freeze
 
     # NOTE: password intentionally left non-required since it's only really
@@ -51,7 +55,8 @@ module FmRest
       date_format:      DEFAULT_DATE_FORMAT,
       time_format:      DEFAULT_TIME_FORMAT,
       timestamp_format: DEFAULT_TIMESTAMP_FORMAT,
-      coerce_dates:     false
+      coerce_dates:     false,
+      cloud:            :auto,
     }.freeze
 
     def self.wrap(settings, skip_validation: false)

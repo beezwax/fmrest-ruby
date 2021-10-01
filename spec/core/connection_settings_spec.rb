@@ -66,10 +66,14 @@ RSpec.describe FmRest::ConnectionSettings do
     it "returns the requested property or its default, indifferent of access key (symbol or string)" do
       expect(subject[:username]).to eq("bob")
       expect(subject["username"]).to eq("bob")
+      expect(subject[:autologin]).to eq(true)
+      expect(subject[:log]).to eq(false)
+      expect(subject[:log_level]).to eq(:debug)
       expect(subject[:date_format]).to eq(FmRest::ConnectionSettings::DEFAULT_DATE_FORMAT)
       expect(subject[:time_format]).to eq(FmRest::ConnectionSettings::DEFAULT_TIME_FORMAT)
       expect(subject[:timestamp_format]).to eq(FmRest::ConnectionSettings::DEFAULT_TIMESTAMP_FORMAT)
-      expect(subject[:autologin]).to eq(true)
+      expect(subject[:coerce_dates]).to eq(false)
+      expect(subject[:cloud]).to eq(:auto)
     end
 
     it "evaluates procs" do

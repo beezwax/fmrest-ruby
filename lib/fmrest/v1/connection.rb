@@ -12,6 +12,8 @@ module FmRest
       AUTH_CONNECTION_HEADERS = DEFAULT_HEADERS.merge("Content-Type" => "application/json").freeze
       CLARIS_ID_HTTP_AUTH_TYPE = "FMID"
 
+      FILEMAKER_CLOUD_HOST_MATCHER = /\.filemaker-cloud\.com\Z/.freeze
+
       # Builds a complete DAPI Faraday connection with middleware already
       # configured to handle authentication, JSON parsing, logging and DAPI
       # error handling. A block can be optionally given for additional
@@ -57,11 +59,18 @@ module FmRest
       def auth_connection(settings = FmRest.default_connection_settings)
         settings = ConnectionSettings.wrap(settings)
 
+        if is_cloud_host = cloud_host?(settings)
+          FmRest.require_cloud_support
+        end
+
         base_connection(settings, headers: AUTH_CONNECTION_HEADERS) do |conn|
+          conn.use Cloud::AuthErrorHandler, settings if is_cloud_host
           conn.use RaiseErrors
 
           if settings.fmid_token?
             conn.request :authorization, CLARIS_ID_HTTP_AUTH_TYPE, settings.fmid_token
+          elsif is_cloud_host
+            conn.request :authorization, CLARIS_ID_HTTP_AUTH_TYPE, Cloud::ClarisIdTokenManager.new(settings).fetch_token
           else
             conn.request :basic_auth, settings.username!, settings.password!
           end
@@ -116,6 +125,16 @@ module FmRest
           faraday_options,
           &block
         )
+      end
+
+      private
+
+      def cloud_host?(settings)
+        if settings.cloud == :auto
+          return FILEMAKER_CLOUD_HOST_MATCHER =~ settings.host
+        end
+
+        settings.cloud
       end
     end
   end

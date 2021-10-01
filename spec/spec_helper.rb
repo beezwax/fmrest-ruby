@@ -2,9 +2,7 @@
 
 require "bundler/setup"
 
-require "spyke"
 require "fmrest"
-require "fmrest/token_store/memory"
 require "fmrest/spyke"
 require "pry-byebug"
 
@@ -21,7 +19,7 @@ RSpec.configure do |config|
 
   config.before(:all) do
     # Keep a same instance of the token store for all examples in a group
-    FmRest.token_store = FmRest::TokenStore::Memory.new
+    FmRest.token_store = FmRest::TokenStore::ShortMemory.new
   end
 
   # Reset fixture models' connections

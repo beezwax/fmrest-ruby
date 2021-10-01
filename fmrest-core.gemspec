@@ -14,7 +14,7 @@ Gem::Specification.new do |spec|
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z .yardopts lib CHANGELOG.md LICENSE.txt README.md`.split("\x0").reject do |f|
-    f.match(%r{^(?:lib/fmrest/spyke)})
+    f.match(%r{^(?:lib/fmrest[/-](?:spyke|cloud))})
   end
   spec.bindir        = "exe"
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }

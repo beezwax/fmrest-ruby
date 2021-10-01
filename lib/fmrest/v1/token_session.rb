@@ -7,10 +7,11 @@ module FmRest
     # FM Data API authentication middleware using the credentials strategy
     #
     class TokenSession < Faraday::Middleware
+      include TokenStore
+
       class NoSessionTokenSet < FmRest::Error; end
 
       HEADER_KEY = "Authorization"
-      TOKEN_STORE_INTERFACE = [:load, :store, :delete].freeze
       LOGOUT_PATH_MATCHER = %r{\A(#{FmRest::V1::Connection::DATABASES_PATH}/[^/]+/sessions/)[^/]+\Z}.freeze
 
       # @param app [#call]
@@ -107,23 +108,6 @@ module FmRest
                                  @settings.username!
                                end
             "#{host}:#{@settings.database!}:#{identity_segment}"
-          end
-      end
-
-      def token_store
-        @token_store ||=
-          begin
-            if TOKEN_STORE_INTERFACE.all? { |method| token_store_option.respond_to?(method) }
-              token_store_option
-            elsif token_store_option.kind_of?(Class)
-              if token_store_option.respond_to?(:instance)
-                token_store_option.instance
-              else
-                token_store_option.new
-              end
-            else
-              FmRest::TokenStore::Memory.new
-            end
           end
       end
 

@@ -2,6 +2,8 @@
 
 require "spec_helper"
 
+require "fmrest/cloud"
+
 RSpec.describe FmRest::V1::Connection do
   let(:extendee) { Object.new.tap { |obj| obj.extend(described_class) } }
 
@@ -99,18 +101,46 @@ RSpec.describe FmRest::V1::Connection do
     let(:connection) { extendee.auth_connection(conn_settings) }
 
     it "returns a Faraday::Connection that sets the content-type to application/json" do
-      expect(connection.headers).to include("Content-Type"=>"application/json")
+      expect(connection.headers).to include("Content-Type" => "application/json")
     end
 
     context "when given username and password" do
-      it "returns a Faraday::Connection that sets HTTP basic auth headers" do
-        request_stub = stub_request(:post, "https://#{conn_settings[:host]}/")
-          .with(basic_auth: [conn_settings[:username], conn_settings[:password]])
-          .to_return_fm
+      context "when the host is FileMaker Cloud" do
+        let(:conn_settings) do
+          {
+            host: "guinea-pig-directory.filemaker-cloud.com",
+            database: "Moru DB",
+            username: "bob",
+            password: "secret"
+          }
+        end
 
-        connection.post("/")
+        it "returns a Faraday::Connection that sets FMID auth headers using the ClarisIdTokenManager" do
+          request_stub = stub_request(:post, "https://#{conn_settings[:host]}/")
+            .with(headers: { "Authorization" => "FMID ThisIsAToken" })
+            .to_return_fm
 
-        expect(request_stub).to have_been_requested
+          dummy_token_manager = double
+
+          allow(dummy_token_manager).to receive(:fetch_token).and_return("ThisIsAToken")
+          allow(FmRest::Cloud::ClarisIdTokenManager).to receive(:new).and_return(dummy_token_manager)
+
+          connection.post("/")
+
+          expect(request_stub).to have_been_requested
+        end
+      end
+
+      context "when the host is a regular FileMaker Server" do
+        it "returns a Faraday::Connection that sets HTTP basic auth headers" do
+          request_stub = stub_request(:post, "https://#{conn_settings[:host]}/")
+            .with(basic_auth: [conn_settings[:username], conn_settings[:password]])
+            .to_return_fm
+
+          connection.post("/")
+
+          expect(request_stub).to have_been_requested
+        end
       end
     end
 

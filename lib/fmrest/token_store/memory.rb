@@ -7,19 +7,19 @@ module FmRest
     class Memory < Base
       def initialize(*args)
         super
-        @tokens = {}
+        @@tokens ||= {}
       end
 
       def delete(key)
-        @tokens.delete(key)
+        @@tokens.delete(key)
       end
 
       def load(key)
-        @tokens[key]
+        @@tokens[key]
       end
 
       def store(key, value)
-        @tokens[key] = value
+        @@tokens[key] = value
       end
     end
   end

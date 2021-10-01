@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["pedro_c@beezwax.net"]
 
   spec.summary       = %q{FileMaker Data API client}
-  spec.description   = %q{fmrest is just a wrapper for two other gems: fmrest-core and fmrest-spyke.}
+  spec.description   = %q{FileMaker Data API client with ORM features. This gem is a wrapper for two other gems: fmrest-core and fmrest-spyke.}
   spec.homepage      = "https://github.com/beezwax/fmrest-ruby"
   spec.license       = "MIT"
 

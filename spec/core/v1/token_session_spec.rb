@@ -1,8 +1,9 @@
+# frozen_string_literal: true
+
 require "spec_helper"
-require "fmrest/token_store/memory"
 
 RSpec.describe FmRest::V1::TokenSession do
-  let(:token_store) { FmRest::TokenStore::Memory.new }
+  let(:token_store) { FmRest::TokenStore::ShortMemory.new }
   let(:config_token) { nil }
 
   let(:hostname) { "stub" }

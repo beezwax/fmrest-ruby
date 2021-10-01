@@ -3,7 +3,7 @@
 require "bundler/gem_helper"
 require "rspec/core/rake_task"
 
-gems = %w[fmrest fmrest-core fmrest-spyke]
+gems = Dir[File.join(__dir__, "*.gemspec")].map { |f| File.basename(f, ".gemspec") }
 
 gems.each do |gem|
   namespace gem do

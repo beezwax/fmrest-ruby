@@ -59,5 +59,12 @@ module FmRest
       require "fmrest/spyke"
       self.Layout(*_)
     end
+
+    def require_cloud_support
+      require "fmrest/cloud"
+    rescue LoadError => e
+      e.message << " (Did you include fmrest-cloud in your Gemfile?)" unless e.message.frozen?
+      raise e
+    end
   end
 end
