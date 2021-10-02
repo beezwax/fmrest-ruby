@@ -1,7 +1,7 @@
-## Base connection usage (without ORM)
+## Base connection usage (without ORM features)
 
 This document describes using the base Faraday connection provided by
-`fmrest-core`. If you want the ORM features refer back to the
+the `fmrest-core` gem. If you want the ORM features refer back to the
 [README](../README.md) and `fmrest-spyke`.
 
 To get a Faraday connection that handles the Data API authentication workflow

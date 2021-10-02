@@ -5,14 +5,27 @@
 [![Yard Docs](http://img.shields.io/badge/yard-docs-blue.svg)](https://rubydoc.info/github/beezwax/fmrest-ruby)
 
 A Ruby client for
-[FileMaker 18 and 19's Data API](https://help.claris.com/en/data-api-guide)
-using
-[Faraday](https://github.com/lostisland/faraday) and with optional
-ActiveRecord-ish ORM features through [Spyke](https://github.com/balvig/spyke).
+[FileMaker's Data API](https://help.claris.com/en/data-api-guide)
+with ActiveRecord-ish ORM features.
 
-fmrest-ruby only partially implements FileMaker 19's Data API.
-See the [implementation completeness table](#api-implementation-completeness-table)
-to see if a feature you need is natively supported by the gem.
+While pretty feature-rich, fmrest-ruby doesn't yet support 100% of FileMaker
+19's Data API features. See the [implementation completeness
+table](#api-implementation-completeness-table) to check if a feature you need
+is natively supported by the gem.
+
+## Contents
+
+* [Gems](#gems)
+* [Installation](#installation)
+* [Simple example](#simple-example)
+* [Connection settings](#connection-settings)
+* [Session token store](#session-token-store)
+* [Date fields and timezones](#date-fields-and-timezones)
+* [ActiveRecord-like ORM (fmrest-spyke)](#activerecord-like-orm--fmrest-spyke-)
+* [Logging](#logging)
+* [Gotchas](#gotchas)
+* [API implementation completeness table](#api-implementation-completeness-table)
+* [Supported Ruby versions](#supported-ruby-versions)
 
 ## Gems
 
@@ -20,8 +33,12 @@ The `fmrest` gem is a wrapper for two other gems:
 
 * `fmrest-spyke`, providing an ActiveRecord-like ORM library built on top
   of `fmrest-core` and [Spyke](https://github.com/balvig/spyke).
-* `fmrest-core`, providing the core Faraday connection builder, session
+* `fmrest-core`, providing the core
+  [Faraday](https://github.com/lostisland/faraday) connection builder, session
   management, and other core utilities.
+
+In addition, the optional `fmrest-cloud` gem adds support for FileMaker Cloud
+connections.
 
 ## Installation
 
@@ -29,19 +46,12 @@ Add this to your Gemfile:
 
 ```ruby
 gem 'fmrest'
+
+# Optional: if your files are hosted on FileMaker Cloud
+gem 'fmrest-cloud'
 ```
 
-Or if you just want to use the Faraday connection without the ORM features:
-
-```ruby
-gem 'fmrest-core'
-```
-
-## Simple examples
-
-### ORM example
-
-Most people would want to use the ORM features:
+## Simple example
 
 ```ruby
 # A Layout model connecting to the "Honeybees Web" FileMaker layout
@@ -90,32 +100,9 @@ bee.tasks.build(urgency: "Today")
 bee.save
 ```
 
-### Barebones connection example (without ORM)
-
-In case you don't need the advanced ORM features (e.g. if you only need minimal
-Data API interaction and just want a lightweight solution) you can simply use
-the Faraday connection provided by `fmrest-core`:
-
-```ruby
-connection = FmRest::V1.build_connection(
-  host:     "…",
-  database: "…",
-  username: "…",
-  password: "…"
-)
-
-# Get all records (as parsed JSON)
-connection.get("layouts/FancyLayout/records")
-
-# Create new record
-connection.post do |req|
-  req.url "layouts/FancyLayout/records"
-
-  # You can just pass a hash for the JSON body
-  req.body = { … }
-end
-```
-
+In case you don't want the ORM features (i.e. you only need authentication and
+response parsing, and are comfortable writing the API requests manually without
+the ORM overhead) you can use the Faraday connection provided by `fmrest-core`.
 See the [main document on using the base
 connection](docs/BaseConnectionUsage.md) for more.
 
@@ -125,9 +112,10 @@ The minimum required connection settings are `:host`, `:database`, `:username`
 and `:password`, but fmrest-ruby has many other options you can pass when
 setting up a connection (see [full list](#full-list-of-available-options) below).
 
-If you're using FileMaker Cloud you may need to pass `:fmid_token` instead
-of the regular `:username` and `:password`. See the [main document on
-connecting to FileMaker Cloud](docs/FileMakerCloud.md) for more info.
+If you're using FileMaker Cloud and are getting your Claris ID token manually
+you can pass `:fmid_token` instead of the regular `:username` and `:password`.
+See the [main document on connecting to FileMaker
+Cloud](docs/FileMakerCloud.md) for more info.
 
 `:ssl` and `:proxy` are forwarded to the underlying
 [Faraday](https://github.com/lostisland/faraday) connection. You can use this
@@ -153,7 +141,7 @@ Option              | Description                                | Format       
 `:username`         | A Data API-ready account                   | String                      | None
 `:password`         | Your password                              | String                      | None
 `:account_name`     | Alias of `:username`                       | String                      | None
-`:fmid_token`       | Claris ID token (only needed for FileMaker Cloud) | String               | None
+`:fmid_token`       | Claris ID token (only needed if manually obtaining the token) | String   | None
 `:ssl`              | SSL options to be forwarded to Faraday     | Faraday SSL options         | None
 `:proxy`            | Proxy options to be forwarded to Faraday   | Faraday proxy options       | None
 `:log`              | Log JSON responses to STDOUT               | Boolean                     | `false`
@@ -165,6 +153,10 @@ Option              | Description                                | Format       
 `:timezone`         | The timezone for the FM server             | `:local` \| `:utc` \| `nil` | `nil`
 `:autologin`        | Whether to automatically start Data API sessions | Boolean               | `true`
 `:token`            | Used to manually provide a session token (e.g. if `:autologin` is `false`) | String | None
+`:cloud`            | Specifies whether the host is using FileMaker Cloud | `:auto` \| Boolean | `:auto`
+`:cognito_client_id`| Overwrites the FileMaker Cloud Cognito Client ID | String                | None
+`:cognito_pool_id`  | Overwrites the FileMaker Cloud Cognito Pool ID | String                  | None
+`:aws_region`       | Overwrites the FileMaker Cloud AWS Region | String                       | None
 
 ### Default connection settings
 
@@ -461,21 +453,16 @@ for details.
 
 ### Rescuable mixin
 
-Sometimes you may want to handle Data API errors at the model level. For
-instance, if you're logging in to a file hosted by FileMaker Cloud using a
-Claris ID token, and you want to be able to renew said token when it fails to
-log you in. For such cases fmrest-ruby provides an off-by-default mixin called
-`Rescuable` that provides convenience macros for that. If you've used Ruby on
-Rails you may be familiar with its syntax from controllers. E.g.
+Sometimes you may want to handle Data API errors at the model level. For such
+cases fmrest-ruby provides an off-by-default mixin called `Rescuable` that
+provides convenience macros for that. If you've used Ruby on Rails you may be
+familiar with its syntax from controllers. E.g.
 
 ```ruby
 class BeeBase < FmRest::Layout
   include FmRest::Spyke::Model::Rescuable
 
   rescue_from FmRest::APIError::SystemError, with: :notify_admin_of_system_error
-
-  # Shorthand for rescue_with FmRest::APIError::AccountError, ...
-  rescue_account_error { ClarisIDTokenManager.expire_token }
 
   def self.notify_admin_of_system_error(e)
     # Shoot an email to the FM admin...
@@ -592,21 +579,15 @@ the following Ruby implementations:
 ## Gem development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run
-`rake spec` to run the tests. You can also run `bin/console` for an interactive
-prompt that will allow you to experiment (it will auto-load all fixtures in
-spec/fixtures).
+`bundle exec rspec` to run the specs. You can also run `bin/console` for an
+interactive prompt that will allow you to experiment (it will auto-load all
+fixtures in spec/fixtures).
 
 To install all gems onto your local machine, run
 `bundle exec rake all:install`. To release a new version, update the version
 number in `lib/fmrest/version.rb`, and then run `bundle exec rake all:release`,
 which will create a git tag for the version, push git commits and tags, and
 push the `.gem` files to [rubygems.org](https://rubygems.org).
-
-## License
-
-The gem is available as open source under the terms of the
-[MIT License](https://opensource.org/licenses/MIT).
-See [LICENSE.txt](LICENSE.txt).
 
 ## Disclaimer
 
