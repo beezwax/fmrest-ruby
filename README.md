@@ -533,7 +533,7 @@ FM Data API reference: https://help.claris.com/en/data-api-guide/
 | Log in using HTTP Basic Auth        | Yes                           | Yes                         |
 | Log in using OAuth                  | No                            | No                          |
 | Log in to an external data source   | No                            | No                          |
-| Log in using Claris ID account      | Yes                           | Yes                         |
+| Log in using Claris ID account (FileMaker Cloud) | Yes              | Yes                         |
 | Log out                             | Yes                           | Yes                         |
 | Get product information             | Manual*                       | No                          |
 | Get database names                  | Manual*                       | No                          |
