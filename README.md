@@ -37,12 +37,13 @@ The `fmrest` gem is a wrapper for two other gems:
   [Faraday](https://github.com/lostisland/faraday) connection builder, session
   management, and other core utilities.
 
-In addition, the optional `fmrest-cloud` gem adds support for FileMaker Cloud
-connections.
+In addition, the optional `fmrest-cloud` gem adds support for FileMaker Cloud.
+See the [main document on connecting to FileMaker
+Cloud](docs/FileMakerCloud.md).
 
 ## Installation
 
-Add this to your Gemfile:
+In your Gemfile:
 
 ```ruby
 gem 'fmrest'
@@ -101,8 +102,8 @@ bee.save
 ```
 
 In case you don't want the ORM features (i.e. you only need authentication and
-response parsing, and are comfortable writing the API requests manually without
-the ORM overhead) you can use the Faraday connection provided by `fmrest-core`.
+JSON parsing, and are comfortable writing the API requests manually without the
+ORM overhead) you can use the Faraday connection provided by `fmrest-core`.
 See the [main document on using the base
 connection](docs/BaseConnectionUsage.md) for more.
 
@@ -111,11 +112,6 @@ connection](docs/BaseConnectionUsage.md) for more.
 The minimum required connection settings are `:host`, `:database`, `:username`
 and `:password`, but fmrest-ruby has many other options you can pass when
 setting up a connection (see [full list](#full-list-of-available-options) below).
-
-If you're using FileMaker Cloud and are getting your Claris ID token manually
-you can pass `:fmid_token` instead of the regular `:username` and `:password`.
-See the [main document on connecting to FileMaker
-Cloud](docs/FileMakerCloud.md) for more info.
 
 `:ssl` and `:proxy` are forwarded to the underlying
 [Faraday](https://github.com/lostisland/faraday) connection. You can use this
@@ -141,7 +137,6 @@ Option              | Description                                | Format       
 `:username`         | A Data API-ready account                   | String                      | None
 `:password`         | Your password                              | String                      | None
 `:account_name`     | Alias of `:username`                       | String                      | None
-`:fmid_token`       | Claris ID token (only needed if manually obtaining the token) | String   | None
 `:ssl`              | SSL options to be forwarded to Faraday     | Faraday SSL options         | None
 `:proxy`            | Proxy options to be forwarded to Faraday   | Faraday proxy options       | None
 `:log`              | Log JSON responses to STDOUT               | Boolean                     | `false`
@@ -153,10 +148,11 @@ Option              | Description                                | Format       
 `:timezone`         | The timezone for the FM server             | `:local` \| `:utc` \| `nil` | `nil`
 `:autologin`        | Whether to automatically start Data API sessions | Boolean               | `true`
 `:token`            | Used to manually provide a session token (e.g. if `:autologin` is `false`) | String | None
+`:fmid_token`       | Claris ID token (only needed if manually obtaining the token) | String   | None
 `:cloud`            | Specifies whether the host is using FileMaker Cloud | `:auto` \| Boolean | `:auto`
-`:cognito_client_id`| Overwrites the FileMaker Cloud Cognito Client ID | String                | None
-`:cognito_pool_id`  | Overwrites the FileMaker Cloud Cognito Pool ID | String                  | None
-`:aws_region`       | Overwrites the FileMaker Cloud AWS Region | String                       | None
+`:cognito_client_id`| Overwrites the hardcoded FileMaker Cloud Cognito Client ID | String      | None
+`:cognito_pool_id`  | Overwrites the hardcoded FileMaker Cloud Cognito Pool ID | String        | None
+`:aws_region`       | Overwrites the hardcoded FileMaker Cloud AWS Region | String             | None
 
 ### Default connection settings
 
@@ -199,7 +195,7 @@ See the [main document on date fields](docs/DateFields.md) for more info.
 ## ActiveRecord-like ORM (fmrest-spyke)
 
 [Spyke](https://github.com/balvig/spyke) is an ActiveRecord-like gem for
-building REST ORM models. fmrest-ruby builds its ORM features atop Spyke,
+building REST ORM models. fmrest-ruby uses it to build its ORM features,
 bundled in the `fmrest-spyke` gem (already included if you're using the
 `fmrest` gem).
 
@@ -257,39 +253,33 @@ class Honeybee < FmRest::Layout
 end
 ```
 
-This will automatically create a proper Faraday connection using those
-connection settings, so you don't have to worry about setting that up.
-
-Note that these settings are inheritable, so you could create a base class that
+These settings are class-inheritable, so you could create a base class that
 does the initial connection setup and then inherit from it in models using that
 same connection. E.g.:
 
 ```ruby
-class BeeBase < FmRest::Layout
+class ApplicationFmLayout < FmRest::Layout
   self.fmrest_config = { host: "…", database: "…", … }
 end
 
-class Honeybee < BeeBase
-  # This model will use the same connection as BeeBase
+class Honeybee < ApplicationFmLayout
+  # This model will use the same connection as ApplicationFmLayout
 end
 ```
 
-Also, if not set, your model will try to use
+If `fmrest_config` is not set, your model will try to use
 `FmRest.default_connection_settings` instead.
 
 #### Connection settings overlays
 
 There may be cases where you want to use a different set of connection settings
-depending on context, or simply change the connection settings over time. For
-example, if you want to use username and password provided by the user in a web
-application, or if you're connecting using an expiring Claris ID token. Since
-`.fmrest_config` is set at the class level, changing the username/password for
-the model in one context would also change it in all other contexts, leading to
-security issues.
+depending on context. For example, if you want to use username and password
+provided by the user in a web application. Since `.fmrest_config` is set at the
+class level, changing the username/password for the model in one context would
+also change it in all other contexts, leading to security issues.
 
-To solve this scenario, fmrest-ruby provides a way of defining thread-local and
-reversible connection settings overlays through
-`.fmrest_config_overlay=`.
+To solve this scenario, fmrest-ruby provides a way of defining thread-local,
+reversible connection settings overlays through `.fmrest_config_overlay=`.
 
 See the [main document on connection setting overlays](docs/ConfigOverlays.md)
 for details on how it works.
