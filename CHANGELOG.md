@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.19.0
+
+* Add native support for FileMaker cloud through the `fmrest-cloud` gem
+
 ### 0.18.0
 
 * Better support for portals with mismatching field qualifiers
