@@ -68,9 +68,9 @@ module FmRest
           conn.use RaiseErrors
 
           if settings.fmid_token?
-            conn.request :authorization, CLARIS_ID_HTTP_AUTH_TYPE, settings.fmid_token
+            conn.request :authorization, CLARIS_ID_HTTP_AUTH_TYPE, -> { settings.fmid_token }
           elsif is_cloud_host
-            conn.request :authorization, CLARIS_ID_HTTP_AUTH_TYPE, Cloud::ClarisIdTokenManager.new(settings).fetch_token
+            conn.request :authorization, CLARIS_ID_HTTP_AUTH_TYPE, -> { Cloud::ClarisIdTokenManager.new(settings).fetch_token }
           else
             conn.request :basic_auth, settings.username!, settings.password!
           end

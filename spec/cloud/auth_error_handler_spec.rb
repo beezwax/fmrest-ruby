@@ -1,35 +1,35 @@
 # frozen_string_literal: true
 
 require "spec_helper"
-
 require "fmrest/cloud"
 
 RSpec.describe FmRest::Cloud::AuthErrorHandler do
   describe "#call" do
-    it "expires the Claris ID token if there's an auth error and retries the request" do
-      responses = [
-        [401, {}, "Unauthorized"],
-        [200, {}, "OK"]
-      ]
+    let(:env) { Faraday::Env.from(request_headers: {}) }
+    let(:token_manager) { double }
 
-      faraday = Faraday.new do |conn|
-        conn.use described_class, {}
-        conn.use FmRest::V1::RaiseErrors
+    subject { described_class.new(app, {}) }
 
-        conn.adapter :test do |stub|
-          stub.get '/' do
-            responses.shift
-          end
-        end
+    before do
+      allow(FmRest::Cloud::ClarisIdTokenManager).to receive(:new).and_return(token_manager)
+    end
+
+    context "when there's no error" do
+      let(:app) { double }
+
+      it "calls the next app in the stack" do
+        expect(app).to receive(:call).with(env)
+        subject.call(env)
       end
+    end
 
-      dummy_token_manager = double
+    context "when there's an auth error" do
+      let(:app) { -> (env) { raise FmRest::APIError::AccountError, "None shall pass" } }
 
-      expect(dummy_token_manager).to receive(:expire_token)
-
-      allow(FmRest::Cloud::ClarisIdTokenManager).to receive(:new).and_return(dummy_token_manager)
-
-      expect(faraday.get("/").body).to eq("OK")
+      it "expires the Claris ID token if there's an auth error and retries the request" do
+        expect(token_manager).to receive(:expire_token)
+        expect { subject.call(env) }.to raise_error(FmRest::APIError::AccountError)
+      end
     end
   end
 end
