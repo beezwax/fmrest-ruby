@@ -21,7 +21,7 @@ is natively supported by the gem.
 * [Connection settings](#connection-settings)
 * [Session token store](#session-token-store)
 * [Date fields and timezones](#date-fields-and-timezones)
-* [ActiveRecord-like ORM (fmrest-spyke)](#activerecord-like-orm--fmrest-spyke-)
+* [ActiveRecord-like ORM (fmrest-spyke)](#activerecord-like-orm-fmrest-spyke)
 * [Logging](#logging)
 * [Gotchas](#gotchas)
 * [API implementation completeness table](#api-implementation-completeness-table)
