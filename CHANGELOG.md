@@ -2,7 +2,7 @@
 
 ### 0.19.0
 
-* Add native support for FileMaker cloud through the `fmrest-cloud` gem
+* Added native support for FileMaker Cloud through the `fmrest-cloud` gem
 
 ### 0.18.0
 
