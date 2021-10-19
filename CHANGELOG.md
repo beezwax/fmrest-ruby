@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.20.0
+
+* Forward proxy options to AWS Client when using `fmrest-cloud` gem
+
 ### 0.19.0
 
 * Added native support for FileMaker Cloud through the `fmrest-cloud` gem
