@@ -9,7 +9,10 @@ RSpec.describe FmRest::Cloud::ClarisIdTokenManager do
 
   subject do
     described_class.new(
-      FMREST_DUMMY_CONFIG.merge({ token_store: token_store })
+      FMREST_DUMMY_CONFIG.merge({
+        token_store: token_store,
+        proxy: "http://user:pass@proxy.host"
+      })
     )
   end
 
@@ -17,7 +20,7 @@ RSpec.describe FmRest::Cloud::ClarisIdTokenManager do
 
   describe "#fetch_token" do
     context "with no token present" do
-      it "requests a token through Cognito auth" do
+      before do
         dummy_tokens = double("Tokens",
                               id_token: "DUMMY_ID_TOKEN",
                               refresh_token: "DUMMY_REFRESH_TOKEN")
@@ -25,13 +28,22 @@ RSpec.describe FmRest::Cloud::ClarisIdTokenManager do
         dummy_cognito = double("Cognito", authenticate: dummy_tokens)
 
         allow(Aws::CognitoSrp).to receive(:new).and_return(dummy_cognito)
+      end
 
+      it "requests a token through Cognito auth" do
         expect(subject.fetch_token).to eq("DUMMY_ID_TOKEN")
+      end
+
+      it "forwards proxy options to the AWS client" do
+        expect(Aws::CognitoIdentityProvider::Client).to receive(:new)
+          .with(hash_including(http_proxy: "http://user:pass@proxy.host"))
+
+        subject.fetch_token
       end
     end
 
     context "with no ID token but a refresh token present" do
-      it "requests a token through Cognito refresh" do
+      before do
         token_store.store(
           "claris-cognito:refresh:#{FMREST_DUMMY_CONFIG[:username]}",
           "DUMMY_REFRESH_TOKEN"
@@ -44,7 +56,9 @@ RSpec.describe FmRest::Cloud::ClarisIdTokenManager do
         dummy_cognito = double("Cognito", refresh_tokens: dummy_tokens)
 
         allow(Aws::CognitoSrp).to receive(:new).and_return(dummy_cognito)
+      end
 
+      it "requests a token through Cognito refresh" do
         expect(subject.fetch_token).to eq("DUMMY_ID_TOKEN")
       end
     end

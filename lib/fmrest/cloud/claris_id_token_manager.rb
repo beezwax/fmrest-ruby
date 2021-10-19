@@ -58,8 +58,14 @@ module FmRest
             password: @settings.password!,
             pool_id: @settings.cognito_pool_id || COGNITO_POOL_ID,
             client_id: @settings.cognito_client_id || COGNITO_CLIENT_ID,
-            aws_client: Aws::CognitoIdentityProvider::Client.new(region: @settings.aws_region || AWS_REGION)
+            aws_client: build_aws_client
           )
+      end
+
+      def build_aws_client
+        options = { region: @settings.aws_region || AWS_REGION }
+        options[:http_proxy] = @settings.proxy if @settings.proxy?
+        Aws::CognitoIdentityProvider::Client.new(options)
       end
 
       def token_store_key(token_type = :id)
