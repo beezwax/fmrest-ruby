@@ -13,6 +13,9 @@ While pretty feature-rich, fmrest-ruby doesn't yet support 100% of FileMaker
 table](#api-implementation-completeness-table) to check if a feature you need
 is natively supported by the gem.
 
+Need Ruby or FileMaker consulting? Contact us at
+[Beezwax.net](https://beezwax.net/)
+
 ## Contents
 
 * [Gems](#gems)
