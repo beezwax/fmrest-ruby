@@ -124,7 +124,8 @@ to, for instance, disable SSL verification:
 {
   host: "…",
   …
-  ssl:  { verify: false }
+  ssl:  { verify: false },
+  proxy: "http://user:password@proxy.host:4321"
 }
 ```
 
