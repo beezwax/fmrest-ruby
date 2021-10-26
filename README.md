@@ -141,8 +141,8 @@ Option              | Description                                | Format       
 `:username`         | A Data API-ready account                   | String                      | None
 `:password`         | Your password                              | String                      | None
 `:account_name`     | Alias of `:username`                       | String                      | None
-`:ssl`              | SSL options to be forwarded to Faraday     | Faraday SSL options         | None
-`:proxy`            | Proxy URI, e.g. `http://user:password@proxy.host:4321` | String / URI | None
+`:ssl`              | SSL options to be forwarded to Faraday     | [Faraday SSL options](https://www.rubydoc.info/gems/faraday/Faraday/SSLOptions) hash | None
+`:proxy`            | Proxy URI, e.g. `http://user:password@proxy.host:4321` | String          | None
 `:log`              | Log JSON responses to STDOUT               | Boolean                     | `false`
 `:log_level`        | Which log level to log into                | Values accepted by `Logger#level=` | `:debug`
 `:coerce_dates`     | See section on [date fields](#date-fields-and-timezones) | Boolean \| `:hybrid` \| `:full` | `false`
