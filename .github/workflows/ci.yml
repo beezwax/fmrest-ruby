@@ -23,6 +23,12 @@ jobs:
             activerecord: 5.1
           - ruby: '3.0'
             activerecord: 5.2
+          - ruby: 3.1.0-preview1
+            activerecord: '5.0'
+          - ruby: 3.1.0-preview1
+            activerecord: 5.1
+          - ruby: 3.1.0-preview1
+            activerecord: 5.2
 
     runs-on: ubuntu-latest
 
