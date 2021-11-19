@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: [2.5, 2.6, 2.7, '3.0', 3.1.0-preview1, jruby]
+        ruby: [2.5, 2.6, 2.7, '3.0', 3.1.0-preview1]
         activerecord: ['5.0', 5.1, 5.2, '6.0', 6.1]
         exclude:
           - ruby: '3.0'
