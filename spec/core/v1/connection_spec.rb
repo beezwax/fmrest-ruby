@@ -45,32 +45,19 @@ RSpec.describe FmRest::V1::Connection do
       extendee.build_connection(conn_settings)
     end
 
-    it "returns a Faraday::Connection that uses RaiseErrors" do
-      expect(connection.builder.handlers).to include(FmRest::V1::RaiseErrors)
-    end
-
-    it "returns a Faraday::Connection that uses TokenSession" do
-      expect(connection.builder.handlers).to include(FmRest::V1::TokenSession)
-    end
-
-    it "returns a Faraday::Connection that encodes requests as multipart/form-data when appropriate" do
-      expect(connection.builder.handlers).to include(Faraday::Request::Multipart)
-    end
-
-    it "returns a Faraday::Connection that encodes requests as JSON" do
-      expect(connection.builder.handlers).to include(FaradayMiddleware::EncodeJson)
-    end
+    it { expect(connection.builder.handlers).to include(FmRest::V1::RaiseErrors) }
+    it { expect(connection.builder.handlers).to include(FmRest::V1::TokenSession) }
+    it { expect(connection.builder.handlers).to include(Faraday::Multipart::Middleware) }
+    it { expect(connection.builder.handlers).to include(Faraday::Request::Json) }
 
     context "with no block given" do
-      it "returns a Faraday::Connection that parses responses as JSON" do
-        expect(connection.builder.handlers).to include(FaradayMiddleware::ParseJson)
-      end
+      it { expect(connection.builder.handlers).to include(Faraday::Response::Json) }
     end
 
     context "with a block given" do
-      it "doesn't return a Faraday::Connection that parses responses as JSON" do
+      it do
         connection = extendee.build_connection(conn_settings) {}
-        expect(connection.builder.handlers).to_not include(FaradayMiddleware::ParseJson)
+        expect(connection.builder.handlers).to_not include(Faraday::Response::Json)
       end
     end
 
@@ -85,24 +72,18 @@ RSpec.describe FmRest::V1::Connection do
         }
       end
 
-      it "uses the logger Faraday middleware" do
-        expect(connection.builder.handlers).to include(Faraday::Response::Logger)
-      end
+      it { expect(connection.builder.handlers).to include(Faraday::Response::Logger) }
     end
 
     context "without log: true" do
-      it "doesn't use the logger Faraday middleware" do
-        expect(connection.builder.handlers).to_not include(Faraday::Response::Logger)
-      end
+      it { expect(connection.builder.handlers).to_not include(Faraday::Response::Logger) }
     end
   end
 
   describe "#auth_connection" do
     let(:connection) { extendee.auth_connection(conn_settings) }
 
-    it "returns a Faraday::Connection that sets the content-type to application/json" do
-      expect(connection.headers).to include("Content-Type" => "application/json")
-    end
+    it { expect(connection.headers).to include("Content-Type" => "application/json") }
 
     context "when given username and password" do
       context "when the host is FileMaker Cloud" do
@@ -164,13 +145,8 @@ RSpec.describe FmRest::V1::Connection do
       end
     end
 
-    it "returns a Faraday::Connection that uses RaiseErrors" do
-      expect(connection.builder.handlers).to include(FmRest::V1::RaiseErrors)
-    end
-
-    it "returns a Faraday::Connection that parses responses as JSON" do
-      expect(connection.builder.handlers).to include(FaradayMiddleware::ParseJson)
-    end
+    it { expect(connection.builder.handlers).to include(FmRest::V1::RaiseErrors) }
+    it { expect(connection.builder.handlers).to include(Faraday::Response::Json) }
 
     context "with log: true" do
       let :conn_settings do
@@ -183,15 +159,11 @@ RSpec.describe FmRest::V1::Connection do
         }
       end
 
-      it "uses the logger Faraday middleware" do
-        expect(connection.builder.handlers).to include(Faraday::Response::Logger)
-      end
+      it { expect(connection.builder.handlers).to include(Faraday::Response::Logger) }
     end
 
     context "without log: true" do
-      it "doesn't use the logger Faraday middleware" do
-        expect(connection.builder.handlers).to_not include(Faraday::Response::Logger)
-      end
+      it { expect(connection.builder.handlers).to_not include(Faraday::Response::Logger) }
     end
   end
 end

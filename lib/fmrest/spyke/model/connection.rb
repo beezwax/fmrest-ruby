@@ -141,7 +141,7 @@ module FmRest
                 conn.use FmRest::V1::TypeCoercer, config
 
                 # FmRest::Spyke::SpykeFormatter expects symbol keys
-                conn.response :json, parser_options: { symbolize_names: true }, content_type: /\bjson$/
+                conn.response :json, parser_options: { symbolize_names: true }
               end
 
             @fmrest_connection = connection if memoize

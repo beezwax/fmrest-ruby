@@ -156,31 +156,31 @@ RSpec.describe FmRest::Spyke::SpykeFormatter do
 
       conn.adapter :test do |stub|
         stub.get '/records/1' do
-          [200, {}, response_json.to_json]
+          [200, { 'Content-Type': 'application/json' }, response_json.to_json]
         end
 
         stub.post '/_find' do
-          [200, {}, response_json.to_json]
+          [200, { 'Content-Type': 'application/json' }, response_json.to_json]
         end
 
         stub.post '/records' do
-          [200, {}, response_json.to_json]
+          [200, { 'Content-Type': 'application/json' }, response_json.to_json]
         end
 
         stub.patch '/records/1' do
-          [200, {}, response_json.to_json]
+          [200, { 'Content-Type': 'application/json' }, response_json.to_json]
         end
 
         stub.delete '/records/1' do
-          [200, {}, response_json.to_json]
+          [200, { 'Content-Type': 'application/json' }, response_json.to_json]
         end
 
         stub.post '/records/1/containers/Pie/1' do
-          [200, {}, response_json.to_json]
+          [200, { 'Content-Type': 'application/json' }, response_json.to_json]
         end
 
         stub.get '/script/DoSomethingUseful' do
-          [200, {}, response_json.to_json]
+          [200, { 'Content-Type': 'application/json' }, response_json.to_json]
         end
       end
     end

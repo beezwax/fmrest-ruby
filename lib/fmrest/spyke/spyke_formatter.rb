@@ -22,7 +22,7 @@ module FmRest
 
     # Response Faraday middleware for converting FM API's response JSON into
     # Spyke's expected format
-    class SpykeFormatter < ::Faraday::Response::Middleware
+    class SpykeFormatter < ::Faraday::Middleware
       SINGLE_RECORD_RE = %r(/records/\d+\z).freeze
       MULTIPLE_RECORDS_RE = %r(/records\z).freeze
       CONTAINER_RE = %r(/records/\d+/containers/[^/]+/\d+\z).freeze

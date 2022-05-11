@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "faraday"
-require "faraday_middleware"
+require "faraday/multipart"
 
 require "fmrest/version"
 require "fmrest/connection_settings"
