@@ -4,7 +4,7 @@ require "fmrest/string_date"
 
 module FmRest
   module V1
-    class TypeCoercer < Faraday::Response::Middleware
+    class TypeCoercer < Faraday::Middleware
       # We use this date to represent a FileMaker time for consistency with
       # ginjo-rfm
       JULIAN_ZERO_DAY = "-4712/1/1"

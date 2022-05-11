@@ -5,7 +5,7 @@ module FmRest
     # FM Data API response middleware for raising exceptions on API response
     # errors
     #
-    class RaiseErrors < Faraday::Response::Middleware
+    class RaiseErrors < Faraday::Middleware
       # Error codes reference:
       # https://help.claris.com/en/pro-help/content/error-codes.html
       ERROR_RANGES = {

@@ -24,8 +24,8 @@ Gem::Specification.new do |spec|
     spec.post_install_message = File.read("UPGRADING_FMREST_CORE")
   end
 
-  spec.add_dependency "faraday", ">= 1.8.0", "< 2.0"
-  spec.add_dependency "faraday_middleware", ">= 0.9.1", "< 2.0"
+  spec.add_dependency "faraday", ">= 2.0"
+  spec.add_dependency "faraday-multipart"
 
   # NOTE: Add development deps to fmrest.gemspec
 end

@@ -72,7 +72,7 @@ module FmRest
           elsif is_cloud_host
             conn.request :authorization, CLARIS_ID_HTTP_AUTH_TYPE, -> { Cloud::ClarisIdTokenManager.new(settings).fetch_token }
           else
-            conn.request :basic_auth, settings.username!, settings.password!
+            conn.request :authorization, :basic, settings.username!, settings.password!
           end
 
           if settings.log
