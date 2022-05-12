@@ -19,7 +19,7 @@ RSpec.describe FmRest::TokenStore::Redis do
     end
 
     it "builds a new Redis connection if none given through :redis option, passing remaining options" do
-      expect(Redis).to receive(:new).with(host: "foo", port: 4500)
+      expect(Redis).to receive(:new).with({ host: "foo", port: 4500 })
       described_class.new(prefix: "foo", host: "foo", port: 4500)
     end
 
