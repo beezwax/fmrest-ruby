@@ -8,10 +8,11 @@ require "fmrest/connection_settings"
 require "fmrest/errors"
 
 module FmRest
-  autoload :V1,         "fmrest/v1"
-  autoload :TokenStore, "fmrest/token_store"
-  autoload :Spyke,      "fmrest/spyke"
-  autoload :Layout,     "fmrest/spyke"
+  autoload :V1,                  "fmrest/v1"
+  autoload :TokenStore,          "fmrest/token_store"
+  autoload :Spyke,               "fmrest/spyke"
+  autoload :Layout,              "fmrest/spyke"
+  autoload :StringDateAwareness, "fmrest/string_date"
 
   class << self
     attr_accessor :token_store
