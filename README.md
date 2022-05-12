@@ -17,20 +17,6 @@ is natively supported by the gem.
 Need Ruby or FileMaker consulting? Contact us at
 [Beezwax.net](https://beezwax.net/)
 
-## Contents
-
-* [Gems](#gems)
-* [Installation](#installation)
-* [Simple example](#simple-example)
-* [Connection settings](#connection-settings)
-* [Session token store](#session-token-store)
-* [Date fields and timezones](#date-fields-and-timezones)
-* [ActiveRecord-like ORM (fmrest-spyke)](#activerecord-like-orm-fmrest-spyke)
-* [Logging](#logging)
-* [Gotchas](#gotchas)
-* [API implementation completeness table](#api-implementation-completeness-table)
-* [Supported Ruby versions](#supported-ruby-versions)
-
 ## Gems
 
 The `fmrest` gem is a wrapper for two other gems:
@@ -564,7 +550,7 @@ FM Data API reference: https://help.claris.com/en/data-api-guide/
 ## Supported Ruby versions
 
 fmrest-ruby is [tested against](https://github.com/beezwax/fmrest-ruby/actions?query=workflow%3ACI)
-Ruby 2.5 through 3.1.
+Ruby 2.6 through 3.1.
 
 ## Gem development
 
