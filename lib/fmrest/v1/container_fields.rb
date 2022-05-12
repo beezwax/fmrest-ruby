@@ -84,7 +84,7 @@ module FmRest
 
           filename = options[:filename] || filename_or_io.try(:original_filename)
 
-          request.body = { upload: Faraday::UploadIO.new(filename_or_io, content_type, filename) }
+          request.body = { upload: Faraday::Multipart::FilePart.new(filename_or_io, content_type, filename) }
         end
       end
 
