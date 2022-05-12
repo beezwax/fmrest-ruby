@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "spec_helper"
 
 RSpec.describe FmRest::V1::ContainerFields do
@@ -7,15 +9,11 @@ RSpec.describe FmRest::V1::ContainerFields do
     let(:container_url) { "https://foo.bar/qux" }
 
     context "when given an invalid URL" do
-      it "raises an FmRest::ContainerFieldError" do
-        expect { extendee.fetch_container_data("boo boo") }.to raise_error(FmRest::ContainerFieldError, /Invalid container field URL/)
-      end
+      it { expect { extendee.fetch_container_data("boo boo") }.to raise_error(FmRest::ContainerFieldError, /Invalid container field URL/) }
     end
 
     context "when given a non-http URL" do
-      it "raises an FmRest::ContainerFieldError" do
-        expect { extendee.fetch_container_data("file://foo/bar") }.to raise_error(FmRest::ContainerFieldError, /Container URL is not HTTP/)
-      end
+      it { expect { extendee.fetch_container_data("file://foo/bar") }.to raise_error(FmRest::ContainerFieldError, /Container URL is not HTTP/) }
     end
 
     context "when the given URL is not a redirect" do

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "support/fmrest_dummy_config"
 
 module FmRestSpykeBuilder
