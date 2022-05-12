@@ -1,5 +1,11 @@
 ## Changelog
 
+### 0.21.0
+
+* Support for Spyke 7 and Faraday 2
+* Drop support for Faraday 1
+* Drop support for Ruby 2.5
+
 ### 0.20.0
 
 * Forward proxy options to AWS Client when using `fmrest-cloud` gem
