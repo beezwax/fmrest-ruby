@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "spec_helper"
 require "fmrest/token_store/active_record"
 require "sqlite3"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.describe FmRest::Spyke::ContainerField do
   let(:url) { "https://foo" }
 

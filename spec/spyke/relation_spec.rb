@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "fixtures/pirates"
 
 RSpec.describe FmRest::Spyke::Relation do

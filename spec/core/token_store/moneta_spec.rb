@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "spec_helper"
 require "moneta"
 require "fmrest/token_store/moneta"
