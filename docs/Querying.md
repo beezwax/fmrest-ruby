@@ -284,8 +284,8 @@ Honeybee.query(name: "Hutch").first # => <Honeybee...>
 ```
 
 If you know the recordId of the record you should use `.find(id)` instead of
-`.query(id: id).first` (this would not work since recordId is not a regular
-attribute).
+`.query(id: id).first` (this would actually not work since recordId is not a
+queryable attribute).
 
 ```ruby
 Honeybee.find(89) # => <Honeybee...>
@@ -294,3 +294,11 @@ Honeybee.find(89) # => <Honeybee...>
 Note also that if you use `.find(id)` your `.query()` parameters (as well as
 limit, offset and sort parameters) will be discarded as they're not supported
 by the single record Data API endpoint.
+
+A `.first!` method also exists, which raises an exception if no records matched
+your query. This is useful when using some form of unique identification other
+than recordId. E.g.
+
+```ruby
+Honeybee.query(uuid: "BEE-2f37a290-f3ac-11ec-b939-0242ac120002").first!
+```
