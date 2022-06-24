@@ -8,14 +8,18 @@ This is the default token store. It uses a memory-based store for the session
 tokens. This is generally good enough during development, but generally a bad
 idea for production as in-memory tokens aren't shared across threads/processes.
 
+```ruby
+# config/initializers/fmrest.rb
+
+FmRest.token_store = FmRest::TokenStore::Memory
+```
+
 ### ActiveRecord
 
 On Rails apps that already use ActiveRecord, setting up this token store should
 be dead simple:
 
 ```ruby
-# config/initializers/fmrest.rb
-
 FmRest.token_store = FmRest::TokenStore::ActiveRecord
 ```
 

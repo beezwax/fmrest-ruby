@@ -19,13 +19,14 @@ Need Ruby or FileMaker consulting? Contact us at
 
 ## Gems
 
-The `fmrest` gem is a wrapper for two other gems:
+The `fmrest` gem is a wrapper for these gems:
 
 * `fmrest-spyke`, providing an ActiveRecord-like ORM library built on top
   of `fmrest-core` and [Spyke](https://github.com/balvig/spyke).
 * `fmrest-core`, providing the core
   [Faraday](https://github.com/lostisland/faraday) connection builder, session
   management, and other core utilities.
+* `fmrest-rails`, providing Rails integration.
 
 In addition, the optional `fmrest-cloud` gem adds support for FileMaker Cloud.
 See the [main document on connecting to FileMaker
@@ -40,6 +41,12 @@ gem 'fmrest'
 
 # Optional: if your files are hosted on FileMaker Cloud
 gem 'fmrest-cloud'
+```
+
+If you're using Rails you can now run:
+
+```
+rails generate fmrest:config
 ```
 
 ## Simple example

@@ -69,3 +69,9 @@ module FmRest
     end
   end
 end
+
+begin
+  require "fmrest/railtie" if defined?(Rails::Railtie)
+# In case fmrest-rails is not installed
+rescue LoadError
+end

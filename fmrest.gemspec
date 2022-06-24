@@ -21,6 +21,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "fmrest-core", "=#{FmRest::VERSION}"
   spec.add_dependency "fmrest-spyke", "=#{FmRest::VERSION}"
+  spec.add_dependency "fmrest-rails", "=#{FmRest::VERSION}"
 
   spec.add_development_dependency "bundler", "~> 2.2"
   spec.add_development_dependency "rake", "~> 13.0"

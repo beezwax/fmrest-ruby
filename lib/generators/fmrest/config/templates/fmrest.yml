@@ -1,0 +1,18 @@
+development:
+  host: 
+  database: 
+  username: 
+  password: 
+
+  # Additional options
+  #
+  # log: false
+  #
+  # ssl:
+  #   verify: true
+
+test:
+  host: 
+  database: 
+  username: 
+  password: 
