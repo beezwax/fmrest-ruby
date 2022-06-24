@@ -18,10 +18,6 @@ module FmRest
           class_attribute :default_limit, instance_accessor: false, instance_predicate: false
 
           class_attribute :default_sort, instance_accessor: false, instance_predicate: false
-
-          # Whether to raise an FmRest::APIError::NoMatchingRecordsError when a
-          # _find request has no results
-          class_attribute :raise_on_no_matching_records, instance_accessor: false, instance_predicate: false
         end
 
         class_methods do
@@ -42,10 +38,14 @@ module FmRest
           # options, as well as using the appropriate HTTP method/URL depending
           # on whether there's a query present in the current scope.
           #
+          # @option options [Boolean] :raise_on_no_matching_records whether to
+          #   raise `APIError::NoMatchingRecordsError` when no records match (FM
+          #   error 401). If not given it returns an empty resultset.
+          #
           # @example
           #   Person.query(first_name: "Stefan").fetch # -> POST .../_find
           #
-          def fetch
+          def fetch(options = {})
             if current_scope.has_query?
               scope = extend_scope_with_fm_params(current_scope, prefixed: false)
               scope = scope.where(query: scope.query_params)
@@ -60,9 +60,9 @@ module FmRest
             # nothing matches a _find request, so we need to catch it in order
             # to provide sane behavior (i.e. return an empty resultset)
             begin
-              current_scope.has_query? ? scoped_request(:post) : super
+              current_scope.has_query? ? scoped_request(:post) : super()
             rescue FmRest::APIError::NoMatchingRecordsError => e
-              raise e if raise_on_no_matching_records
+              raise e if options[:raise_on_no_matching_records]
               ::Spyke::Result.new({})
             end
           ensure

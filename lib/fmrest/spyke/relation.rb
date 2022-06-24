@@ -276,19 +276,33 @@ module FmRest
       # Finds a single instance of the model by forcing limit = 1, or simply
       # fetching the record by id if the primary key was set
       #
+      # @option (see FmRest::Spyke::Model::ORM.fetch)
+      #
       # @return [FmRest::Spyke::Base]
-      def find_one
+      def find_one(options = {})
         @find_one ||=
           if primary_key_set?
-            without_collection_params { super }
+            without_collection_params { super() }
           else
-            klass.new_collection_from_result(limit(1).fetch).first
+            klass.new_collection_from_result(limit(1).fetch(options)).first
           end
       rescue ::Spyke::ConnectionError => error
         fallback_or_reraise(error, default: nil)
       end
       alias_method :first, :find_one
       alias_method :any, :find_one
+
+      # Same as `#find_one`, but raises `APIError::NoMatchingRecordsError` when
+      # no records match.
+      # Equivalent to calling `find_one(raise_on_no_matching_records: true)`.
+      #
+      # @option (see FmRest::Spyke::Model::ORM.fetch)
+      #
+      # @return [FmRest::Spyke::Base]
+      def find_one!(options = {})
+        find_one(options.merge(raise_on_no_matching_records: true))
+      end
+      alias_method :first!, :find_one!
 
       # Yields each batch of records that was found by the find options.
       #

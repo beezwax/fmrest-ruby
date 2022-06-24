@@ -48,10 +48,9 @@ module FmRest
                   end
     end
 
-    # Shortcut for FmRest::V1.escape_find_operators
+    # Shortcut for `FmRest::V1.escape_find_operators`
     #
-    # @param (see FmRest::V1.escape_find_operators
-    # @return (see FmRest::V1.escape_find_operators
+    # @see FmRest::V1.escape_find_operators
     def e(s)
       V1.escape_find_operators(s)
     end

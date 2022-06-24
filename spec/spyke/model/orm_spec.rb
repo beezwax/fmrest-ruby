@@ -160,11 +160,9 @@ RSpec.describe FmRest::Spyke::Model::Orm do
           expect(Pirate.query(name: "foo").fetch.data).to eq(nil)
         end
 
-        it "raises an error if the model's raise_on_no_matching_records is true" do
+        it "raises an error if raise_on_no_matching_records is true" do
           request.with(body: { query: [{ Name: "foo" }] })
-          Pirate.raise_on_no_matching_records = true
-          expect { Pirate.query(name: "foo").fetch }.to raise_error(FmRest::APIError::NoMatchingRecordsError)
-          Pirate.raise_on_no_matching_records = nil
+          expect { Pirate.query(name: "foo").fetch(raise_on_no_matching_records: true) }.to raise_error(FmRest::APIError::NoMatchingRecordsError)
         end
       end
     end

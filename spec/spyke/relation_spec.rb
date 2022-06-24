@@ -309,6 +309,15 @@ RSpec.describe FmRest::Spyke::Relation do
         expect(relation.find_one).to eq(record)
       end
 
+      it "forwards options to fetch" do
+        other_relation = FmRest::Spyke::Relation.new(test_class)
+        fetch_result, record = double, double
+        allow(relation).to receive(:limit).with(1).and_return(other_relation)
+        allow(test_class).to receive(:new_collection_from_result).with(fetch_result).and_return([record])
+        expect(other_relation).to receive(:fetch).with({ raise_on_no_matching_records: true }).and_return(fetch_result)
+        relation.find_one(raise_on_no_matching_records: true)
+      end
+
       it "memoizes the result" do
         other_relation, fetch_result, record = double, double, double
         allow(relation).to receive(:limit).and_return(other_relation)
@@ -349,6 +358,17 @@ RSpec.describe FmRest::Spyke::Relation do
 
     it "is aliased as #any" do
       expect(described_class.instance_method(:any)).to eq(described_class.instance_method(:find_one))
+    end
+  end
+
+  describe "#find_one!" do
+    it "calls #find_one with raise_on_no_matching_records option" do
+      expect(relation).to receive(:find_one).with({ raise_on_no_matching_records: true }).and_return(true)
+      relation.find_one!
+    end
+
+    it "is aliased as #first" do
+      expect(described_class.instance_method(:first!)).to eq(described_class.instance_method(:find_one!))
     end
   end
 
