@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.22.0
+
+* Add `fmrest-rails` gem with Rails integration (initializer, generators)
+
 ### 0.21.0
 
 * Support for Spyke 7 and Faraday 2
