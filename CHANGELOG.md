@@ -1,6 +1,11 @@
 ## Changelog
 
-### 0.22.0
+### 0.23.0
+
+* Add `find_one!` (aliased as `first!`) exception-raising method
+* Add mapping of API exceptions to HTTP responses in Rails
+
+### 0.22.0 
 
 * Add `fmrest-rails` gem with Rails integration (initializer, generators)
 
