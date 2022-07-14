@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.23.1
+
+* Fix crash when booting in Rails and `config/fmrest.yml` didn't exist
+
 ### 0.23.0
 
 * Add `find_one!` (aliased as `first!`) exception-raising method
