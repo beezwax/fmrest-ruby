@@ -25,7 +25,9 @@ module Rails
       end
 
       initializer "fmrest.load_config" do
-        ::FmRest.default_connection_settings = Rails.application.config_for("fmrest")
+        if Rails.root.join("config/fmrest.yml").file?
+          ::FmRest.default_connection_settings = Rails.application.config_for("fmrest")
+        end
       end
     end
   end
