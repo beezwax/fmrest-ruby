@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.24.0
+
+* Add `FmRest::Layout.ignore_mod_id` flag
+
 ### 0.23.1
 
 * Fix crash when booting in Rails and `config/fmrest.yml` didn't exist
