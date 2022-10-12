@@ -4,6 +4,16 @@ module FmRest
   module Spyke
     module Model
       module Serialization
+        extend ::ActiveSupport::Concern
+
+        included do
+          # Set this flag to `true` to prevent sending modId with update
+          # requests, as it's optional in the Data API specs.
+          # Note that `class_attribute` provides an instance-level attribute
+          # too that can override the class-level one (without modifying it)
+          class_attribute :ignore_mod_id
+        end
+
         # Spyke override -- Return FM Data API's expected JSON format,
         # including only modified fields.
         #
@@ -12,7 +22,7 @@ module FmRest
             fieldData: serialize_values!(changed_params_not_embedded_in_url).merge(serialize_portal_deletions)
           }
 
-          params[:modId] = __mod_id.to_s if __mod_id
+          params[:modId] = __mod_id.to_s if __mod_id && !ignore_mod_id?
 
           portal_data = serialize_portals
 

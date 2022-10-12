@@ -469,6 +469,36 @@ class method. Also note that this will only catch exceptions raised during an
 API call to the Data API server (in other words, only on actions that perform
 an HTTP request).
 
+### Optional `modId`
+
+The Data API provides an optional `modId` value that gets set on a record every
+time you fetch or update it. This value then gets included in the API request
+when you save the record, and FileMaker compares it against the current value,
+preventing the update in case of a mismatch.
+
+This safety feature is enabled by default in `fmrest-spyke` models, but you can
+disable it using the inheritable `ignore_mod_id` flag on your model classes or
+instances. E.g.
+
+```ruby
+class Bee < FmRest::Layout
+  # This disables modId for all instances and subclasses
+  self.ignore_mod_id = true
+end
+
+# Or set it on instances:
+bee = Bee.new
+bee.ignore_mod_id # => true (set in class)
+bee.ignore_mod_id = false # (affects only this instance)
+```
+
+You can also set it directly on `FmRest::Layout` if you want to disable it for
+your entire app:
+
+```ruby
+FmRest::Layout.ignore_mod_id = true
+```
+
 ## Logging
 
 If using `fmrest-spyke` with Rails then pretty log output will be set up for
