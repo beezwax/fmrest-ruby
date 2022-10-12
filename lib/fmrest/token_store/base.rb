@@ -10,15 +10,15 @@ module FmRest
       end
 
       def load(key)
-        raise NotImplementedError
+        raise NoMethodError
       end
 
       def store(key, value)
-        raise NotImplementedError
+        raise NoMethodError
       end
 
       def delete(key)
-        raise NotImplementedError
+        raise NoMethodError
       end
     end
   end

@@ -30,7 +30,7 @@ module FmRest
     end
 
     def token_store_option
-      raise NotImplementedError
+      raise NoMethodError
     end
   end
 end
