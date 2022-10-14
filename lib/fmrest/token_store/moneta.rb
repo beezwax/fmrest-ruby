@@ -1,7 +1,13 @@
 # frozen_string_literal: true
 
 require "fmrest/token_store/base"
-require "moneta"
+
+begin
+  require "moneta"
+rescue LoadError => e
+  e.message << " (Did you include moneta in your Gemfile?)" unless e.message.frozen?
+  raise e
+end
 
 module FmRest
   module TokenStore
