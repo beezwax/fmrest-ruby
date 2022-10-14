@@ -28,7 +28,11 @@ RSpec.describe FmRest do
   end
 
   describe ".logger" do
-    around(:each) { FmRest.logger = nil }
+    around(:each) do |example|
+      FmRest.logger = nil
+      example.run
+      FmRest.logger = nil
+    end
 
     it "defaults to Rails' logger if available" do
       Object::Rails = double(:Rails, logger: :rails_logger)
