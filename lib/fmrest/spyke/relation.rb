@@ -204,18 +204,26 @@ module FmRest
         with_clone do |r|
           params = params.flatten.map { |p| normalize_query_params(p) }
 
-          if r.or_flag || r.query_params.empty?
+          if r.or_flag || r.query_params.empty? # OR
             r.query_params += params
             r.or_flag = nil
-          elsif params.length > r.query_params.length
-            params[0, r.query_params.length].each_with_index do |p, i|
-              r.query_params[i].merge!(p)
-            end
+          else # AND
+            r.query_params = r
+              .query_params
+              .product(params)
+              .map do |old_params, new_params|
+                merge = old_params
+                  .transform_values { |value| Set[value] }
+                  .merge(
+                    new_params.transform_values { |value| Set[value] }
+                  ) { |_, old_value, new_value| old_value | new_value }
 
-            remainder = params.length - r.query_params.length
-            r.query_params += params[-remainder, remainder]
-          else
-            params.each_with_index { |p, i| r.query_params[i].merge!(p) }
+                if merge.values.any?(&:many?)
+                  nil # reject params with different values for the same key
+                else
+                  merge.transform_values(&:first)
+                end
+              end.compact
           end
         end
       end
