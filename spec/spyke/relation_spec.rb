@@ -196,11 +196,28 @@ RSpec.describe FmRest::Spyke::Relation do
   end
 
   describe "#query" do
-    it "creates a new scope with the given query params merged with previous ones" do
-      query_scope = relation.query(foo: "Noodles").query({ bar: "Onions" }, { foo: "Meatballs" })
-      expect(query_scope).to_not eq(relation)
-      expect(query_scope).to be_a(FmRest::Spyke::Relation)
-      expect(query_scope.query_params).to eq([{ "foo" => "Noodles", "bar" => "Onions" }, { "foo" => "Meatballs" }])
+    context "when there is a key/value collision" do
+      it "creates a new scope with the given query params merged with previous ones" do
+        query_scope = relation.query(foo: "Noodles").query({ bar: "Onions" }, { foo: "Meatballs" })
+        expect(query_scope).to_not eq(relation)
+        expect(query_scope).to be_a(FmRest::Spyke::Relation)
+        expect(query_scope.query_params).to eq([{ "foo" => "Noodles", "bar" => "Onions" }])
+      end
+    end
+
+    context "when there are no key/value collisions" do
+      it "creates a new scope with all possible combinations of params" do
+        query_scope = relation
+          .query({ foo: "Meatballs" }, { foo: "Noodles" })
+          .query({ bar: "Onions" }, { bar: "Pickles" })
+
+        expect(query_scope.query_params).to eq [
+          { "foo" => "Meatballs", "bar" => "Onions" },
+          { "foo" => "Meatballs", "bar" => "Pickles" },
+          { "foo" => "Noodles",   "bar" => "Onions" },
+          { "foo" => "Noodles",   "bar" => "Pickles" }
+        ]
+      end
     end
 
     it "normalizes portal query fields when given a sub-hash" do
