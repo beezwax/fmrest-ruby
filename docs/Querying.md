@@ -99,7 +99,7 @@ Passing `omit: true` in a conditions hash will cause FileMaker to exclude
 results matching that conditions hash (see also `.omit` below for a shorthand):
 
 ```ruby
-Honeybee.query(name: "=Hutch")
+Honeybee.query(name: "=Hutch", omit: true)
 # JSON -> {"query": [{"Bee Name": "=Hutch", "omit": "true"}]}
 ```
 
