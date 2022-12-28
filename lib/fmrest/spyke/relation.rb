@@ -211,19 +211,8 @@ module FmRest
             r.query_params = r
               .query_params
               .product(params)
-              .map do |old_params, new_params|
-                merge = old_params
-                  .transform_values { |value| Set[value] }
-                  .merge(
-                    new_params.transform_values { |value| Set[value] }
-                  ) { |_, old_value, new_value| old_value | new_value }
-
-                if merge.values.any?(&:many?)
-                  nil # reject params with different values for the same key
-                else
-                  merge.transform_values(&:first)
-                end
-              end.compact
+              .map { |a, b| a.merge(b) { |_, v1, v2| v1 == v2 ? v1 : nil } }
+              .reject { |hash| hash.values.any?(&:nil?) }
           end
         end
       end
