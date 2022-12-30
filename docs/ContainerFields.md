@@ -35,3 +35,7 @@ bee.photo.upload(filename_or_io) # Upload a file to the container
   `filename_or_io.original_filename` if available)
 * `:content_type` - The MIME content type to use (defaults to
   `application/octet-stream`)
+  
+```ruby
+bee.photo.upload(filename_or_io, repetition: 2, filename: "beauty_wings.png", content_type: "image/png")
+```
