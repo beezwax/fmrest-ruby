@@ -204,15 +204,18 @@ module FmRest
         with_clone do |r|
           params = params.flatten.map { |p| normalize_query_params(p) }
 
-          if r.or_flag || r.query_params.empty? # OR
+          if r.or_flag || r.query_params.empty?
             r.query_params += params
             r.or_flag = nil
-          else # AND
-            r.query_params = r
-              .query_params
-              .product(params)
-              .map { |a, b| a.merge(b) { |_, v1, v2| v1 == v2 ? v1 : nil } }
-              .reject { |hash| hash.values.any?(&:nil?) }
+          elsif params.length > r.query_params.length
+            params[0, r.query_params.length].each_with_index do |p, i|
+              r.query_params[i].merge!(p)
+            end
+
+            remainder = params.length - r.query_params.length
+            r.query_params += params[-remainder, remainder]
+          else
+            params.each_with_index { |p, i| r.query_params[i].merge!(p) }
           end
         end
       end
@@ -263,6 +266,22 @@ module FmRest
       def or(*params)
         clone = with_clone { |r| r.or_flag = true }
         params.empty? ? clone : clone.query(*params)
+      end
+
+      def and(*params)
+        params = params.flatten.map { |p| normalize_query_params(p) }
+
+        with_clone do |r|
+          if r.query_params.empty?
+            r.query_params += params
+          else
+            r.query_params = r
+              .query_params
+              .product(params)
+              .map { |a, b| a.merge(b) { |_, v1, v2| v1 == v2 ? v1 : nil } }
+              .reject { |hash| hash.values.any?(&:nil?) }
+          end
+        end
       end
 
       # @return [Boolean] whether a query was set on this relation
