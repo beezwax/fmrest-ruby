@@ -310,6 +310,59 @@ RSpec.describe FmRest::Spyke::Relation do
         ]
       end
     end
+
+    context 'when logical "and" would result in an empty result set' do
+      it "creates a new scope with an empty relation" do
+        query_scope = relation.query(foo: "Noodles").and(foo: "Meatballs")
+        expect(query_scope).to_not eq(relation)
+        expect(query_scope).to be_a(FmRest::Spyke::EmptyRelation)
+        expect(query_scope.query_params).to eq([])
+      end
+    end
+
+    context "when chaining query-and-or" do
+      it 'combines "and" params with previous params and appends "or" params' do
+        query_scope = relation.query(foo: "Noodles").and(bar: "Onions").or(foo: "Meatballs")
+        expect(query_scope.query_params).to eq([{ "foo" => "Noodles", "bar" => "Onions" }, { "foo" => "Meatballs" }])
+      end
+    end
+
+    context "when chaining query-or-and" do
+      it 'combines "and" params with all previous params' do
+        query_scope = relation.query(foo: "Noodles").or(foo: "Meatballs").and(bar: "Onions")
+        expect(query_scope.query_params).to eq([{ "foo" => "Noodles", "bar" => "Onions" }, { "foo" => "Meatballs", "bar" => "Onions" }])
+      end
+    end
+
+    context 'when chaining "or" on an "and" with conflicting criteria' do
+      it "ignores the conflicting criteria" do
+        query_scope = relation.query(foo: "Noodles").and(foo: "Meatballs").or(foo: "Onions")
+        expect(query_scope.query_params).to eq([{ "foo" => "Onions" }])
+      end
+    end
+
+    context 'when relation includes "omit"' do
+      it "raises ArgumentError" do
+        expect {
+          relation.omit(foo: "Noodles").and(bar: "Meatballs")
+        }.to raise_error(ArgumentError, 'Cannot use "and" with "omit"')
+      end
+    end
+
+    context 'when params include "omit"' do
+      it "raises ArgumentError" do
+        expect {
+          relation.and(foo: "Noodles", omit: true)
+        }.to raise_error(ArgumentError, 'Cannot use "and" with "omit"')
+      end
+    end
+
+    context 'when calling "omit" after calling "and"' do
+      it "does not raise an error" do
+        query_scope = relation.query(foo: "Noodles").and(bar: "Meatballs").or(bar: "Onions", omit: true)
+        expect(query_scope.query_params).to eq([{ "bar"=>"Meatballs", "foo"=>"Noodles" }, { "bar"=>"Onions", "omit"=>"true" }])
+      end
+    end
   end
 
   describe "#has_query?" do

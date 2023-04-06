@@ -25,7 +25,7 @@ module FmRest
           delegate :limit, :offset, :sort, :order, :query, :match, :omit,
             :portal, :portals, :includes, :with_all_portals, :without_portals,
             :script, :find_one, :first, :any, :find_some, :find_in_batches,
-            :find_each, to: :all
+            :find_each, :and, :or, to: :all
 
           # Spyke override -- Use FmRest's Relation instead of Spyke's vanilla
           # one
@@ -55,6 +55,8 @@ module FmRest
             end
 
             previous, self.current_scope = current_scope, scope
+
+            return if current_scope.instance_of?(FmRest::Spyke::EmptyRelation)
 
             # The DAPI returns a 401 "No records match the request" error when
             # nothing matches a _find request, so we need to catch it in order

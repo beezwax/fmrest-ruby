@@ -41,7 +41,7 @@ RSpec.describe FmRest::Spyke::Model::Orm do
   %i[
     limit offset sort order query match omit portal portals includes
     without_portals with_all_portals script find_one first any find_some
-    find_in_batches find_each
+    find_in_batches find_each and or
   ].each do |delegator|
     describe ".#{delegator}" do
       let(:scope) { double("Relation") }

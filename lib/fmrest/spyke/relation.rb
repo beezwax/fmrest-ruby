@@ -269,18 +269,29 @@ module FmRest
       end
 
       def and(*params)
-        params = params.flatten.map { |p| normalize_query_params(p) }
+        params = params.map { |p| normalize_query_params(p) }
 
-        with_clone do |r|
+        if query_params.including(params).any? { |param| param.key?("omit") }
+          raise ArgumentError, 'Cannot use "and" with "omit"'
+        end
+
+        clone = with_clone do |r|
           if r.query_params.empty?
-            r.query_params += params
+            r.query_params = params
           else
-            r.query_params = r
-              .query_params
-              .product(params)
-              .map { |a, b| a.merge(b) { |_, v1, v2| v1 == v2 ? v1 : nil } }
-              .reject { |hash| hash.values.any?(&:nil?) }
+            r.query_params =
+              r
+                .query_params
+                .product(params)
+                .map { |a, b| a.merge(b) { |_, v1, v2| v1 == v2 ? v1 : nil } }
+                .reject { |hash| hash.values.any?(&:nil?) }
           end
+        end
+
+        if clone.query_params.empty?
+          EmptyRelation.new(clone)
+        else
+          clone
         end
       end
 
@@ -560,6 +571,22 @@ module FmRest
         clone.tap do |relation|
           yield relation
         end
+      end
+    end
+
+    class EmptyRelation
+      def initialize(relation)
+        @old_relation = relation
+      end
+
+      def find_one = nil
+
+      def find_some = []
+
+      def query_params = []
+
+      def or(*params)
+        @old_relation.query(*params)
       end
     end
   end
