@@ -239,7 +239,7 @@ module FmRest
       # @return [FmRest::Spyke::Relation] a new relation with the given find
       #   conditions applied negated
       def omit(params)
-        query(params.merge(omit: true))
+        query.or(params.merge(omit: true))
       end
 
       # Signals that the next query conditions to be set (through `.query`,
