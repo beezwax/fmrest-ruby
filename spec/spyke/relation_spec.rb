@@ -270,7 +270,7 @@ RSpec.describe FmRest::Spyke::Relation do
 
   describe "#omit" do
     it "forwards params to #query with omit: true" do
-      expect(relation).to receive(:query).with({ foo: "Coffee", omit: true }).and_return("Yipee!")
+      expect(relation).to receive(:or).with({ foo: "Coffee", omit: true }).and_return("Yipee!")
       expect(relation.omit(foo: "Coffee")).to eq("Yipee!")
     end
   end
