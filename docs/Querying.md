@@ -122,6 +122,29 @@ Honeybee.query(name: "Hutch", omit: true)
 # JSON -> {"query": [{"Bee Name": "Hutch", "omit": "true"}]}
 ```
 
+### .and
+
+`.and` takes the Cartesian product of existing and new parameters:
+
+```ruby
+Honeybee.query({ name: "Hutch" }, { name: "Mitch" }).and(age: 42)
+# JSON -> {"query": [{"Bee DOB": "42", "Bee Name": "Hutch"}, {"Bee DOB": "42", "Bee Name": "Mitch"}]}
+```
+
+NOTE: `.and` may only be used with `.omit` (or `omit: true`) when omitting the last clause in the query:
+
+```ruby
+Honeybee.query(age: 42).and(name: "Mitch").omit(name: "Hutch")
+# JSON -> {"query": [{"Bee DOB": "42", "Bee Name": "Mitch"}, {"Bee Name": "Hutch", "omit": "true"}]}
+```
+
+Otherwise it will raise `ArgumentError`:
+
+```ruby
+Honeybee.query(age: 42).omit(name: "Hutch").and(name: "Mitch")
+# ArgumentError: Cannot use "and" with "omit"
+```
+
 ### .match
 
 Similar to `.query`, but sets exact string match conditions by prefixing `==`
