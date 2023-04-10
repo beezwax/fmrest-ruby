@@ -579,11 +579,17 @@ module FmRest
         @old_relation = relation
       end
 
-      def find_one = nil
+      def find_one
+        nil
+      end
 
-      def find_some = []
+      def find_some
+        []
+      end
 
-      def query_params = []
+      def query_params
+        []
+      end
 
       def or(*params)
         @old_relation.query(*params)
