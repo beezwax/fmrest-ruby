@@ -234,19 +234,19 @@ module FmRest
         query(transform_query_values(params) { |v| "==#{FmRest::V1.escape_find_operators(v)}" })
       end
 
-      # Negated version of `.query`, sets conditions to omit in a find request.
+      # Adds a new set of conditions to omit in a find request.
       #
-      # This is the same as passing `omit: true` to `.query`.
+      # This is the same as passing `omit: true` to `.or`.
       #
       # @return [FmRest::Spyke::Relation] a new relation with the given find
       #   conditions applied negated
       def omit(params)
-        query.or(params.merge(omit: true))
+        self.or(params.merge(omit: true))
       end
 
       # Signals that the next query conditions to be set (through `.query`,
       # `.match`, etc.) should be added as a logical OR relative to previously
-      # set conditions (rather than the default AND).
+      # set conditions.
       #
       # In practice this means the JSON query request will have a new
       # conditions object appended, e.g.:
@@ -258,7 +258,7 @@ module FmRest
       # You can call this method with or without parameters. If parameters are
       # given they will be passed down to `.query` (and those conditions
       # immediately set), otherwise it just prepares the next
-      # conditions-setting method to use OR.
+      # conditions-setting method (e.g. `match`) to use OR.
       #
       # @example
       #   # Add conditions directly in .or call:
