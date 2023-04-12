@@ -5,6 +5,8 @@ module FmRest
     class Relation < ::Spyke::Relation
       SORT_PARAM_MATCHER = /(.*?)(!|__desc(?:end)?)?\Z/.freeze
 
+      ImpossibleValue = Object.new.freeze
+
       class UnknownQueryKey < ArgumentError; end
 
       # NOTE: We need to keep limit, offset, sort, query and portal accessors
@@ -283,8 +285,10 @@ module FmRest
               r
                 .query_params
                 .product(params)
-                .map { |a, b| a.merge(b) { |_, v1, v2| v1 == v2 ? v1 : nil } }
-                .reject { |hash| hash.values.any?(&:nil?) }
+                # A field cannot hold two values at the same time, so mark
+                # those cases for removal:
+                .map { |a, b| a.merge(b) { |_, v1, v2| v1 == v2 ? v1 : ImpossibleValue } }
+                .reject { |hash| hash.values.any?(ImpossibleValue) }
           end
         end
 
