@@ -345,7 +345,7 @@ RSpec.describe FmRest::Spyke::Relation do
       it "raises ArgumentError" do
         expect {
           relation.omit(foo: "Noodles").and(bar: "Meatballs")
-        }.to raise_error(ArgumentError, 'Cannot use "and" with "omit"')
+        }.to raise_error(ArgumentError, "Cannot use `and' with `omit'")
       end
     end
 
@@ -353,7 +353,7 @@ RSpec.describe FmRest::Spyke::Relation do
       it "raises ArgumentError" do
         expect {
           relation.and(foo: "Noodles", omit: true)
-        }.to raise_error(ArgumentError, 'Cannot use "and" with "omit"')
+        }.to raise_error(ArgumentError, "Cannot use `and' with `omit'")
       end
     end
 
