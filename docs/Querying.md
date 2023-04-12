@@ -142,7 +142,7 @@ Otherwise it will raise `ArgumentError`:
 
 ```ruby
 Honeybee.query(age: 42).omit(name: "Hutch").and(name: "Mitch")
-# ArgumentError: Cannot use "and" with "omit"
+# ArgumentError: Cannot use `and' with `omit'
 ```
 
 ### .match

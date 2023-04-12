@@ -272,7 +272,7 @@ module FmRest
         params = params.map { |p| normalize_query_params(p) }
 
         if query_params.including(params).any? { |param| param.key?("omit") }
-          raise ArgumentError, 'Cannot use "and" with "omit"'
+          raise ArgumentError, "Cannot use `and' with `omit'"
         end
 
         clone = with_clone do |r|
