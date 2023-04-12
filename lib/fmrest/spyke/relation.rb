@@ -273,7 +273,7 @@ module FmRest
       def and(*params)
         params = params.map { |p| normalize_query_params(p) }
 
-        if query_params.including(params).any? { |param| param.key?("omit") }
+        if (query_params + params).any? { |param| param.key?("omit") }
           raise ArgumentError, "Cannot use `and' with `omit'"
         end
 
