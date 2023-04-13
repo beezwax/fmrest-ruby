@@ -304,10 +304,40 @@ module FmRest
       # [{name: "Alice", age: 20}, {name: "Bob", age: 20}]
       # ```
       #
+      # Or in pseudocode logical representation:
+      #
+      # ```
+      # (name = "Alice" OR name = "Bob") AND age = 20
+      # ```
+      #
+      # You can also pass multiple condition hashes to `.and`, in which case
+      # it will treat them as OR-separated, e.g.:
+      #
+      # ```
+      # .query({ name: "Alice" }, { name: "Bob" }).and({ age: 20 }, { age: 30 })
+      # ```
+      #
+      # Would result in the following conditions:
+      #
+      # ```
+      # [
+      #   {name: "Alice", age: 20 },
+      #   {name: "Alice", age: 30 },
+      #   {name: "Bob", age: 20 },
+      #   {name: "Bob", age: 30 }
+      # ]
+      # ```
+      #
+      # In pseudocode:
+      #
+      # ```
+      # (name = "Alice" OR name = "Bob") AND (age = 20 OR age = 30)
+      # ```
+      #
       # You can call this method with or without parameters. If parameters are
       # given they will be passed down to `.query` (and those conditions
       # immediately set), otherwise it just prepares the next
-      # conditions-setting method (e.g. `match`) to use OR.
+      # conditions-setting method (e.g. `match`) to use AND.
       #
       # Note that if you use this method on fields that already had conditions
       # set you may end up with an unsatisfiable condition (e.g. name matches
@@ -320,9 +350,11 @@ module FmRest
       #   Person.query(name: "=Alice").and(city: "=Wonderland")
       #   # Add exact match conditions through method chaining:
       #   Person.match(name: "Alice").and.match(city: "Wonderland")
+      #   # With multiple condition hashes:
+      #   Person.query(name: "=Alice").and({ city: "=Wonderland" }, { city: "=London" })
       #   # With conflicting criteria:
       #   Person.match(name: "Alice").and.match(name: "Bob")
-      #   # => JSON: { "name": "1001..1000" }
+      #   # => JSON: { "name": "1001..1000" } -> forced empty result set
       def and(*params)
         clone = with_clone { |r| r.chain_flag = :and }
         params.empty? ? clone : clone.query(*params)
