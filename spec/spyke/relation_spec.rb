@@ -272,6 +272,10 @@ RSpec.describe FmRest::Spyke::Relation do
         "Ships::name" => "==M\\@ry"
       }])
     end
+
+    it "works with numeric values" do
+      expect(relation.match(foo: 1).query_params).to eq([{ "foo" => "==1" }])
+    end
   end
 
   describe "#omit" do

@@ -245,7 +245,7 @@ module FmRest
       # @return [FmRest::Spyke::Relation] a new relation with the exact match
       #   conditions applied
       def match(*params)
-        query(transform_query_values(params) { |v| "==#{FmRest::V1.escape_find_operators(v)}" })
+        query(transform_query_values(params) { |v| "==#{FmRest::V1.escape_find_operators(v.to_s)}" })
       end
 
       # Adds a new set of conditions to omit in a find request.
