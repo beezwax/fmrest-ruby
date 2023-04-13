@@ -5,7 +5,7 @@ require "fixtures/pirates"
 RSpec.describe FmRest::Spyke::Relation do
   let(:test_class) do
     fmrest_spyke_class do
-      attributes :foo, :bar
+      attributes :foo, :bar, :qux
 
       has_portal :ships, portal_key: "Ships"
       has_portal :bridges, portal_key: "Bridges"
@@ -309,13 +309,14 @@ RSpec.describe FmRest::Spyke::Relation do
       it "creates a new scope with all possible combinations of params" do
         query_scope = relation
           .query({ foo: "Meatballs" }, { foo: "Noodles" })
-          .and({ bar: "Onions" }, { bar: "Pickles" })
+          .and({ bar: "Onions", qux: 1 }, { bar: "Pickles", qux: 2 })
 
+        # SQLish pseudocode: (foo = M OR foo = N) AND (bar = O OR bar = P)
         expect(query_scope.query_params).to eq [
-          { "foo" => "Meatballs", "bar" => "Onions" },
-          { "foo" => "Meatballs", "bar" => "Pickles" },
-          { "foo" => "Noodles",   "bar" => "Onions" },
-          { "foo" => "Noodles",   "bar" => "Pickles" }
+          { "foo" => "Meatballs", "bar" => "Onions",  "qux" => 1 },
+          { "foo" => "Meatballs", "bar" => "Pickles", "qux" => 2 },
+          { "foo" => "Noodles",   "bar" => "Onions",  "qux" => 1 },
+          { "foo" => "Noodles",   "bar" => "Pickles", "qux" => 2 }
         ]
       end
     end
