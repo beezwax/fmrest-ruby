@@ -21,7 +21,7 @@ they'll be converted into their matching FileMaker search strings:
 
 ```ruby
 Honeybee.query(age: 18..))
-# JSON -> {"query": [{"DOB": ">=18"}]}
+# JSON -> {"query": [{"Age": ">=18"}]}
 
 Honeybee.query(date_of_birth: Date.today))
 # JSON -> {"query": [{"DOB": "01/02/2021"}]}
@@ -127,8 +127,23 @@ Honeybee.query(name: "Hutch", omit: true)
 `.and` takes the Cartesian product of existing and new parameters:
 
 ```ruby
-Honeybee.query({ name: "Hutch" }, { name: "Mitch" }).and(age: 42)
-# JSON -> {"query": [{"DOB": "42", "Name": "Hutch"}, {"DOB": "42", "Name": "Mitch"}]}
+Honeybee.query({ name: "Hutch" }, { name: "Mitch" }).and({ age: 42 }, { age: 84 )
+# JSON -> {"query":
+#           [
+#             {"Name": "Hutch", "Age": "42"},
+#             {"Name": "Hutch", "Age": "84"},
+#             {"Name": "Mitch", "Age": "42"},
+#             {"Name": "Mitch", "Age": "84"}
+#           ]
+#         }
+```
+
+You can also chain `.and` with `.match` to perform the same operation with
+exact matches:
+
+```ruby
+Honeybee.match({ name: "Hutch" }, { name: "Mitch" }).and.match({ age: 42 })
+# JSON -> {"query": [{"Name": "==Hutch", "Age": "==42"}, {"Name": "==Mutch", "Age": "==42"}]}
 ```
 
 NOTE: `.and` may only be used with `.omit` (or `omit: true`) when omitting the
@@ -136,7 +151,7 @@ last clauses in the query:
 
 ```ruby
 Honeybee.query(age: 42).and(name: "Mitch").omit(name: "Hutch")
-# JSON -> {"query": [{"DOB": "42", "Name": "Mitch"}, {"Name": "Hutch", "omit": "true"}]}
+# JSON -> {"query": [{"Age": "42", "Name": "Mitch"}, {"Name": "Hutch", "omit": "true"}]}
 ```
 
 Otherwise it will raise `ArgumentError`:
