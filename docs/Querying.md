@@ -13,7 +13,7 @@ String conditions are sent unchanged in the request, so you can use
 ```ruby
 # Find records with names containing the word "Hutch"
 Honeybee.query(name: "=Hutch")
-# JSON -> {"query": [{"Bee Name": "=Hutch"}]}
+# JSON -> {"query": [{"Name": "=Hutch"}]}
 ```
 
 You can also pass date/datetime, or range Ruby objects as condition values, and
@@ -21,13 +21,13 @@ they'll be converted into their matching FileMaker search strings:
 
 ```ruby
 Honeybee.query(age: 18..))
-# JSON -> {"query": [{"Bee DOB": ">=18"}]}
+# JSON -> {"query": [{"DOB": ">=18"}]}
 
 Honeybee.query(date_of_birth: Date.today))
-# JSON -> {"query": [{"Bee DOB": "01/02/2021"}]}
+# JSON -> {"query": [{"DOB": "01/02/2021"}]}
 
 Honeybee.query(date_of_birth: (Date.today-1..Date.today))
-# JSON -> {"query": [{"Bee DOB": "01/01/2021..01/02/2021"}]}
+# JSON -> {"query": [{"DOB": "01/01/2021..01/02/2021"}]}
 ```
 
 Passing multiple attributes to `.query` in a single conditions hash will group
@@ -35,7 +35,7 @@ them in the same JSON object:
 
 ```ruby
 Honeybee.query(name: "=Hutch", age: 18..)
-# JSON -> {"query": [{"Bee Name": "=Hutch", "Bee Age": ">=18"}]}
+# JSON -> {"query": [{"Name": "=Hutch", "Age": ">=18"}]}
 ```
 
 Calling `.query` multiple times (through method chaining) will by default merge
@@ -44,7 +44,7 @@ search of the given conditions):
 
 ```ruby
 Honeybee.query(name: "=Hutch").query(age: 20)
-# JSON -> {"query": [{"Bee Name": "=Hutch", "Bee Age": 20}]}
+# JSON -> {"query": [{"Name": "=Hutch", "Age": 20}]}
 ```
 
 NOTE: Prior to version 0.15.0, fmrest-ruby behaved differently in the above case,
@@ -55,7 +55,7 @@ OR search:
 
 ```ruby
 Honeybee.query({ name: "=Hutch" }, { name: "=Maya" })
-# JSON -> {"query": [{"Bee Name": "Hutch"}, {"Bee Name": "Maya"}]}
+# JSON -> {"query": [{"Name": "Hutch"}, {"Name": "Maya"}]}
 ```
 
 Alternatively you can prefix `.or` to chained call to `.query` to specify that
@@ -64,11 +64,11 @@ instead of merged with pre-existing conditions:
 
 ```ruby
 Honeybee.query(name: "=Hutch").or.query(name: "=Maya")
-# JSON -> {"query": [{"Bee Name": "Hutch"}, {"Bee Name": "Maya"}]}
+# JSON -> {"query": [{"Name": "Hutch"}, {"Name": "Maya"}]}
 
 # .or accepts conditions directly as a shorthand for .or.query
 Honeybee.query(name: "=Hutch").or(name: "=Maya")
-# JSON -> {"query": [{"Bee Name": "Hutch"}, {"Bee Name": "Maya"}]}
+# JSON -> {"query": [{"Name": "Hutch"}, {"Name": "Maya"}]}
 ```
 
 You can also query portal parameters using a nested hash (provided that you
@@ -76,7 +76,7 @@ defined your portal in your layout class):
 
 ```ruby
 Honeybee.query(tasks: { urgency: "=Today" })
-# JSON -> {"query": [{"Bee Tasks::Urgency": "=Today"}]}
+# JSON -> {"query": [{"Tasks::Urgency": "=Today"}]}
 ```
 
 Passing strings instead of symbols for keys allows you to pass literal field
@@ -84,15 +84,15 @@ names, useful if for some reason you haven't defined attributes or portals in
 your layout class:
 
 ```ruby
-Honeybee.query("Bee Age" => 4, "Bee Tasks::Urgency" => "=Today")
-# JSON -> {"query": [{"Bee Age": 4, "Bee Tasks::Urgency": "=Today"}]}
+Honeybee.query("Age" => 4, "Tasks::Urgency" => "=Today")
+# JSON -> {"query": [{"Age": 4, "Tasks::Urgency": "=Today"}]}
 ```
 
 Passing `nil` as a condition will search for an empty field:
 
 ```ruby
 Honeybee.query(name: nil)
-# JSON -> {"query": [{"Bee Name": "="}]}
+# JSON -> {"query": [{"Name": "="}]}
 ```
 
 Passing `omit: true` in a conditions hash will cause FileMaker to exclude
@@ -100,7 +100,7 @@ results matching that conditions hash (see also `.omit` below for a shorthand):
 
 ```ruby
 Honeybee.query(name: "=Hutch", omit: true)
-# JSON -> {"query": [{"Bee Name": "=Hutch", "omit": "true"}]}
+# JSON -> {"query": [{"Name": "=Hutch", "omit": "true"}]}
 ```
 
 See `.match` below for a convenience exact-match companion for `.query`.
@@ -112,14 +112,14 @@ the resulting JSON:
 
 ```ruby
 Honeybee.omit(name: "Hutch")
-# JSON -> {"query": [{"Bee Name": "Hutch", "omit": "true"}]}
+# JSON -> {"query": [{"Name": "Hutch", "omit": "true"}]}
 ```
 
 You can get the same effect by passing `omit: true` to `.query`:
 
 ```ruby
 Honeybee.query(name: "Hutch", omit: true)
-# JSON -> {"query": [{"Bee Name": "Hutch", "omit": "true"}]}
+# JSON -> {"query": [{"Name": "Hutch", "omit": "true"}]}
 ```
 
 ### .and
@@ -128,14 +128,15 @@ Honeybee.query(name: "Hutch", omit: true)
 
 ```ruby
 Honeybee.query({ name: "Hutch" }, { name: "Mitch" }).and(age: 42)
-# JSON -> {"query": [{"Bee DOB": "42", "Bee Name": "Hutch"}, {"Bee DOB": "42", "Bee Name": "Mitch"}]}
+# JSON -> {"query": [{"DOB": "42", "Name": "Hutch"}, {"DOB": "42", "Name": "Mitch"}]}
 ```
 
-NOTE: `.and` may only be used with `.omit` (or `omit: true`) when omitting the last clause in the query:
+NOTE: `.and` may only be used with `.omit` (or `omit: true`) when omitting the
+last clauses in the query:
 
 ```ruby
 Honeybee.query(age: 42).and(name: "Mitch").omit(name: "Hutch")
-# JSON -> {"query": [{"Bee DOB": "42", "Bee Name": "Mitch"}, {"Bee Name": "Hutch", "omit": "true"}]}
+# JSON -> {"query": [{"DOB": "42", "Name": "Mitch"}, {"Name": "Hutch", "omit": "true"}]}
 ```
 
 Otherwise it will raise `ArgumentError`:
@@ -154,7 +155,7 @@ address:
 
 ```ruby
 Honeybee.match(email: "hutch@thehive.bee")
-# JSON -> {"query": [{"Bee Email": "==hutch\@thehive.bee"}]}
+# JSON -> {"query": [{"Email": "==hutch\@thehive.bee"}]}
 ```
 
 You can also combine `.or.match` the same way you can `.or.query` to add

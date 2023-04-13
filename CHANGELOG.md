@@ -1,5 +1,10 @@
 ## Changelog
 
+### 0.25.0
+
+* Add `.and` query method
+* Fix crash when `.match` query method was given non-string values
+
 ### 0.24.0
 
 * Add `FmRest::Layout.ignore_mod_id` flag
