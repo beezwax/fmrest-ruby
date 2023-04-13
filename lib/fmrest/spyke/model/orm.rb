@@ -34,9 +34,9 @@ module FmRest
             current_scope || Relation.new(self, uri: uri)
           end
 
-          # Spyke override -- allows properly setting limit, offset and other
-          # options, as well as using the appropriate HTTP method/URL depending
-          # on whether there's a query present in the current scope.
+          # Spyke override -- properly sets limit, offset and other options, as
+          # well as using the appropriate HTTP method/URL depending on whether
+          # there's a query present in the current scope.
           #
           # @option options [Boolean] :raise_on_no_matching_records whether to
           #   raise `APIError::NoMatchingRecordsError` when no records match (FM
@@ -55,8 +55,6 @@ module FmRest
             end
 
             previous, self.current_scope = current_scope, scope
-
-            return if current_scope.instance_of?(FmRest::Spyke::EmptyRelation)
 
             # The DAPI returns a 401 "No records match the request" error when
             # nothing matches a _find request, so we need to catch it in order

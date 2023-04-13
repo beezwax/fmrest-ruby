@@ -5,7 +5,17 @@ module FmRest
     class Relation < ::Spyke::Relation
       SORT_PARAM_MATCHER = /(.*?)(!|__desc(?:end)?)?\Z/.freeze
 
-      ImpossibleValue = Object.new.freeze
+      # This needs to use four-digit numbers in order to work with Date fields
+      # also, otherwise FileMaker will complain about date formatting
+      ZERO_RESULTS_QUERY = '1001..1000'
+
+      UNSATISFIABLE_QUERY_VALUE =
+        Object.new.tap do |u|
+          def u.inspect; 'Unsatisfiable'; end
+          def u.to_s; ZERO_RESULTS_QUERY; end
+        end.freeze
+
+      NORMALIZED_OMIT_KEY = 'omit'
 
       class UnknownQueryKey < ArgumentError; end
 
@@ -16,7 +26,8 @@ module FmRest
 
 
       attr_accessor :limit_value, :offset_value, :sort_params, :query_params,
-                    :or_flag, :included_portals, :portal_params, :script_params
+                    :chain_flag, :included_portals, :portal_params,
+                    :script_params
 
       def initialize(*_args)
         super
@@ -206,9 +217,12 @@ module FmRest
         with_clone do |r|
           params = params.flatten.map { |p| normalize_query_params(p) }
 
-          if r.or_flag || r.query_params.empty?
+          if r.chain_flag == :or || r.query_params.empty?
             r.query_params += params
-            r.or_flag = nil
+            r.chain_flag = nil
+          elsif r.chain_flag == :and
+            r.cartesian_product_query_params(params)
+            r.chain_flag = nil
           elsif params.length > r.query_params.length
             params[0, r.query_params.length].each_with_index do |p, i|
               r.query_params[i].merge!(p)
@@ -261,42 +275,57 @@ module FmRest
       # conditions-setting method (e.g. `match`) to use OR.
       #
       # @example
-      #   # Add conditions directly in .or call:
+      #   # Add conditions directly on .or call:
       #   Person.query(name: "=Alice").or(name: "=Bob")
       #   # Add exact match conditions through method chaining
       #   Person.match(email: "alice@example.com").or.match(email: "bob@example.com")
       def or(*params)
-        clone = with_clone { |r| r.or_flag = true }
+        clone = with_clone { |r| r.chain_flag = :or }
         params.empty? ? clone : clone.query(*params)
       end
 
+      # Signals that the next query conditions to be set (through `.query`,
+      # `.match`, etc.) should be added as a logical AND relative to previously
+      # set conditions.
+      #
+      # In practice this means the given conditions will be applied through
+      # cartesian product onto the previously defined conditions objects in the
+      # JSON query request.
+      #
+      # For example, if you had these conditions:
+      #
+      # ```
+      # [{name: "Alice"}, {name: "Bob"}]
+      # ```
+      #
+      # After calling `.and(age: 20)`, the conditions would look like:
+      #
+      # ```
+      # [{name: "Alice", age: 20}, {name: "Bob", age: 20}]
+      # ```
+      #
+      # You can call this method with or without parameters. If parameters are
+      # given they will be passed down to `.query` (and those conditions
+      # immediately set), otherwise it just prepares the next
+      # conditions-setting method (e.g. `match`) to use OR.
+      #
+      # Note that if you use this method on fields that already had conditions
+      # set you may end up with an unsatisfiable condition (e.g. name matches
+      # 'Bob' AND 'Alice' simultaneously). In that case fmrest-ruby will
+      # replace your given values with an expression that's guaranteed to
+      # return zero results, as that is the logically expected result.
+      #
+      # @example
+      #   # Add conditions directly on .and call:
+      #   Person.query(name: "=Alice").and(city: "=Wonderland")
+      #   # Add exact match conditions through method chaining:
+      #   Person.match(name: "Alice").and.match(city: "Wonderland")
+      #   # With conflicting criteria:
+      #   Person.match(name: "Alice").and.match(name: "Bob")
+      #   # => JSON: { "name": "1001..1000" }
       def and(*params)
-        params = params.map { |p| normalize_query_params(p) }
-
-        if (query_params + params).any? { |param| param.key?("omit") }
-          raise ArgumentError, "Cannot use `and' with `omit'"
-        end
-
-        clone = with_clone do |r|
-          if r.query_params.empty?
-            r.query_params = params
-          else
-            r.query_params =
-              r
-                .query_params
-                .product(params)
-                # A field cannot hold two values at the same time, so mark
-                # those cases for removal:
-                .map { |a, b| a.merge(b) { |_, v1, v2| v1 == v2 ? v1 : ImpossibleValue } }
-                .reject { |hash| hash.values.any?(ImpossibleValue) }
-          end
-        end
-
-        if clone.query_params.empty?
-          EmptyRelation.new(clone)
-        else
-          clone
-        end
+        clone = with_clone { |r| r.chain_flag = :and }
+        params.empty? ? clone : clone.query(*params)
       end
 
       # @return [Boolean] whether a query was set on this relation
@@ -428,7 +457,32 @@ module FmRest
         end
       end
 
+      def cartesian_product_query_params(params)
+        if (query_params + params).any? { |p| p.key?(NORMALIZED_OMIT_KEY) }
+          raise ArgumentError, "Cannot use `and' with queries containing `omit'"
+        end
+
+        self.query_params =
+          query_params
+            .product(params)
+            .map { |a, b| a.merge(b) { |k, v1, v2| v1 == v2 ? v1 : unsatisfiable(k, v1, v2) } }
+      end
+
       private
+
+      def unsatisfiable(field, a, b)
+        unless a == UNSATISFIABLE_QUERY_VALUE || b == UNSATISFIABLE_QUERY_VALUE
+          # TODO: Add a setting to make this an exception instead of a warning?
+          warn(
+            "An FmRest query using `and' required that `#{field}' match " \
+            "'#{a}' and '#{b}' at the same time which can't be satisified. " \
+            "This will appear in the find request as '#{UNSATISFIABLE_QUERY_VALUE}' " \
+            "and may result in an empty resultset."
+          )
+        end
+
+        UNSATISFIABLE_QUERY_VALUE
+      end
 
       def normalize_sort_param(param)
         if param.kind_of?(Symbol) || param.kind_of?(String)
@@ -463,10 +517,10 @@ module FmRest
 
       def normalize_query_params(params)
         params.each_with_object({}) do |(k, v), normalized|
-          if k == :omit || k == "omit"
+          if k == :omit || k == NORMALIZED_OMIT_KEY
             # FM Data API wants omit values as strings, e.g. "true" or "false"
             # rather than true/false
-            normalized["omit"] = v.to_s
+            normalized[NORMALIZED_OMIT_KEY] = v.to_s
             next
           end
 
@@ -575,28 +629,6 @@ module FmRest
         clone.tap do |relation|
           yield relation
         end
-      end
-    end
-
-    class EmptyRelation
-      def initialize(relation)
-        @old_relation = relation
-      end
-
-      def find_one
-        nil
-      end
-
-      def find_some
-        []
-      end
-
-      def query_params
-        []
-      end
-
-      def or(*params)
-        @old_relation.query(*params)
       end
     end
   end
