@@ -13,7 +13,11 @@ RSpec.describe FmRest::Spyke::Relation do
     end
   end
 
-  let(:relation) { FmRest::Spyke::Relation.new(test_class) }
+  let(:relation) { described_class.new(test_class) }
+
+  describe "UNSATISFIABLE_QUERY_VALUE#to_s" do
+    it { expect(described_class::UNSATISFIABLE_QUERY_VALUE.to_s).to eq('1001..1000') }
+  end
 
   describe "#initialize" do
     it "sets the default limit if any" do
@@ -95,7 +99,7 @@ RSpec.describe FmRest::Spyke::Relation do
 
   describe "#order" do
     it "is an alias for #sort" do
-      expect(FmRest::Spyke::Relation.instance_method(:order)).to eq(FmRest::Spyke::Relation.instance_method(:sort))
+      expect(described_class.instance_method(:order)).to eq(described_class.instance_method(:sort))
     end
   end
 
@@ -185,13 +189,15 @@ RSpec.describe FmRest::Spyke::Relation do
 
   describe "#portals" do
     it "is an alias for #portal" do
-      expect(FmRest::Spyke::Relation.instance_method(:portals)).to eq(FmRest::Spyke::Relation.instance_method(:portal))
+      expect(described_class.instance_method(:portals)).to \
+        eq(described_class.instance_method(:portal))
     end
   end
 
   describe "#includes" do
     it "is an alias for #portal" do
-      expect(FmRest::Spyke::Relation.instance_method(:includes)).to eq(FmRest::Spyke::Relation.instance_method(:portal))
+      expect(described_class.instance_method(:includes)).to \
+        eq(described_class.instance_method(:portal))
     end
   end
 
@@ -209,12 +215,12 @@ RSpec.describe FmRest::Spyke::Relation do
 
     it "raises an exception when given a scalar key not matching any attribute" do
       expect { relation.query(no_such_attribute: "very well then") }.to \
-        raise_error(FmRest::Spyke::Relation::UnknownQueryKey, /No attribute/)
+        raise_error(described_class::UnknownQueryKey, /No attribute/)
     end
 
     it "raises an exception when given a hash key not matching any portal" do
       expect { relation.query(no_such_portal: { a: "A" }) }.to \
-        raise_error(FmRest::Spyke::Relation::UnknownQueryKey, /No portal/)
+        raise_error(described_class::UnknownQueryKey, /No portal/)
     end
 
     it "converts Ruby nil to FileMaker empty field condition" do
@@ -247,8 +253,8 @@ RSpec.describe FmRest::Spyke::Relation do
     end
 
     context "with prefixed .or" do
-      it "resets or_flag back to nil" do
-        expect(relation.or.query(foo: "Noodles").or_flag).to eq(nil)
+      it "resets chain_flag back to nil" do
+        expect(relation.or.query(foo: "Noodles").chain_flag).to eq(nil)
       end
 
       it "adds given params to a separate conditions hash" do
@@ -276,8 +282,8 @@ RSpec.describe FmRest::Spyke::Relation do
   end
 
   describe "#or" do
-    it "sets or_flag to true" do
-      expect(relation.or.or_flag).to eq(true)
+    it "sets chain_flag to :or" do
+      expect(relation.or.chain_flag).to eq(:or)
     end
 
     it "forwards params to .query() if any given" do
@@ -287,12 +293,15 @@ RSpec.describe FmRest::Spyke::Relation do
   end
 
   describe "#and" do
+    it "sets chain_flag to :and" do
+      expect(relation.and.chain_flag).to eq(:and)
+    end
+
     context "when there is a key/value collision" do
-      it "creates a new scope with the given query params merged with previous ones" do
-        query_scope = relation.query(foo: "Noodles").and({ bar: "Onions" }, { foo: "Meatballs" })
-        expect(query_scope).to_not eq(relation)
-        expect(query_scope).to be_a(FmRest::Spyke::Relation)
-        expect(query_scope.query_params).to eq([{ "foo" => "Noodles", "bar" => "Onions" }])
+      it "creates a new merged scope with Unsatisfiable where the collision happened" do
+        query_scope = relation.query(foo: "Noodles").and({ bar: "Onions", foo: "Meatballs" })
+        expect(query_scope.query_params).to \
+          eq([{"foo" => described_class::UNSATISFIABLE_QUERY_VALUE, "bar" => "Onions"}])
       end
     end
 
@@ -312,11 +321,10 @@ RSpec.describe FmRest::Spyke::Relation do
     end
 
     context 'when logical "and" would result in an empty result set' do
-      it "creates a new scope with an empty relation" do
+      it "sets the condition to an unsatisfiable value" do
         query_scope = relation.query(foo: "Noodles").and(foo: "Meatballs")
-        expect(query_scope).to_not eq(relation)
-        expect(query_scope).to be_a(FmRest::Spyke::EmptyRelation)
-        expect(query_scope.query_params).to eq([])
+        expect(query_scope.query_params).to \
+          eq([{ "foo" => described_class::UNSATISFIABLE_QUERY_VALUE }])
       end
     end
 
@@ -335,32 +343,43 @@ RSpec.describe FmRest::Spyke::Relation do
     end
 
     context 'when chaining "or" on an "and" with conflicting criteria' do
-      it "ignores the conflicting criteria" do
+      it "sets the condition to an unsatisfiable value" do
         query_scope = relation.query(foo: "Noodles").and(foo: "Meatballs").or(foo: "Onions")
-        expect(query_scope.query_params).to eq([{ "foo" => "Onions" }])
+        expect(query_scope.query_params).to \
+          eq([
+            { "foo" => described_class::UNSATISFIABLE_QUERY_VALUE },
+            { "foo" => "Onions" }
+          ])
       end
     end
 
     context 'when relation includes "omit"' do
-      it "raises ArgumentError" do
+      it do
         expect {
           relation.omit(foo: "Noodles").and(bar: "Meatballs")
-        }.to raise_error(ArgumentError, "Cannot use `and' with `omit'")
+        }.to raise_error(ArgumentError, "Cannot use `and' with queries containing `omit'")
       end
     end
 
-    context 'when params include "omit"' do
-      it "raises ArgumentError" do
+    context 'when params include "omit" and there was a previous query' do
+      it do
         expect {
-          relation.and(foo: "Noodles", omit: true)
-        }.to raise_error(ArgumentError, "Cannot use `and' with `omit'")
+          relation.query(bar: "Meatballs").and(foo: "Noodles", omit: true)
+        }.to raise_error(ArgumentError, "Cannot use `and' with queries containing `omit'")
       end
     end
 
-    context 'when calling "omit" after calling "and"' do
-      it "does not raise an error" do
-        query_scope = relation.query(foo: "Noodles").and(bar: "Meatballs").or(bar: "Onions", omit: true)
-        expect(query_scope.query_params).to eq([{ "bar"=>"Meatballs", "foo"=>"Noodles" }, { "bar"=>"Onions", "omit"=>"true" }])
+    context 'when params include "omit" and there was no previous query' do
+      it do
+        expect { relation.and(foo: "Noodles", omit: true) }.not_to raise_error
+      end
+    end
+
+    context 'when calling #omit after calling #and' do
+      it do
+        expect {
+          relation.query(foo: "Noodles").and(bar: "Meatballs").or(bar: "Onions", omit: true)
+        }.to_not raise_error
       end
     end
   end
@@ -380,7 +399,7 @@ RSpec.describe FmRest::Spyke::Relation do
     # TODO: Make these specs less attached to the implementation
     context "when the id is not set" do
       it "runs a fetch with limit 1 and returns the first element" do
-        other_relation = FmRest::Spyke::Relation.new(test_class)
+        other_relation = described_class.new(test_class)
         fetch_result, record = double, double
         expect(relation).to receive(:limit).with(1).and_return(other_relation)
         expect(other_relation).to receive(:fetch).and_return(fetch_result)
@@ -389,7 +408,7 @@ RSpec.describe FmRest::Spyke::Relation do
       end
 
       it "forwards options to fetch" do
-        other_relation = FmRest::Spyke::Relation.new(test_class)
+        other_relation = described_class.new(test_class)
         fetch_result, record = double, double
         allow(relation).to receive(:limit).with(1).and_return(other_relation)
         allow(test_class).to receive(:new_collection_from_result).with(fetch_result).and_return([record])
