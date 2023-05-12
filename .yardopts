@@ -1,6 +1,6 @@
 --markup markdown
 --plugin activesupport-concern
 --exclude lib/generators/*
--
 lib/**/*.rb
+-
 docs/*
