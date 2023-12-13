@@ -22,7 +22,13 @@ module FmRest
           # when calling ActiveModels' define_attribute_method, otherwise it
           # will define an `attribute` method which overrides the one provided
           # by Spyke
-          self.attribute_method_matchers.shift
+          if respond_to? :attribute_method_patterns
+            # ActiveModel >= 7.1
+            attribute_method_patterns.shift
+          else
+            # ActiveModel < 7.1
+            attribute_method_matchers.shift
+          end
 
           # Keep track of attribute mappings so we can get the FM field names
           # for changed attributes
