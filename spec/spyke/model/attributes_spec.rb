@@ -24,9 +24,21 @@ RSpec.describe FmRest::Spyke::Model::Attributes do
   # TODO: Rewrite this spec to be less dependent on ActiveModel's internals
   describe ".attribute_method_matchers" do
     it "doesn't include a plain entry" do
-      matcher = test_class.attribute_method_matchers.first
-      # ActiveModel 6 uses .target, while ActiveModel <= 5 uses method_missing_target
-      target = matcher.respond_to?(:target) ? matcher.target : matcher.method_missing_target
+      matcher = if test_class.respond_to?(:attribute_method_patterns)
+                  test_class.attribute_method_patterns.first
+                else
+                  test_class.attribute_method_matchers.first
+                end
+      target = if matcher.respond_to?(:proxy_target)
+                 # ActiveModel >= 7.1
+                 matcher.proxy_target
+               elsif matcher.respond_to?(:target)
+                 # ActiveModel >= 6, < 7.1
+                 matcher.target
+               else
+                 # ActiveModel <= 5
+                 matcher.method_missing_target
+               end
       expect(target).to_not eq("attribute")
     end
   end
