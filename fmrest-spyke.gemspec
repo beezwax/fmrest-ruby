@@ -22,6 +22,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "fmrest-core", "=#{FmRest::VERSION}"
   spec.add_dependency "spyke", ">= 7.0"
+  spec.add_dependency "activesupport", ">= 5.2"
 
   # NOTE: Add development deps to fmrest.gemspec
 end
