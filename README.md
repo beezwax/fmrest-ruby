@@ -584,11 +584,11 @@ FM Data API reference: https://help.claris.com/en/data-api-guide/
 
 \* You can manually supply the URL and JSON to a `FmRest` connection.
 
-## Supported Ruby versions
+## Supported Ruby and Rails versions
 
 The latest fmrest-ruby is
 [tested against](https://github.com/beezwax/fmrest-ruby/actions?query=workflow%3ACI)
-Ruby 2.7 through 3.2.
+Ruby 3.0 through 3.3.0-rc1, and Rails (ActiveSupport) 6.1 through 7.1.
 
 ## Gem development
 

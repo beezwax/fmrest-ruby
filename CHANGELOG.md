@@ -1,6 +1,11 @@
 ## Changelog
 
-### 0.25.0
+### 0.26.0
+
+* Add support for ActiveSupport 7.1
+* Drop support for ActiveSupport < 5.2
+
+### 0.25.0-rc1
 
 * Add `.and` query method
 * Fix crash when `.match` query method was given non-string values
