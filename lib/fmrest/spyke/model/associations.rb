@@ -16,12 +16,8 @@ module FmRest
           # to parse the portalData JSON in SpykeFormatter
           #
           # TODO: Replace this with options in PortalBuilder
-          class_attribute :portal_options, instance_accessor: false, instance_predicate: false
-
-          # class_attribute supports a :default option since ActiveSupport 5.2,
-          # but we want to support previous versions too so we set the default
-          # manually instead
-          self.portal_options = {}.freeze
+          class_attribute :portal_options, instance_accessor: false, instance_predicate: false,
+            default: {}.freeze
 
           class << self; private :portal_options=; end
 

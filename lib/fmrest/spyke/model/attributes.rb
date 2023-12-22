@@ -32,12 +32,8 @@ module FmRest
 
           # Keep track of attribute mappings so we can get the FM field names
           # for changed attributes
-          class_attribute :mapped_attributes, instance_writer: false, instance_predicate: false
-
-          # class_attribute supports a :default option since ActiveSupport 5.2,
-          # but we want to support previous versions too so we set the default
-          # manually instead
-          self.mapped_attributes = ::ActiveSupport::HashWithIndifferentAccess.new.freeze
+          class_attribute :mapped_attributes, instance_writer: false, instance_predicate: false,
+            default: ::ActiveSupport::HashWithIndifferentAccess.new.freeze
 
           class << self; private :mapped_attributes=; end
 
