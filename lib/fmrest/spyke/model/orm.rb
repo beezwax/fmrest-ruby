@@ -168,11 +168,12 @@ module FmRest
           # For whatever reason the Data API wants the script params as query
           # string params for DELETE requests, making this more complicated
           # than it should be
-          script_query_string = if options.has_key?(:script)
-                                  "?" + Faraday::Utils.build_query(FmRest::V1.convert_script_params(options[:script]))
-                                else
-                                  ""
-                                end
+          script_query_string =
+            if options.has_key?(:script)
+              "?" + Faraday::Utils.build_query(FmRest::V1.convert_script_params(options[:script]))
+            else
+              ""
+            end
 
           self.attributes = delete(uri.to_s + script_query_string)
         end

@@ -71,10 +71,10 @@ module FmRest
 
         # Do we have ActiveSupport's TimeZone?
         time = if time.respond_to?(:in_time_zone)
-                 time.in_time_zone(zone || ::Time.zone)
-               else
-                 time.localtime
-               end
+          time.in_time_zone(zone || ::Time.zone)
+        else
+          time.localtime
+        end
 
         Rational(time.utc_offset, 86400) # seconds in one day (24*60*60)
       end

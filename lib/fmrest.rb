@@ -40,12 +40,13 @@ module FmRest
     end
 
     def logger
-      @logger ||= if defined?(Rails)
-                    Rails.logger
-                  else
-                    require "logger"
-                    Logger.new($stdout)
-                  end
+      @logger ||=
+        if defined?(Rails)
+          Rails.logger
+        else
+          require "logger"
+          Logger.new($stdout)
+        end
     end
 
     # Shortcut for `FmRest::V1.escape_find_operators`
