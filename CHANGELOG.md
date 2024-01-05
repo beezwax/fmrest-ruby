@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.26.1
+
+* Fix downloading of container files in FileMaker 20
+
 ### 0.26.0
 
 * Add support for ActiveSupport 7.1
