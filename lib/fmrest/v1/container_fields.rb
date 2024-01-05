@@ -55,7 +55,11 @@ module FmRest
             raise FmRest::ContainerFieldError, "Container field's initial request didn't return a session cookie, the URL may be stale (try downloading it again immediately after retrieving the record)"
           end
 
-          url = URI(e.io.meta["location"])
+          url = if e.io.meta["location"].match(/\Ahttps?:/)
+            URI(e.io.meta["location"])
+          else
+            URI.join("#{url.scheme}://#{url.host}:#{url.port}", e.io.meta["location"])
+          end
 
           # Now request the URL again with the proper session cookie using
           # OpenURI, which wraps the response in an IO object which also responds

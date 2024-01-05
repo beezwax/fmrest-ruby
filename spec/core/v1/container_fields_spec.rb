@@ -6,7 +6,7 @@ RSpec.describe FmRest::V1::ContainerFields do
   let(:extendee) { Object.new.tap { |obj| obj.extend(described_class) } }
 
   describe "#fetch_container_data" do
-    let(:container_url) { "https://foo.bar/qux" }
+    let(:container_url) { "https://foo.bar:4444/qux" }
 
     context "when given an invalid URL" do
       it { expect { extendee.fetch_container_data("boo boo") }.to raise_error(FmRest::ContainerFieldError, /Invalid container field URL/) }
@@ -27,16 +27,25 @@ RSpec.describe FmRest::V1::ContainerFields do
     context "when the given URL is a redirect" do
       context "but doesn't return a Set-Cookie header" do
         it "raises an FmRest::ContainerFieldError" do
-          stub_request(:get, container_url).to_return(status: 302, headers: { "Location" => container_url })
+          stub_request(:get, container_url).to_return(status: 302, headers: { "Location" => "/irrelevant" })
 
           expect { extendee.fetch_container_data(container_url) }.to raise_error(FmRest::ContainerFieldError, /session cookie/)
         end
       end
 
-      context "and returns a Set-Cookie header" do
+      context "when it responds with a Set-Cookie and an absolute Location header" do
         it "returns an IO object with the container field contents" do
-          stub_request(:get, container_url).to_return(status: 302, headers: { "Location" => container_url, "Set-Cookie" => "secret cookie" })
-          stub_request(:get, container_url).with(headers: { "Cookie" => "secret cookie" }).to_return(body: "hi there")
+          stub_request(:get, container_url).to_return(status: 302, headers: { "Location" => "https://foo.bar:4444/absolute", "Set-Cookie" => "secret cookie" })
+          stub_request(:get, "https://foo.bar:4444/absolute").with(headers: { "Cookie" => "secret cookie" }).to_return(body: "hi there")
+
+          expect(extendee.fetch_container_data(container_url).read).to eq("hi there")
+        end
+      end
+
+      context "when it responds with a Set-Cookie and a relative Location header" do
+        it "returns an IO object with the container field contents" do
+          stub_request(:get, container_url).to_return(status: 302, headers: { "Location" => "/relative", "Set-Cookie" => "secret cookie" })
+          stub_request(:get, "https://foo.bar:4444/relative").with(headers: { "Cookie" => "secret cookie" }).to_return(body: "hi there")
 
           expect(extendee.fetch_container_data(container_url).read).to eq("hi there")
         end
