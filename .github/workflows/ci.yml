@@ -27,7 +27,7 @@ jobs:
     name: Test against Ruby ${{ matrix.ruby }} / ActiveModel ${{ matrix.activerecord }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
