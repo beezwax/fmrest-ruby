@@ -25,15 +25,19 @@ module FmRest
       def fetch_container_data(container_field_url, base_connection = nil)
         require "open-uri"
 
+        if container_field_url == ""
+          raise FmRest::ContainerFieldError, "Container field URL is empty string"
+        end
+
         begin
           url = URI(container_field_url)
-        rescue ::URI::InvalidURIError
+        rescue ::URI::InvalidURIError, ArgumentError
           raise FmRest::ContainerFieldError, "Invalid container field URL `#{container_field_url}'"
         end
 
         # Make sure we don't try to open anything on the file:/ URI scheme
         unless url.scheme.match(/\Ahttps?\Z/)
-          raise FmRest::ContainerFieldError, "Container URL is not HTTP (#{container_field_url})"
+          raise FmRest::ContainerFieldError, "Container field URL is not HTTP (#{container_field_url})"
         end
 
         ssl_options = base_connection && base_connection.ssl && base_connection.ssl.to_hash

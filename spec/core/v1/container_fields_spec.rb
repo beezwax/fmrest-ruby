@@ -8,12 +8,20 @@ RSpec.describe FmRest::V1::ContainerFields do
   describe "#fetch_container_data" do
     let(:container_url) { "https://foo.bar:4444/qux" }
 
+    context "when given an empty string" do
+      it { expect { extendee.fetch_container_data("") }.to raise_error(FmRest::ContainerFieldError, /Container field URL is empty string/) }
+    end
+
+    context "when given a nil URL" do
+      it { expect { extendee.fetch_container_data(nil) }.to raise_error(FmRest::ContainerFieldError, /Invalid container field URL/) }
+    end
+
     context "when given an invalid URL" do
       it { expect { extendee.fetch_container_data("boo boo") }.to raise_error(FmRest::ContainerFieldError, /Invalid container field URL/) }
     end
 
     context "when given a non-http URL" do
-      it { expect { extendee.fetch_container_data("file://foo/bar") }.to raise_error(FmRest::ContainerFieldError, /Container URL is not HTTP/) }
+      it { expect { extendee.fetch_container_data("file://foo/bar") }.to raise_error(FmRest::ContainerFieldError, /Container field URL is not HTTP/) }
     end
 
     context "when the given URL is not a redirect" do
