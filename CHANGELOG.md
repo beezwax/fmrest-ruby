@@ -1,5 +1,10 @@
 ## Changelog
 
+### 0.26.2
+
+* Fix handling of empty container file URLs, now raises
+  `FmRest::ContainerFieldError`
+
 ### 0.26.1
 
 * Fix downloading of container files in FileMaker 20
