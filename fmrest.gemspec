@@ -32,12 +32,17 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "yard"
   spec.add_development_dependency "yard-activesupport-concern"
 
-  ar_version = ENV["ACTIVE_RECORD_VERSION"] || "~> 7.0"
+  ar_version = ENV["ACTIVE_RECORD_VERSION"] || ">= 7.1"
   sqlite3_version =
-    if (4.2..5.2).include?(ar_version.to_s.gsub(/[^\d.]/, "").to_f)
+    case ar_version.to_s.gsub(/[^\d.]/, "").to_f
+    when 4.2..5.2
       "~> 1.3.0"
-    else
+    when 6.0..7.0
       "~> 1.4.0"
+    when 7.1..7.2
+      ">= 1.4.0"
+    else
+      ">= 2.1"
     end
 
   spec.add_development_dependency "activerecord", ar_version
