@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.26.3
+
+* Compatibility with faraday-multipart 1.1.0
+
 ### 0.26.2
 
 * Fix handling of empty container file URLs, now raises
