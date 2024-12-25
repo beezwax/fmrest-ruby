@@ -88,7 +88,7 @@ module FmRest
 
         connection.post do |request|
           request.url container_path
-          request.headers['Content-Type'] = ::Faraday::Multipart::Middleware.mime_type
+          request.headers['Content-Type'] = "multipart/form-data"
 
           filename = options[:filename] || filename_or_io.try(:original_filename)
 
