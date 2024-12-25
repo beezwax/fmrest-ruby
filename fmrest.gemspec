@@ -38,9 +38,9 @@ Gem::Specification.new do |spec|
     when 4.2..5.2
       "~> 1.3.0"
     when 6.0..7.0
-      "~> 1.4.0"
+      "~> 1.4"
     when 7.1..7.2
-      ">= 1.4.0"
+      ">= 1.4"
     else
       ">= 2.1"
     end
