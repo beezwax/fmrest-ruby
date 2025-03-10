@@ -48,7 +48,7 @@ module FmRest
           def fetch(options = {})
             if current_scope.has_query?
               scope = extend_scope_with_fm_params(current_scope, prefixed: false)
-              scope = scope.where(query: scope.query_params)
+              scope = extend_scope_with_query_params(scope)
               scope = scope.with(FmRest::V1::find_path(layout))
             else
               scope = extend_scope_with_fm_params(current_scope, prefixed: true)
@@ -56,15 +56,16 @@ module FmRest
 
             previous, self.current_scope = current_scope, scope
 
-            # The DAPI returns a 401 "No records match the request" error when
-            # nothing matches a _find request, so we need to catch it in order
-            # to provide sane behavior (i.e. return an empty resultset)
-            begin
-              current_scope.has_query? ? scoped_request(:post) : super()
-            rescue FmRest::APIError::NoMatchingRecordsError => e
-              raise e if options[:raise_on_no_matching_records]
-              ::Spyke::Result.new({})
-            end
+            current_scope.has_query? ? scoped_request(:post) : super()
+
+          # The DAPI returns a 401 "No records match the request" error when
+          # nothing matches a _find request, so we need to catch it in order
+          # to provide sane behavior (i.e. return an empty resultset)
+          rescue FmRest::APIError::NoMatchingRecordsError => e
+            raise e if options[:raise_on_no_matching_records]
+            ::Spyke::Result.new({})
+          rescue Relation::UnsatisfiableQuery
+            ::Spyke::Result.new({})
           ensure
             self.current_scope = previous
           end
@@ -79,6 +80,17 @@ module FmRest
           end
 
           private
+
+          def extend_scope_with_query_params(scope)
+            query_params = scope.query_params
+
+            case FmRest::Spyke.on_unsatisifiable_query
+            when :return_silent, 'return_silent', :return_warn, 'return_warn'
+              query_params = scope.satisifiable_query_params
+            end
+
+            scope.where(query: query_params)
+          end
 
           def extend_scope_with_fm_params(scope, prefixed: false)
             prefix = prefixed ? "_" : nil
