@@ -588,7 +588,7 @@ FM Data API reference: https://help.claris.com/en/data-api-guide/
 
 The latest fmrest-ruby is
 [tested against](https://github.com/beezwax/fmrest-ruby/actions?query=workflow%3ACI)
-Ruby 3.0 through 3.4, and Rails (ActiveSupport) 6.1 through 8.0.
+Ruby 3.0 through 4.0, and Rails (ActiveSupport) 6.1 through 8.1.
 
 ## Gem development
 
