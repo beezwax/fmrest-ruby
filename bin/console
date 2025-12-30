@@ -6,6 +6,6 @@ require "fmrest"
 require_relative "../spec/support/fmrest_dummy_config"
 require_relative "../spec/fixtures/pirates"
 
-require "pry"
+require "irb"
 
-Pry.start
+IRB.start
