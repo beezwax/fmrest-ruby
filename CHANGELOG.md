@@ -1,5 +1,9 @@
 ## Changelog
 
+### 0.27.0
+
+* Compatibility with Ruby 4.0
+
 ### 0.26.3
 
 * Compatibility with faraday-multipart 1.1.0
