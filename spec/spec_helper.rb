@@ -4,7 +4,7 @@ require "bundler/setup"
 
 require "fmrest"
 require "fmrest/spyke"
-require "pry-byebug"
+require "debug"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

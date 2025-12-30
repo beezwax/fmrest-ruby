@@ -22,11 +22,11 @@ jobs:
           - ruby: '3.0'
             activerecord: '8.0'
           - ruby: '3.0'
-            activerecord: '8.1'
+            activerecord: 8.1
           - ruby: 3.1
-            activerecord: '8.0'
+            activerecord: 8.0
           - ruby: 3.1
-            activerecord: '8.1'
+            activerecord: 8.1
           - ruby: 3.4
             activerecord: 6.1
           - ruby: 3.4
@@ -46,7 +46,6 @@ jobs:
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby }}
-        rubygems: latest
         # bundler-cache: true
     - name: Install dependencies
       env:
