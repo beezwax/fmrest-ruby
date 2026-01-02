@@ -21,6 +21,7 @@ tmp
 *.a
 mkmf.log
 spec/db/*
+.tool-versions
 
 # rspec failure tracking
 .rspec_status
