@@ -349,6 +349,26 @@ bee.first_name = "Queen"
 bee.attributes # => { "First Name": "Queen", "Last Name": "Buzz" }
 ```
 
+#### Dirty attributes
+
+fmrest-ruby includes support for ActiveModel's Dirty mixin for attributes
+declared with `attributes`, providing methods like:
+
+```ruby
+bee = Honeybee.new
+bee.changed? # => false
+
+bee.name = "Maya"
+bee.changed? # => true
+bee.name_changed? # => true
+```
+
+fmrest-ruby uses the Dirty functionality to only send changed attributes back
+to the server on save.
+
+You can read more about [ActiveModel's Dirty in Rails
+Guides](https://guides.rubyonrails.org/active_model_basics.html#dirty).
+
 ### FmRest::Layout.has_portal
 
 You can define portal associations on your model wth `has_portal`, as such:
@@ -364,29 +384,6 @@ end
 ```
 
 See the [main document on portal associations](docs/Portals.md) for details.
-
-### Dirty attributes
-
-fmrest-ruby includes support for ActiveModel's Dirty mixin out of the box,
-providing methods like:
-
-```ruby
-bee = Honeybee.new
-
-bee.changed? # => false
-
-bee.name = "Maya"
-
-bee.changed? # => true
-
-bee.name_changed? # => true
-```
-
-fmrest-ruby uses the Dirty functionality to only send changed attributes back
-to the server on save.
-
-You can read more about [ActiveModel's Dirty in Rails
-Guides](https://guides.rubyonrails.org/active_model_basics.html#dirty).
 
 ### Query API
 
