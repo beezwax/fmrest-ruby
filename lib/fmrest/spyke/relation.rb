@@ -18,6 +18,7 @@ module FmRest
       NORMALIZED_OMIT_KEY = 'omit'
 
       class UnknownQueryKey < ArgumentError; end
+      class UnsatisfiableQuery < ArgumentError; end
 
       # NOTE: We need to keep limit, offset, sort, query and portal accessors
       # separate from regular params because FM Data API uses either "limit" or
@@ -467,6 +468,15 @@ module FmRest
         end
       end
 
+      def satisifiable_query_params(raise_on_empty: true)
+        params = self.query_params =
+          query_params.reject { |q| q.value?(UNSATISFIABLE_QUERY_VALUE) }
+
+        raise UnsatisfiableQuery if params.empty? && raise_on_empty
+
+        params
+      end
+
       protected
 
       def set_portal_params(params_hash, param)
@@ -504,13 +514,32 @@ module FmRest
 
       def unsatisfiable(field, a, b)
         unless a == UNSATISFIABLE_QUERY_VALUE || b == UNSATISFIABLE_QUERY_VALUE
-          # TODO: Add a setting to make this an exception instead of a warning?
-          warn(
-            "An FmRest query using `and' required that `#{field}' match " \
-            "'#{a}' and '#{b}' at the same time which can't be satisified. " \
-            "This will appear in the find request as '#{UNSATISFIABLE_QUERY_VALUE}' " \
-            "and may result in an empty resultset."
-          )
+          case FmRest::Spyke.on_unsatisifiable_query
+          when :request_silent, :return_silent, 'request_silent', 'return_silent'
+          when :raise, 'raise'
+            raise ArgumentError,
+              "An FmRest query using `.and' required that '#{field}' match " \
+                "'#{a}' & '#{b}' at the same time which can't be satisified."
+          when :return_warn, 'return_warn'
+            warn(
+              "An FmRest query using `.and' required that '#{field}' match " \
+                "'#{a}' & '#{b}' at the same time which can't be satisified. " \
+                "The conflicting part of the query will be omitted from the " \
+                "request, and no Data API request will be sent if there's " \
+                "nothing left to query for."
+            )
+          when :request_warn, 'request_warn', nil
+            warn(
+              "An FmRest query using `.and' required that '#{field}' match " \
+                "'#{a}' & '#{b}' at the same time which can't be satisified. " \
+                "This will appear in the find request as '#{UNSATISFIABLE_QUERY_VALUE}' " \
+                "and may result in an empty resultset."
+            )
+          else
+            raise ArgumentError, "Unrecognized value for " \
+              "FmRest::Spyke.on_unsatisifiable_query " \
+              "`#{FmRest::Spyke.on_unsatisifiable_query}'"
+          end
         end
 
         UNSATISFIABLE_QUERY_VALUE
